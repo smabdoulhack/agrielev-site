@@ -1,0 +1,15 @@
+---
+// Icônes Phosphor « Regular » copiées dans src/icones/ (npm run icones).
+interface Props {
+  nom: string;
+  taille?: number;
+  label?: string;
+}
+const { nom, taille = 24, label } = Astro.props;
+const icones = import.meta.glob<string>('/src/icones/*.svg', { query: '?raw', import: 'default', eager: true });
+const svg = icones[`/src/icones/${nom}.svg`];
+if (!svg) throw new Error(`Icône introuvable : ${nom}. L'ajouter dans scripts/copier-icones.mjs puis npm run icones.`);
+const accessibilite = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true" focusable="false"';
+const html = svg.replace('<svg', `<svg width="${taille}" height="${taille}" class="icone" ${accessibilite}`);
+---
+<Fragment set:html={html} />

@@ -1,0 +1,17 @@
+titre: Transformation et accès aux équipements
+ordre: 3
+accroche: Faciliter l'accès aux équipements de transformation agroalimentaire et accompagner leur utilisation.
+statut: preparation
+familles: [produits, chaine]
+icone: factory
+description: |
+  AgriElev développe des collaborations pour faciliter l'accès aux équipements de transformation agroalimentaire et accompagner leur utilisation.
+
+  L'objectif est de travailler avec les transformatrices et leurs organisations sur des solutions adaptées à leurs volumes, à leurs moyens et aux débouchés recherchés.
+actions:
+  - libelle: Étudier un besoin en transformation
+    sujet: besoin-transformation
+photo: ../../assets/photos/offre-transformation.jpg
+responsable: Nourou-Dine
+miseAJour: 2026-10-06
+etat: publie

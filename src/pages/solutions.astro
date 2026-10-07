@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EnTetePage from '../components/EnTetePage.astro';
+import Photo from '../components/Photo.astro';
+import Icone from '../components/Icone.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
+import ListeModules from '../components/ListeModules.astro';
+import BandeauContact from '../components/BandeauContact.astro';
+import { chargerVisibles } from '../lib/collections.ts';
+import { lienContact } from '../lib/sujets.ts';
+
+const offres = (await chargerVisibles('offres')).sort((a, b) => a.data.ordre - b.data.ordre);
+const modules = await getCollection('modules');
+---
+<BaseLayout titre="Nos solutions" description="Les cinq offres d'AgriElev : gestion numérique, formation et expertise, transformation, accès au marché, innovation. Chacune avec son état réel.">
+  <EnTetePage
+    surtitre="Nos solutions"
+    titre="Cinq offres pour accompagner les filières agricoles"
+    chapeau="Chaque offre affiche son état réel : disponible, en pilote ou en préparation. Écrivez-nous pour en parler, le formulaire sera déjà orienté vers le bon sujet."
+  />
+
+  {offres.map((offre, i) => (
+    <section id={offre.id} class:list={['section', { 'section--creme': i % 2 === 1 }]}>
+      <div class="conteneur offre">
+        <Photo photo={{ src: offre.data.photo, alt: '' }} classe="offre__photo" />
+        <div>
+          <div class="offre__haut">
+            <span class="offre__icone"><Icone nom={offre.data.icone} taille={24} /></span>
+            <BadgeStatut statut={offre.data.statut} />
+          </div>
+          <h2>{offre.data.titre}</h2>
+          {offre.data.description.split('\n\n').filter(Boolean).map((p) => <p>{p}</p>)}
+          <div class="actions">
+            {offre.data.actions.map((a, j) => (
+              <a
+                class:list={['bouton', j === 0 ? 'bouton--principal' : 'bouton--secondaire']}
+                href={a.sujet ? lienContact(a.sujet, `/solutions#${offre.id}`) : a.url}
+              >{a.libelle}</a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <section class="section section--brume">
+    <div class="conteneur">
+      <p class="surtitre">La plateforme</p>
+      <h2>Les modules AgriElev</h2>
+      <p class="chapeau">Les onze modules de la plateforme, regroupés par famille.</p>
+      <ListeModules modules={modules} />
+    </div>
+  </section>
+
+  <BandeauContact />
+</BaseLayout>
+
+<style>
+  .offre { display: grid; gap: var(--esp-5); align-items: center; }
+  @media (min-width: 64rem) { .offre { grid-template-columns: 1fr 1.2fr; } }
+  :global(.offre__photo) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+  .offre__haut { display: flex; align-items: center; gap: var(--esp-3); margin-bottom: var(--esp-3); }
+  .offre__icone { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+</style>

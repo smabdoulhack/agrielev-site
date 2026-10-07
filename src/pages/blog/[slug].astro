@@ -1,0 +1,88 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Photo from '../../components/Photo.astro';
+import Partage from '../../components/Partage.astro';
+import CarteArticle from '../../components/CarteArticle.astro';
+import { chargerVisibles } from '../../lib/collections.ts';
+import { articlesLies, libelleCategorie, tempsLecture, type CategorieCode } from '../../lib/blog.ts';
+import { formatDate } from '../../lib/format.ts';
+import { SITE } from '../../data/site.ts';
+
+export const getStaticPaths = (async () => {
+  const articles = await chargerVisibles('articles');
+  return articles.map((article) => ({ params: { slug: article.id }, props: { article, tous: articles } }));
+}) satisfies GetStaticPaths;
+
+const { article, tous } = Astro.props;
+const { Content } = await render(article);
+const d = article.data;
+const categorie = d.categorie as CategorieCode;
+const resume = (a: typeof article) => ({ ...a, categorie: a.data.categorie as CategorieCode, date: a.data.date });
+const lies = articlesLies(resume(article), tous.map(resume));
+const url = new URL(`/blog/${article.id}`, SITE.url).href;
+const image = d.couverture ? d.couverture.src : undefined;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.titre,
+  description: d.resume,
+  datePublished: d.date.toISOString(),
+  author: { '@type': 'Person', name: d.auteur },
+  publisher: { '@type': 'Organization', name: SITE.raisonSociale, url: SITE.url },
+  mainEntityOfPage: url,
+};
+---
+<BaseLayout titre={d.titre} description={d.resume} type="article" image={image} jsonLd={jsonLd}>
+  <article class="section">
+    <div class="conteneur article">
+      <p class="article__meta">
+        <a href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie)}</a>
+        · <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        · {tempsLecture(article.body ?? '')} min de lecture
+      </p>
+      <h1>{d.titre}</h1>
+      <p class="chapeau">{d.resume}</p>
+      <p class="article__auteur">Par {d.auteur}{d.valideParExpert && <span>, contenu validé par {d.valideParExpert}</span>}</p>
+      {d.couverture && (
+        <figure>
+          <Photo photo={{ src: d.couverture, alt: d.couvertureAlt || d.titre }} classe="article__couverture" prioritaire sizes="(min-width: 52rem) 48rem, 100vw" />
+          {d.couvertureCredit && <figcaption>Photo : {d.couvertureCredit}</figcaption>}
+        </figure>
+      )}
+      <div class="article__corps"><Content /></div>
+      {d.sources.length > 0 && (
+        <section class="article__sources">
+          <h2>Sources</h2>
+          <ul>{d.sources.map((s) => <li>{s}</li>)}</ul>
+        </section>
+      )}
+      <Partage titre={d.titre} url={url} />
+    </div>
+  </article>
+
+  {lies.length > 0 && (
+    <section class="section section--creme">
+      <div class="conteneur">
+        <h2>À lire aussi</h2>
+        <div class="grille">{lies.map((a) => <CarteArticle article={a} />)}</div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .article { max-width: 48rem; }
+  .article__meta { color: var(--gris-ardoise); }
+  .article__meta a { color: var(--ae-vert-foret); font-weight: 600; }
+  .article__auteur { font-weight: 600; }
+  figure { margin: var(--esp-5) 0; }
+  figcaption { font-size: 0.9rem; color: var(--gris-ardoise); margin-top: var(--esp-2); }
+  :global(.article__couverture) { width: 100%; border-radius: var(--radius); }
+  .article__corps :global(h2) { margin-top: var(--esp-5); }
+  .article__corps :global(img) { border-radius: var(--radius); }
+  .article__sources { margin-top: var(--esp-5); font-size: 0.95rem; color: var(--gris-ardoise); }
+  .article__sources h2 { font-size: 1.2rem; }
+</style>

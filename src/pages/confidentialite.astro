@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site.ts';
+---
+<BaseLayout titre="Confidentialité">
+  <article class="section"><div class="conteneur texte-legal">
+    <p class="a-valider">Texte à valider par la direction avant publication.</p>
+    <h1>Confidentialité et données personnelles</h1>
+    <h2>Données collectées</h2>
+    <p>Les formulaires du site recueillent uniquement les informations utiles pour vous répondre : nom, organisation (facultatif), profil, zone, coordonnées de réponse, sujet et message. Le formulaire de candidature des experts recueille aussi la spécialité, les diplômes et la disponibilité.</p>
+    <h2>Finalité</h2>
+    <p>Ces informations servent à traiter votre demande et à vous recontacter. Elles ne sont ni vendues ni cédées.</p>
+    <h2>Destinataires et hébergement</h2>
+    <p>Les demandes sont reçues par l'équipe d'{SITE.raisonSociale} concernée par le sujet. Elles transitent par le service de formulaires de Netlify, notre hébergeur.</p>
+    <h2>Durée de conservation</h2>
+    <p>Les demandes sont conservées le temps nécessaire à leur traitement et au suivi de la relation, puis supprimées.</p>
+    <h2>Mesure d'audience</h2>
+    <p>Le site utilise une mesure d'audience sans cookie qui ne collecte aucune donnée personnelle.</p>
+    <h2>Vos droits</h2>
+    <p>Vous pouvez demander l'accès, la rectification ou la suppression de vos données en écrivant à <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+    <p>Ne transmettez pas par le formulaire de dossier vétérinaire détaillé ni de données confidentielles d'exploitation.</p>
+  </div></article>
+</BaseLayout>

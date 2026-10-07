@@ -1,0 +1,19 @@
+titre: Gestion numérique et accompagnement des filières
+ordre: 1
+accroche: Suivre les activités des exploitations avec CuniSmart et cadrer un déploiement collectif pour les coopératives.
+statut: preparation
+familles: [animales, vegetales]
+icone: device-mobile
+description: |
+  Nous aidons les exploitations et leurs organisations à mieux suivre leurs activités avec CuniSmart. L'outil rassemble les informations utiles à la gestion de l'élevage et des cultures.
+
+  Pour les coopératives et fédérations, AgriElev propose de cadrer un déploiement collectif comprenant prise en main, accompagnement et indicateurs de suivi adaptés.
+actions:
+  - libelle: Découvrir CuniSmart
+    url: /cunismart
+  - libelle: Organiser un pilote avec ma coopérative
+    sujet: pilote-cooperative
+photo: ../../assets/photos/offre-gestion-numerique.jpg
+responsable: Abdoul Hack
+miseAJour: 2026-10-06
+etat: publie

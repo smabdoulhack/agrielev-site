@@ -1,0 +1,22 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  photo: { src: ImageMetadata; alt: string };
+  sizes?: string;
+  classe?: string;
+  prioritaire?: boolean;
+}
+const { photo, sizes = '(min-width: 72rem) 36rem, 100vw', classe, prioritaire = false } = Astro.props;
+---
+<Picture
+  src={photo.src}
+  alt={photo.alt}
+  formats={['avif', 'webp']}
+  widths={[480, 800, 1200, 1600].filter((w) => w <= photo.src.width)}
+  sizes={sizes}
+  loading={prioritaire ? 'eager' : 'lazy'}
+  fetchpriority={prioritaire ? 'high' : 'auto'}
+  class={classe}
+/>

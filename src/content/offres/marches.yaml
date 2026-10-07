@@ -1,0 +1,19 @@
+titre: Filières et accès au marché
+ordre: 4
+accroche: Rapprocher producteurs, organisations collectives et acheteurs pour mieux valoriser les produits agricoles.
+statut: preparation
+familles: [produits, chaine]
+icone: storefront
+description: |
+  Nous développons des relations entre producteurs, organisations collectives et acheteurs pour mieux valoriser les produits agricoles. Les démarches engagées concernent notamment le karité, le miel et le néré.
+
+  Il s'agit, à ce stade, de projets et de démarches commerciales, menés avec les acteurs concernés.
+actions:
+  - libelle: Proposer un produit
+    sujet: proposer-produit
+  - libelle: Présenter un besoin d'achat
+    sujet: besoin-achat
+photo: ../../assets/photos/offre-marches.jpg
+responsable: Nourou-Dine
+miseAJour: 2026-10-06
+etat: publie

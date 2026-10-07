@@ -1,0 +1,21 @@
+titre: Formation, information et expertise agricole
+ordre: 2
+accroche: Des parcours pratiques avec CuniMaster et des contenus agricoles avec AgriElev Connect.
+statut: preparation
+familles: [animales, vegetales]
+icone: graduation-cap
+description: |
+  Avec CuniMaster, nous développons des parcours pratiques pour renforcer les compétences des producteurs et des acteurs des filières.
+
+  AgriElev Connect complète cet apprentissage par des contenus agricoles et des échanges avec des professionnels. L'objectif est de rapprocher les connaissances techniques des besoins rencontrés sur le terrain.
+actions:
+  - libelle: Découvrir les formations
+    url: /ressources#formations
+  - libelle: Suivre AgriElev Connect
+    url: /connect
+  - libelle: Rejoindre le réseau d'experts
+    url: /connect#candidature
+photo: ../../assets/photos/offre-formation.jpg
+responsable: Thierry Kouembi
+miseAJour: 2026-10-06
+etat: publie

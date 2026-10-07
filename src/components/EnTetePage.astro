@@ -1,0 +1,29 @@
+---
+import Photo from './Photo.astro';
+import type { PhotoSite } from '../data/photos.ts';
+
+interface Props {
+  surtitre?: string;
+  titre: string;
+  chapeau?: string;
+  photo?: PhotoSite;
+}
+const { surtitre, titre, chapeau, photo } = Astro.props;
+---
+<section class="entete-page section section--creme">
+  <div class:list={['conteneur', 'entete-page__grille', { 'entete-page__grille--photo': photo }]}>
+    <div>
+      {surtitre && <p class="surtitre">{surtitre}</p>}
+      <h1>{titre}</h1>
+      {chapeau && <p class="chapeau">{chapeau}</p>}
+      <slot />
+    </div>
+    {photo && <Photo photo={photo} classe="entete-page__photo" prioritaire sizes="(min-width: 64rem) 32rem, 100vw" />}
+  </div>
+</section>
+
+<style>
+  .entete-page__grille { display: grid; gap: var(--esp-5); align-items: center; }
+  @media (min-width: 64rem) { .entete-page__grille--photo { grid-template-columns: 1.1fr 1fr; } }
+  :global(.entete-page__photo) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+</style>

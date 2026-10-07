@@ -1,0 +1,51 @@
+---
+import Icone from './Icone.astro';
+
+interface Props {
+  titre: string;
+  url: string;
+}
+const { titre, url } = Astro.props;
+const e = encodeURIComponent;
+const liens = [
+  { nom: 'WhatsApp', icone: 'whatsapp-logo', href: `https://wa.me/?text=${e(`${titre} ${url}`)}` },
+  { nom: 'Facebook', icone: 'facebook-logo', href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}` },
+  { nom: 'LinkedIn', icone: 'linkedin-logo', href: `https://www.linkedin.com/sharing/share-offsite/?url=${e(url)}` },
+];
+---
+<div class="partage">
+  <p class="partage__titre">Partager cet article</p>
+  <ul>
+    {liens.map((l) => (
+      <li><a href={l.href} target="_blank" rel="noopener" data-umami-event={`partage-${l.nom.toLowerCase()}`}>
+        <Icone nom={l.icone} taille={22} /><span>{l.nom}</span><span class="visuellement-cache"> (nouvel onglet)</span>
+      </a></li>
+    ))}
+    <li><button type="button" class="partage__copier" data-url={url}><Icone nom="link-simple" taille={22} /><span>Copier le lien</span></button></li>
+  </ul>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.partage__copier').forEach((bouton) => {
+    bouton.addEventListener('click', async () => {
+      const texte = bouton.querySelector('span');
+      try {
+        await navigator.clipboard.writeText(bouton.dataset.url ?? location.href);
+        if (texte) texte.textContent = 'Lien copié';
+      } catch {
+        if (texte) texte.textContent = 'Copie impossible';
+      }
+    });
+  });
+</script>
+
+<style>
+  .partage { margin-block: var(--esp-5); padding-block: var(--esp-4); border-block: 1px solid var(--ae-vert-brume); }
+  .partage__titre { font-weight: 600; }
+  .partage ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+  .partage a, .partage button {
+    display: inline-flex; align-items: center; gap: var(--esp-2); min-height: 2.75rem; padding: var(--esp-2) var(--esp-3);
+    border: 1px solid var(--ae-vert-foret); border-radius: var(--radius); background: #FFFFFF;
+    color: var(--ae-vert-foret); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer;
+  }
+</style>

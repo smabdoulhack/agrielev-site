@@ -1,0 +1,30 @@
+---
+import Icone from './Icone.astro';
+import { SITE, telLien } from '../data/site.ts';
+
+interface Props {
+  titre?: string;
+  texte?: string;
+}
+const {
+  titre = 'Parlons de votre projet',
+  texte = 'Producteur, coopérative, partenaire ou expert : dites-nous ce dont vous avez besoin, nous vous orientons vers la bonne personne.',
+} = Astro.props;
+---
+<section class="section section--foret">
+  <div class="conteneur bandeau">
+    <div>
+      <h2>{titre}</h2>
+      <p class="chapeau">{texte}</p>
+    </div>
+    <div class="actions">
+      <a class="bouton bouton--principal" href="/contact">Écrire à AgriElev <Icone nom="arrow-right" taille={20} /></a>
+      <a class="bouton bouton--clair" href={telLien(SITE.telephones[0])}><Icone nom="phone" taille={20} /> {SITE.telephones[0]}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bandeau { display: grid; gap: var(--esp-4); align-items: center; }
+  @media (min-width: 64rem) { .bandeau { grid-template-columns: 2fr 1fr; } }
+</style>

@@ -1,0 +1,18 @@
+---
+import { preparerChiffre, type DonneeChiffree } from '../lib/chiffre.ts';
+
+type Props = Partial<DonneeChiffree>;
+const chiffre = preparerChiffre(Astro.props);
+---
+{chiffre && (
+  <span class="chiffre">
+    <strong class="chiffre__valeur">{chiffre.valeur}</strong>&nbsp;<span class="chiffre__unite">{chiffre.unite}</span>
+    <small class="chiffre__mention">({chiffre.mention})</small>
+  </span>
+)}
+
+<style>
+  .chiffre__valeur { font-family: var(--font-titre); font-weight: 800; font-size: 1.6em; color: var(--ae-vert-foret); }
+  .chiffre__unite { font-weight: 600; }
+  .chiffre__mention { display: block; color: var(--gris-ardoise); font-size: 0.8rem; }
+</style>

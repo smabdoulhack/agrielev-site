@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Photo from './Photo.astro';
+import Icone from './Icone.astro';
+import BadgeStatut from './BadgeStatut.astro';
+
+interface Props {
+  offre: CollectionEntry<'offres'>;
+}
+const { offre } = Astro.props;
+const { titre, accroche, statut, photo, icone } = offre.data;
+---
+<article class="carte-offre" data-test="carte-offre">
+  <Photo photo={{ src: photo, alt: '' }} classe="carte-offre__photo" sizes="(min-width: 72rem) 22rem, (min-width: 48rem) 45vw, 100vw" />
+  <div class="carte-offre__corps">
+    <div class="carte-offre__haut">
+      <span class="carte-offre__icone"><Icone nom={icone} taille={22} /></span>
+      <BadgeStatut statut={statut} />
+    </div>
+    <h3><a href={`/solutions#${offre.id}`}>{titre}</a></h3>
+    <p>{accroche}</p>
+  </div>
+</article>
+
+<style>
+  .carte-offre { position: relative; display: flex; flex-direction: column; background: #FFFFFF; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgb(73 34 15 / 0.12); }
+  .carte-offre:focus-within, .carte-offre:hover { box-shadow: 0 6px 20px rgb(73 34 15 / 0.16); }
+  :global(.carte-offre__photo) { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+  .carte-offre__corps { padding: var(--esp-4); }
+  .carte-offre__haut { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--esp-3); }
+  .carte-offre__icone { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .carte-offre h3 a { color: var(--ae-vert-foret); text-decoration: none; }
+  .carte-offre h3 a::after { content: ''; position: absolute; inset: 0; }
+  .carte-offre p { margin: 0; }
+</style>

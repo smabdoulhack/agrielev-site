@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+interface Props {
+  expert: CollectionEntry<'experts'>;
+}
+const ROLES = { associe: 'Associé', consultant: 'Consultant', expert: 'Expert' } as const;
+const { expert } = Astro.props;
+const { nom, role, specialite, photo } = expert.data;
+const initiales = nom.split(' ').map((m) => m[0]).join('').slice(0, 2);
+---
+<article class="carte-expert" data-test="carte-expert">
+  {photo
+    ? <Image src={photo} alt="" width={96} height={96} class="carte-expert__photo" />
+    : <span class="carte-expert__initiales" aria-hidden="true">{initiales}</span>}
+  <div>
+    <h3>{nom}</h3>
+    <p class="carte-expert__role">{ROLES[role]}</p>
+    <p>{specialite}</p>
+  </div>
+</article>
+
+<style>
+  .carte-expert { display: flex; gap: var(--esp-3); align-items: center; padding: var(--esp-4); background: #FFFFFF; border-radius: var(--radius); }
+  .carte-expert h3 { margin-bottom: var(--esp-1); }
+  .carte-expert p { margin: 0; }
+  .carte-expert__role { color: var(--ae-vert-foret); font-weight: 600; }
+  :global(.carte-expert__photo), .carte-expert__initiales { flex: none; width: 6rem; height: 6rem; border-radius: 50%; object-fit: cover; }
+  .carte-expert__initiales { display: grid; place-items: center; background: var(--ae-vert-brume); color: var(--ae-vert-foret); font-family: var(--font-titre); font-weight: 800; font-size: 1.75rem; }
+</style>

@@ -1,0 +1,27 @@
+---
+import { libelleStatut, type Statut } from '../lib/statut.ts';
+
+interface Props {
+  statut: Statut;
+}
+const { statut } = Astro.props;
+---
+<span class:list={['badge', `badge--${statut}`]}>
+  <span class="badge__point" aria-hidden="true"></span>{libelleStatut(statut)}
+</span>
+
+<style>
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.2rem 0.65rem; border-radius: 999px;
+    background: #FFFFFF; border: 1px solid currentColor;
+    font-size: 0.85rem; font-weight: 600; color: var(--ae-brun-terre); line-height: 1.4;
+  }
+  .badge__point { width: 0.55rem; height: 0.55rem; border-radius: 50%; }
+  .badge--disponible { border-color: var(--mod-vert-pousse); }
+  .badge--disponible .badge__point { background: var(--mod-vert-pousse); }
+  .badge--pilote { border-color: var(--ae-or-fonce); }
+  .badge--pilote .badge__point { background: var(--ae-or-fonce); }
+  .badge--preparation { border-color: var(--gris-ardoise); }
+  .badge--preparation .badge__point { background: var(--gris-ardoise); }
+</style>

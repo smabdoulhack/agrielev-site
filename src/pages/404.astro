@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icone from '../components/Icone.astro';
+---
+<BaseLayout titre="Page introuvable" noindex>
+  <section class="section"><div class="conteneur">
+    <h1>Page introuvable</h1>
+    <p class="chapeau">Cette page n'existe pas ou a été déplacée.</p>
+    <div class="actions">
+      <a class="bouton bouton--principal" href="/">Retour à l'accueil <Icone nom="arrow-right" taille={20} /></a>
+      <a class="bouton bouton--secondaire" href="/solutions">Nos solutions</a>
+      <a class="bouton bouton--secondaire" href="/contact">Contact</a>
+    </div>
+  </div></section>
+</BaseLayout>

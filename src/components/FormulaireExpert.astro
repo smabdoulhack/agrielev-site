@@ -1,0 +1,55 @@
+---
+---
+<form id="candidature" name="candidature-expert" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="expert" class="formulaire">
+  <input type="hidden" name="form-name" value="candidature-expert" />
+  <input type="hidden" name="subject" data-remove-prefix value="[Site AgriElev] Candidature expert · Institutionnel" />
+  <p class="visuellement-cache"><label>Ne pas remplir : <input name="site_web" tabindex="-1" autocomplete="off" /></label></p>
+
+  <div class="champ">
+    <label for="e-nom">Nom et prénom <span aria-hidden="true">*</span></label>
+    <input id="e-nom" name="nom" required autocomplete="name" maxlength="120" />
+  </div>
+  <div class="champ">
+    <label for="e-email">E-mail <span aria-hidden="true">*</span></label>
+    <input id="e-email" name="email" type="email" required autocomplete="email" maxlength="160" />
+  </div>
+  <div class="champ">
+    <label for="e-telephone">Téléphone ou WhatsApp <span class="facultatif">(facultatif)</span></label>
+    <input id="e-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+  </div>
+  <div class="champ">
+    <label for="e-specialite">Spécialité <span aria-hidden="true">*</span></label>
+    <input id="e-specialite" name="specialite" required maxlength="160" placeholder="Exemple : santé animale, agronomie, aquaculture" />
+  </div>
+  <div class="champ">
+    <label for="e-diplomes">Diplômes et expérience <span aria-hidden="true">*</span></label>
+    <textarea id="e-diplomes" name="diplomes" required rows="3" maxlength="2000"></textarea>
+  </div>
+  <div class="champ">
+    <label for="e-zone">Zone d'intervention <span aria-hidden="true">*</span></label>
+    <input id="e-zone" name="zone" required maxlength="160" />
+  </div>
+  <div class="champ">
+    <label for="e-disponibilite">Disponibilité <span aria-hidden="true">*</span></label>
+    <input id="e-disponibilite" name="disponibilite" required maxlength="160" placeholder="Exemple : deux demi-journées par mois" />
+  </div>
+  <div class="champ">
+    <label for="e-lien">Lien vers un profil <span class="facultatif">(facultatif)</span></label>
+    <input id="e-lien" name="lien" type="url" maxlength="300" placeholder="https://" />
+  </div>
+  <div class="champ">
+    <label for="e-message">Message <span class="facultatif">(facultatif)</span></label>
+    <textarea id="e-message" name="message" rows="4" maxlength="3000"></textarea>
+  </div>
+  <div class="champ champ--case">
+    <input id="e-consentement" name="consentement" type="checkbox" value="oui" required />
+    <label for="e-consentement">J'accepte que mes informations servent à étudier ma candidature (<a href="/confidentialite">confidentialité</a>).</label>
+  </div>
+  <p class="aide">Les champs marqués * sont obligatoires.</p>
+  <button type="submit" class="bouton bouton--principal" data-umami-event="envoi-candidature-expert">Envoyer ma candidature</button>
+</form>
+
+<script>
+  import { initialiserFormulaires } from '../scripts/formulaire.ts';
+  initialiserFormulaires();
+</script>

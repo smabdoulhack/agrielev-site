@@ -1,0 +1,44 @@
+---
+import type { Page } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import CarteArticle from './CarteArticle.astro';
+import { CATEGORIES, type CategorieCode } from '../lib/blog.ts';
+
+interface Props {
+  page: Page<CollectionEntry<'articles'>>;
+  categorieActive?: CategorieCode;
+}
+const { page, categorieActive } = Astro.props;
+const filtres = [{ code: undefined, libelle: 'Tous', href: '/blog' }, ...CATEGORIES.map((c) => ({ ...c, href: `/blog/categorie/${c.code}` }))];
+---
+<nav class="filtres" aria-label="Catégories">
+  <ul>
+    {filtres.map((f) => (
+      <li><a href={f.href} aria-current={f.code === categorieActive ? 'page' : undefined}>{f.libelle}</a></li>
+    ))}
+  </ul>
+</nav>
+
+{page.data.length > 0 ? (
+  <div class="grille">{page.data.map((a) => <CarteArticle article={a} />)}</div>
+) : (
+  <p class="vide">
+    {categorieActive ? 'Aucun article publié dans cette catégorie pour le moment.' : 'Les premiers articles arrivent bientôt.'}
+    {' '}<a href="/contact">Proposer un sujet</a>
+  </p>
+)}
+
+{page.lastPage > 1 && (
+  <nav class="pagination" aria-label="Pagination">
+    {page.url.prev && <a href={page.url.prev} rel="prev">Articles plus récents</a>}
+    <span>Page {page.currentPage} sur {page.lastPage}</span>
+    {page.url.next && <a href={page.url.next} rel="next">Articles plus anciens</a>}
+  </nav>
+)}
+
+<style>
+  .filtres ul { list-style: none; margin: 0 0 var(--esp-5); padding: 0; display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+  .filtres a { display: inline-block; padding: var(--esp-2) var(--esp-3); border-radius: 999px; border: 1px solid var(--ae-vert-foret); color: var(--ae-vert-foret); font-weight: 600; text-decoration: none; }
+  .filtres a[aria-current='page'] { background: var(--ae-vert-foret); color: var(--ae-creme); }
+  .pagination { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--esp-3); margin-top: var(--esp-5); }
+</style>

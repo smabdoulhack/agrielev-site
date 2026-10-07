@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Photo from '../components/Photo.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
+import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
+import BandeauContact from '../components/BandeauContact.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { SITE } from '../data/site.ts';
+import { ESPECES, FONCTIONS } from '../data/cunismart.ts';
+import { lienContact } from '../lib/sujets.ts';
+import { formatDate } from '../lib/format.ts';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'CuniSmart',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web, Android',
+  url: SITE.urlCuniSmart,
+  publisher: { '@type': 'Organization', name: SITE.raisonSociale, url: SITE.url },
+};
+---
+<BaseLayout titre="CuniSmart by AgriElev" description="CuniSmart by AgriElev, l'outil de gestion des exploitations : cheptel, reproduction, santé, finances, nutrition et traçabilité." jsonLd={jsonLd}>
+  <div class="bande-cunismart" aria-hidden="true"></div>
+  <section class="section ouverture-cs">
+    <div class="conteneur deux-colonnes">
+      <div>
+        <p class="surtitre">Outil de gestion des exploitations</p>
+        <h1>CuniSmart by AgriElev</h1>
+        <p class="chapeau">CuniSmart rassemble les informations utiles à la gestion de l'élevage et des cultures. L'application a été lancée le {formatDate(SITE.dateLancementCuniSmart)}.</p>
+        <div class="actions">
+          <BoutonCuniSmart variante="grand" />
+          <a class="bouton bouton--secondaire" href={lienContact('demo-cunismart', '/cunismart')}>Demander une démonstration</a>
+        </div>
+      </div>
+      <Photo photo={PHOTOS.accueilCunismart} classe="photo-arrondie" prioritaire />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="conteneur">
+      <h2>Espèces suivies</h2>
+      <ul class="especes">
+        {ESPECES.map((e) => <li><span>{e.nom}</span> <BadgeStatut statut={e.statut} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--creme">
+    <div class="conteneur">
+      <h2>Fonctions</h2>
+      <p class="chapeau">Chaque fonction indique son état réel.</p>
+      <ul class="grille fonctions">
+        {FONCTIONS.map((f) => (
+          <li class="fonction" data-test="fonction">
+            <h3>{f.nom}</h3>
+            <p>{f.description}</p>
+            <BadgeStatut statut={f.statut} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="conteneur">
+      <h2>Trois façons d'utiliser CuniSmart</h2>
+      <div class="grille">
+        <div class="acces">
+          <h3>Accès individuel</h3>
+          <p>Chaque éleveur ou éleveuse peut utiliser CuniSmart pour son exploitation. Les offres en vigueur sont présentées dans l'application.</p>
+        </div>
+        <div class="acces">
+          <h3>Couverture collective</h3>
+          <p>Pour les coopératives et organisations agricoles, AgriElev construit une formule de couverture collective adaptée au périmètre du projet. L'organisation définit ses priorités et mobilise une enveloppe pour les services convenus.</p>
+          <a href="/cooperatives">L'accompagnement des coopératives</a>
+        </div>
+        <div class="acces">
+          <h3>Prestations de projet</h3>
+          <p>Déploiement, formation et accompagnement de terrain pour un projet de filière, sur la base d'une proposition écrite.</p>
+          <a href={lienContact('pilote-cooperative', '/cunismart')}>Présenter un projet</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <BandeauContact titre="Voir CuniSmart en action" texte="Nous vous présentons l'application sur votre propre exploitation ou avec votre coopérative." />
+</BaseLayout>
+
+<style>
+  .bande-cunismart { height: 6px; background: var(--cs-degrade); }
+  .ouverture-cs { background: var(--cs-creme); }
+  .deux-colonnes { display: grid; gap: var(--esp-5); align-items: center; }
+  @media (min-width: 64rem) { .deux-colonnes { grid-template-columns: 1.1fr 1fr; } }
+  :global(.photo-arrondie) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+  .especes, .fonctions { list-style: none; margin: 0; padding: 0; }
+  .especes { display: flex; flex-wrap: wrap; gap: var(--esp-3); }
+  .especes li { display: inline-flex; align-items: center; gap: var(--esp-2); padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--cs-creme); font-weight: 600; }
+  .fonction, .acces { padding: var(--esp-4); background: #FFFFFF; border-radius: var(--radius); }
+  .acces { border: 1px solid var(--ae-vert-brume); }
+  .acces h3 { color: var(--cs-orange-brule); }
+</style>

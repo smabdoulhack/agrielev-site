@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Photo from './Photo.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { libelleCategorie, type CategorieCode } from '../lib/blog.ts';
+import { formatDate } from '../lib/format.ts';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+}
+const { article } = Astro.props;
+const { titre, resume, date, categorie, couverture } = article.data;
+const image = couverture ? { src: couverture, alt: '' } : { src: PHOTOS.blogDefaut.src, alt: '' };
+---
+<article class="carte-article" data-test="carte-article">
+  <Photo photo={image} classe="carte-article__photo" sizes="(min-width: 72rem) 22rem, (min-width: 48rem) 45vw, 100vw" />
+  <div class="carte-article__corps">
+    <p class="carte-article__meta">
+      <a href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie as CategorieCode)}</a>
+      · <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    </p>
+    <h3><a class="carte-article__lien" href={`/blog/${article.id}`}>{titre}</a></h3>
+    <p>{resume}</p>
+  </div>
+</article>
+
+<style>
+  .carte-article { position: relative; display: flex; flex-direction: column; background: #FFFFFF; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgb(73 34 15 / 0.12); }
+  :global(.carte-article__photo) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .carte-article__corps { padding: var(--esp-4); }
+  .carte-article__meta { font-size: 0.9rem; color: var(--gris-ardoise); }
+  .carte-article__meta a { position: relative; z-index: 1; color: var(--ae-vert-foret); font-weight: 600; }
+  .carte-article__lien { color: var(--ae-vert-foret); text-decoration: none; }
+  .carte-article__lien::after { content: ''; position: absolute; inset: 0; }
+</style>

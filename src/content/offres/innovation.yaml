@@ -1,0 +1,19 @@
+titre: Innovation et économie circulaire
+ordre: 5
+accroche: Un Smart Hub à Ouèdo pour le numérique, la formation et l'expérimentation au service des filières.
+statut: preparation
+familles: [chaine]
+icone: lightbulb
+description: |
+  AgriElev prépare un Smart Hub à Ouèdo pour accueillir des activités de développement numérique, de formation et d'expérimentation.
+
+  Ce projet associe la montée en compétences de jeunes développeurs et la recherche de solutions utiles aux filières agricoles, notamment pour la valorisation des ressources organiques.
+actions:
+  - libelle: Proposer une expérimentation
+    sujet: proposer-experimentation
+  - libelle: Rejoindre le programme développeurs
+    sujet: programme-developpeurs
+photo: ../../assets/photos/offre-innovation.jpg
+responsable: Abdoul Hack
+miseAJour: 2026-10-06
+etat: publie

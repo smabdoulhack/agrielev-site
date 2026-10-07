@@ -1,0 +1,21 @@
+---
+import Icone from './Icone.astro';
+import { INFOS_FAMILLES, type Famille } from '../lib/familles.ts';
+
+interface Props {
+  famille: Famille;
+  pictogramme: string;
+  taille?: number;
+}
+const { famille, pictogramme, taille = 24 } = Astro.props;
+---
+<span class="icone-module" style={`--couleur: var(${INFOS_FAMILLES[famille].couleur})`}>
+  <Icone nom={pictogramme} taille={taille} />
+</span>
+
+<style>
+  .icone-module {
+    display: inline-grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: 50%;
+    background: color-mix(in srgb, var(--couleur) 15%, transparent); color: var(--couleur);
+  }
+</style>

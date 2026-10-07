@@ -1,0 +1,11 @@
+- { id: elevage, nom: Élevage, famille: animales, ordre: 1, pictogramme: cow, statut: preparation, description: "Bovins, ovins, caprins, porcs ; module parent de Cuniculture et Aviculture." }
+- { id: cuniculture, nom: Cuniculture, famille: animales, ordre: 2, pictogramme: rabbit, statut: preparation, description: "CuniSmart by AgriElev." }
+- { id: aviculture, nom: Aviculture, famille: animales, ordre: 3, pictogramme: bird, statut: preparation, description: "Poulets de chair, pondeuses, cailles." }
+- { id: aquaculture, nom: Aquaculture, famille: aquatiques, ordre: 1, pictogramme: fish, statut: preparation, description: "Pisciculture, écloseries, aliments." }
+- { id: cultures, nom: Cultures, famille: vegetales, ordre: 1, pictogramme: plant, statut: preparation, description: "Maïs, riz, soja, maraîchage, anacarde." }
+- { id: produits-animaux, nom: Produits animaux, famille: produits, ordre: 1, pictogramme: egg, statut: preparation, description: "Viande, lait, œufs, fromage, miel." }
+- { id: produits-agricoles, nom: Produits agricoles, famille: produits, ordre: 2, pictogramme: grains, statut: preparation, description: "Grains, tubercules, néré, karité, fruits." }
+- { id: collecte, nom: Collecte, famille: chaine, ordre: 1, pictogramme: package, statut: preparation, description: "Ramassage, pesée, regroupement en coopérative." }
+- { id: logistique, nom: Logistique, famille: chaine, ordre: 2, pictogramme: truck, statut: preparation, description: "Transport, stockage, traçabilité." }
+- { id: transformation, nom: Transformation, famille: chaine, ordre: 3, pictogramme: factory, statut: preparation, description: "Unités de transformation, équipements." }
+- { id: marches, nom: Marchés, famille: chaine, ordre: 4, pictogramme: storefront, statut: preparation, description: "Prix, acheteurs, négoce, export." }

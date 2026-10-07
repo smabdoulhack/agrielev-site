@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EnTetePage from '../components/EnTetePage.astro';
+import CarteExpert from '../components/CarteExpert.astro';
+import BandeauContact from '../components/BandeauContact.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { SITE } from '../data/site.ts';
+import { chargerVisibles } from '../lib/collections.ts';
+import { formatDate } from '../lib/format.ts';
+
+const experts = await chargerVisibles('experts');
+const groupes = [
+  { titre: 'Associés', role: 'associe' },
+  { titre: 'Consultants', role: 'consultant' },
+  { titre: 'Experts', role: 'expert' },
+].map((g) => ({ ...g, membres: experts.filter((e) => e.data.role === g.role) })).filter((g) => g.membres.length > 0);
+---
+<BaseLayout titre="L'entreprise" description="AgriElev Bénin SARL, entreprise agritech au service des filières agricoles africaines : mission, vision, équipe et réseau.">
+  <EnTetePage
+    surtitre="AgriElev"
+    titre="Une entreprise agritech au service des filières agricoles"
+    chapeau="AgriElev Bénin SARL accompagne les producteurs, les coopératives et les acteurs des filières agricoles dans la gestion de leurs activités et le développement de leurs compétences."
+    photo={PHOTOS.entreprise}
+  />
+
+  <section class="section">
+    <div class="conteneur texte-long">
+      <h2>Qui sommes-nous</h2>
+      <p>AgriElev Bénin SARL est une entreprise agritech implantée au Bénin et tournée vers les besoins des filières agricoles africaines. Fondée à l'initiative de Thierry Kouembi, elle rassemble des compétences entrepreneuriales, numériques, commerciales et techniques pour accompagner les producteurs et leurs organisations.</p>
+      <p>Son premier produit, CuniSmart by AgriElev, a été lancé le {formatDate(SITE.dateLancementCuniSmart)}. AgriElev développe autour de cet outil des parcours de formation, un dispositif d'information agricole et des accompagnements collectifs. Ses projets de transformation, de mise en marché et d'économie circulaire sont déployés progressivement avec les acteurs concernés.</p>
+    </div>
+  </section>
+
+  <section class="section section--creme">
+    <div class="conteneur grille grille--2">
+      <div class="encadre">
+        <h2>Notre mission</h2>
+        <p>Rendre les outils de gestion, les connaissances et l'accompagnement agricole plus accessibles, afin d'aider les producteurs et leurs organisations à suivre leurs activités et à prendre des décisions mieux informées.</p>
+      </div>
+      <div class="encadre">
+        <h2>Notre vision</h2>
+        <p>Contribuer à des filières agricoles africaines mieux organisées, dans lesquelles producteurs, transformatrices, jeunes et partenaires peuvent coopérer à partir d'informations fiables et de services adaptés au terrain.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="conteneur texte-long">
+      <h2>Équipe et réseau</h2>
+      <p>L'équipe réunit des compétences en analyse et suivi de projet, en formation et en expertise technique. Elle s'appuie sur un réseau d'experts agronomiques et vétérinaires mobilisés autour d'AgriElev Connect.</p>
+    </div>
+    {groupes.map((g) => (
+      <div class="conteneur groupe-equipe">
+        <h3>{g.titre}</h3>
+        <div class="grille">{g.membres.map((e) => <CarteExpert expert={e} />)}</div>
+      </div>
+    ))}
+  </section>
+
+  <section class="section section--brume">
+    <div class="conteneur texte-long">
+      <h2>Implantation</h2>
+      <p>AgriElev a son siège au Bénin. Des utilisateurs de CuniSmart sont signalés au Cameroun, au Togo, en Guinée, en Côte d'Ivoire et au Canada : il s'agit d'usages déclarés, en cours de confirmation par les données de l'application.</p>
+    </div>
+  </section>
+
+  <BandeauContact />
+</BaseLayout>
+
+<style>
+  .texte-long > * { max-width: 52rem; }
+  .grille--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+  .encadre { padding: var(--esp-5); background: #FFFFFF; border-radius: var(--radius); border-top: 4px solid var(--ae-or-recolte); }
+  .groupe-equipe { margin-top: var(--esp-5); }
+</style>

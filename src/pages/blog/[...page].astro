@@ -1,0 +1,19 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EnTetePage from '../../components/EnTetePage.astro';
+import ListeArticles from '../../components/ListeArticles.astro';
+import { chargerVisibles } from '../../lib/collections.ts';
+import { PHOTOS } from '../../data/photos.ts';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const articles = (await chargerVisibles('articles')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return paginate(articles, { pageSize: 9 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+<BaseLayout titre={page.currentPage > 1 ? `Blog, page ${page.currentPage}` : 'Blog'} description="Actualités d'AgriElev, conseils techniques, filières et marchés, retours de terrain.">
+  <EnTetePage surtitre="Blog" titre="Blog" chapeau="Actualités d'AgriElev, conseils techniques, filières et marchés, retours de terrain." photo={PHOTOS.blogDefaut} />
+  <section class="section"><div class="conteneur"><ListeArticles page={page} /></div></section>
+</BaseLayout>

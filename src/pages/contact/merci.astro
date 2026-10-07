@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icone from '../../components/Icone.astro';
+import { SITE } from '../../data/site.ts';
+---
+<BaseLayout titre="Demande envoyée" noindex>
+  <section class="section"><div class="conteneur">
+    <span class="merci__icone"><Icone nom="check-circle" taille={56} /></span>
+    <h1>Merci, votre demande est bien partie</h1>
+    <p class="chapeau">Elle a été transmise à la personne concernée. Nous vous répondons {SITE.delaiReponse}.</p>
+    <div class="actions">
+      <a class="bouton bouton--principal" href="/">Retour à l'accueil</a>
+      <a class="bouton bouton--secondaire" href="/blog">Lire le blog</a>
+    </div>
+  </div></section>
+</BaseLayout>
+
+<style>
+  .merci__icone { color: var(--mod-vert-pousse); display: inline-block; margin-bottom: var(--esp-3); }
+</style>

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+.netlify/
+.superpowers/
+test-results/
+playwright-report/
+lighthouse.json
+.env
+.env.*
+
+# Documents internes, gardés en local seulement (dépôt public)
+docs/
+CLAUDE.md
+src/assets/photos/SOURCES.md

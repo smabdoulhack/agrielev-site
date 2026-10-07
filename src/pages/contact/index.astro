@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EnTetePage from '../../components/EnTetePage.astro';
+import FormulaireContact from '../../components/FormulaireContact.astro';
+import Icone from '../../components/Icone.astro';
+import { PHOTOS } from '../../data/photos.ts';
+import { SITE, telLien } from '../../data/site.ts';
+---
+<BaseLayout titre="Contact" description="Écrivez à AgriElev : démonstration CuniSmart, pilote coopérative, partenariat, transformation, accès au marché.">
+  <EnTetePage surtitre="Contact" titre="Écrivez-nous" chapeau={`Choisissez le sujet de votre demande : elle arrive directement à la bonne personne. Nous vous répondons ${SITE.delaiReponse}.`} photo={PHOTOS.contact} />
+
+  <section class="section">
+    <div class="conteneur contact">
+      <FormulaireContact />
+      <aside class="contact__aside" aria-labelledby="joindre">
+        <h2 id="joindre">Nous joindre directement</h2>
+        <ul>
+          {SITE.telephones.map((t) => <li><Icone nom="phone" taille={20} /><a href={telLien(t)}>{t}</a></li>)}
+          <li><Icone nom="envelope-simple" taille={20} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><Icone nom="map-pin" taille={20} /><span>{SITE.siege}</span></li>
+        </ul>
+        {SITE.whatsapp && (
+          <div class="contact__whatsapp">
+            <h3>Canal WhatsApp</h3>
+            <p>Un canal de diffusion pour suivre nos actualités et nos conseils. Il ne sert pas aux consultations individuelles.</p>
+            <a class="bouton bouton--secondaire" href={SITE.whatsapp}><Icone nom="whatsapp-logo" taille={20} /> Suivre le canal</a>
+          </div>
+        )}
+        <h3>Vous êtes expert ?</h3>
+        <p><a href="/connect#candidature">Proposez votre candidature au réseau AgriElev Connect.</a></p>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact { display: grid; gap: var(--esp-6); }
+  @media (min-width: 64rem) { .contact { grid-template-columns: 1.4fr 1fr; } }
+  .contact__aside ul { list-style: none; margin: 0 0 var(--esp-5); padding: 0; display: grid; gap: var(--esp-3); }
+  .contact__aside li { display: flex; align-items: center; gap: var(--esp-2); }
+  .contact__whatsapp { padding: var(--esp-4); margin-bottom: var(--esp-5); border-radius: var(--radius); background: var(--ae-vert-brume); }
+</style>

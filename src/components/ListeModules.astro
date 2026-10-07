@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import IconeModule from './IconeModule.astro';
+import BadgeStatut from './BadgeStatut.astro';
+import { FAMILLES, INFOS_FAMILLES, trierParFamille, type Famille } from '../lib/familles.ts';
+
+interface Props {
+  modules: CollectionEntry<'modules'>[];
+  familles?: Famille[];
+}
+const { modules, familles = [...FAMILLES] } = Astro.props;
+const tries = trierParFamille(modules.map((m) => ({ ...m.data, cle: m.id })));
+const groupes = FAMILLES.filter((f) => familles.includes(f))
+  .map((f) => ({ famille: f, items: tries.filter((m) => m.famille === f) }))
+  .filter((g) => g.items.length > 0);
+---
+<div class="modules">
+  {groupes.map((g) => (
+    <div class="modules__groupe">
+      <h3 class="modules__famille">{INFOS_FAMILLES[g.famille].libelle}</h3>
+      <ul>
+        {g.items.map((m) => (
+          <li class="module" data-test="module">
+            <IconeModule famille={m.famille} pictogramme={m.pictogramme} />
+            <div>
+              <p class="module__nom">AgriElev {m.nom} <BadgeStatut statut={m.statut} /></p>
+              <p class="module__description">{m.description}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>
+
+<style>
+  .modules { display: grid; gap: var(--esp-5); }
+  .modules ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+  .modules__famille { font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ae-brun-terre); }
+  .module { display: flex; gap: var(--esp-3); align-items: flex-start; }
+  .module p { margin: 0; }
+  .module__nom { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); font-weight: 600; }
+  .module__description { color: var(--gris-ardoise); }
+</style>

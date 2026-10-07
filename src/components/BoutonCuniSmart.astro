@@ -1,0 +1,35 @@
+---
+import Icone from './Icone.astro';
+import { SITE } from '../data/site.ts';
+
+interface Props {
+  variante?: 'entete' | 'grand';
+}
+const { variante = 'entete' } = Astro.props;
+---
+<a
+  class:list={['bouton-cunismart', `bouton-cunismart--${variante}`]}
+  href={SITE.urlCuniSmart}
+  target="_blank"
+  rel="noopener"
+  data-umami-event="clic-cunismart"
+  data-test="bouton-cunismart"
+>
+  <span class="bouton-cunismart__long">Accéder à </span>CuniSmart
+  <span class="visuellement-cache"> (nouvel onglet)</span>
+  <Icone nom="arrow-up-right" taille={18} />
+</a>
+
+<style>
+  .bouton-cunismart {
+    display: inline-flex; align-items: center; gap: var(--esp-2);
+    min-height: 2.75rem; padding: 0.5rem 1rem; border-radius: var(--radius);
+    background: var(--cs-orange); color: var(--ae-brun-terre);
+    font-family: var(--font-titre); font-weight: 800; text-decoration: none; white-space: nowrap;
+  }
+  .bouton-cunismart:hover { background: var(--cs-orange-clair); color: var(--ae-brun-terre); }
+  .bouton-cunismart--grand { min-height: 3.25rem; padding: 0.75rem 1.5rem; font-size: 1.1rem; }
+  @media (max-width: 30rem) {
+    .bouton-cunismart--entete .bouton-cunismart__long { display: none; }
+  }
+</style>

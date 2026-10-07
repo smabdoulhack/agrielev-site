@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site.ts';
+---
+<BaseLayout titre="Conditions d'utilisation">
+  <article class="section"><div class="conteneur texte-legal">
+    <p class="a-valider">Texte à valider par la direction avant publication.</p>
+    <h1>Conditions d'utilisation du site</h1>
+    <h2>Objet</h2>
+    <p>Ce site présente les activités d'{SITE.raisonSociale} et permet de la contacter. Il ne constitue ni une offre contractuelle ni un engagement de financement.</p>
+    <h2>Informations publiées</h2>
+    <p>Chaque offre indique son état réel : disponible, en pilote ou en préparation. Les conditions d'un service sont précisées dans une proposition écrite.</p>
+    <h2>Services CuniSmart</h2>
+    <p>L'accès à l'application CuniSmart relève des conditions propres à cette application.</p>
+    <h2>Conseils publiés</h2>
+    <p>Les articles techniques sont informatifs. Ils ne remplacent pas l'avis d'un vétérinaire ou d'un technicien sur votre exploitation.</p>
+  </div></article>
+</BaseLayout>

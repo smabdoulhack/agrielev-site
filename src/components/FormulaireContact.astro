@@ -1,0 +1,63 @@
+---
+import { PROFILS, SUJETS, objetEmail } from '../lib/sujets.ts';
+---
+<form name="contact" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="contact" class="formulaire">
+  <input type="hidden" name="form-name" value="contact" />
+  <input type="hidden" name="subject" data-remove-prefix value={objetEmail(null)} />
+  <input type="hidden" name="depuis" value="" />
+  <p class="visuellement-cache"><label>Ne pas remplir : <input name="site_web" tabindex="-1" autocomplete="off" /></label></p>
+
+  <div class="champ">
+    <label for="c-sujet">Sujet <span aria-hidden="true">*</span></label>
+    <select id="c-sujet" name="sujet" required>
+      <option value="">Choisir un sujet</option>
+      {SUJETS.map((s) => <option value={s.code}>{s.libelle}</option>)}
+    </select>
+  </div>
+  <div class="champ">
+    <label for="c-nom">Nom et prénom <span aria-hidden="true">*</span></label>
+    <input id="c-nom" name="nom" required autocomplete="name" maxlength="120" />
+  </div>
+  <div class="champ">
+    <label for="c-organisation">Organisation <span class="facultatif">(facultatif)</span></label>
+    <input id="c-organisation" name="organisation" autocomplete="organization" maxlength="160" />
+  </div>
+  <div class="champ">
+    <label for="c-profil">Vous êtes <span aria-hidden="true">*</span></label>
+    <select id="c-profil" name="profil" required>
+      <option value="">Choisir</option>
+      {PROFILS.map((p) => <option value={p.code}>{p.libelle}</option>)}
+    </select>
+  </div>
+  <div class="champ">
+    <label for="c-zone">Commune, région ou pays <span aria-hidden="true">*</span></label>
+    <input id="c-zone" name="zone" required maxlength="120" />
+  </div>
+  <fieldset class="champ-groupe">
+    <legend>Pour vous répondre (au moins l'un des deux)</legend>
+    <div class="champ">
+      <label for="c-email">E-mail</label>
+      <input id="c-email" name="email" type="email" autocomplete="email" maxlength="160" />
+    </div>
+    <div class="champ">
+      <label for="c-telephone">Téléphone ou WhatsApp</label>
+      <input id="c-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+    </div>
+  </fieldset>
+  <div class="champ">
+    <label for="c-message">Votre message <span aria-hidden="true">*</span></label>
+    <textarea id="c-message" name="message" required rows="6" maxlength="4000" aria-describedby="c-message-aide"></textarea>
+    <p id="c-message-aide" class="aide">N'envoyez pas de dossier vétérinaire détaillé ni de données confidentielles d'exploitation.</p>
+  </div>
+  <div class="champ champ--case">
+    <input id="c-consentement" name="consentement" type="checkbox" value="oui" required />
+    <label for="c-consentement">J'accepte que mes informations servent à traiter ma demande (<a href="/confidentialite">confidentialité</a>).</label>
+  </div>
+  <p class="aide">Les champs marqués * sont obligatoires.</p>
+  <button type="submit" class="bouton bouton--principal" data-umami-event="envoi-contact" data-umami-event-sujet="autre">Envoyer ma demande</button>
+</form>
+
+<script>
+  import { initialiserFormulaires } from '../scripts/formulaire.ts';
+  initialiserFormulaires();
+</script>

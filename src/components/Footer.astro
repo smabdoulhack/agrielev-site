@@ -1,0 +1,57 @@
+---
+import Icone from './Icone.astro';
+import { NAVIGATION, SITE, telLien } from '../data/site.ts';
+const annee = new Date().getFullYear();
+---
+<footer class="pied">
+  <div class="conteneur pied__grille">
+    <div>
+      <p class="pied__nom">AgriElev</p>
+      <p class="pied__signature">{SITE.signature}</p>
+    </div>
+    <nav aria-label="Pied de page">
+      <h2 class="pied__titre">Le site</h2>
+      <ul>{NAVIGATION.map((l) => <li><a href={l.href}>{l.libelle}</a></li>)}</ul>
+    </nav>
+    <div>
+      <h2 class="pied__titre">Nous joindre</h2>
+      <ul class="pied__contacts">
+        {SITE.telephones.map((t) => (
+          <li><Icone nom="phone" taille={18} /><a href={telLien(t)}>{t}</a></li>
+        ))}
+        <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        <li><Icone nom="map-pin" taille={18} /><span>{SITE.siege}</span></li>
+        {SITE.whatsapp && <li><Icone nom="whatsapp-logo" taille={18} /><a href={SITE.whatsapp}>Canal WhatsApp</a></li>}
+        {SITE.facebook && <li><Icone nom="facebook-logo" taille={18} /><a href={SITE.facebook}>Facebook</a></li>}
+        {SITE.linkedin && <li><Icone nom="linkedin-logo" taille={18} /><a href={SITE.linkedin}>LinkedIn</a></li>}
+      </ul>
+    </div>
+  </div>
+  <div class="conteneur pied__legal">
+    <p>
+      {SITE.raisonSociale}, capital de {SITE.capital}, RCCM {SITE.rccm}, IFU {SITE.ifu}, siège : {SITE.siege}.
+    </p>
+    <p>
+      © {annee} {SITE.raisonSociale} ·
+      <a href="/mentions-legales">Mentions légales</a> ·
+      <a href="/confidentialite">Confidentialité</a> ·
+      <a href="/conditions">Conditions</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .pied { background: var(--ae-vert-foret); color: var(--ae-creme); margin-top: 0; }
+  .pied a { color: var(--ae-creme); }
+  .pied a:hover { color: #FFFFFF; }
+  .pied ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
+  .pied__grille { display: grid; gap: var(--esp-5); padding-block: var(--esp-6) var(--esp-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+  .pied__nom { font-family: var(--font-titre); font-weight: 800; font-size: 1.5rem; margin-bottom: var(--esp-2); }
+  /* Or Récolte sur Vert Forêt : 4,2:1, réservé au grand texte gras (seuil 3:1). */
+  .pied__signature { color: var(--ae-or-recolte); font-family: var(--font-titre); font-weight: 700; font-size: 1.2rem; }
+  .pied__titre { color: var(--ae-creme); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .pied__contacts li { display: flex; align-items: center; gap: var(--esp-2); }
+  .pied__legal { padding-bottom: var(--esp-4); font-size: 0.9rem; }
+  .pied__legal p:first-child { padding-top: var(--esp-4); border-top: 1px solid rgb(242 237 217 / 0.25); }
+  .pied__legal p { margin-bottom: var(--esp-2); }
+</style>

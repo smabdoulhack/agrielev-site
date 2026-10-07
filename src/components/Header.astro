@@ -1,0 +1,79 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/logo-agrielev.jpg';
+import Icone from './Icone.astro';
+import BoutonCuniSmart from './BoutonCuniSmart.astro';
+import { NAVIGATION } from '../data/site.ts';
+
+const chemin = Astro.url.pathname.replace(/\/$/, '') || '/';
+const estActif = (href: string) => chemin === href || chemin.startsWith(`${href}/`);
+---
+<header class="entete">
+  <div class="conteneur entete__barre">
+    <a href="/" class="entete__logo" aria-label="AgriElev, accueil">
+      <Image src={logo} alt="" height={44} loading="eager" />
+      <span class="entete__nom" aria-hidden="true">AgriElev</span>
+    </a>
+
+    <nav class="entete__nav" aria-label="Navigation principale">
+      <ul>
+        {NAVIGATION.map((l) => (
+          <li><a href={l.href} aria-current={estActif(l.href) ? 'page' : undefined}>{l.libelle}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="entete__actions">
+      <BoutonCuniSmart />
+      <button class="entete__menu" popovertarget="menu-mobile" aria-label="Ouvrir le menu" data-test="ouvrir-menu">
+        <Icone nom="list" taille={28} />
+      </button>
+    </div>
+  </div>
+
+  <div id="menu-mobile" popover class="menu-mobile">
+    <button class="menu-mobile__fermer" popovertarget="menu-mobile" popovertargetaction="hide" aria-label="Fermer le menu">
+      <Icone nom="x" taille={28} />
+    </button>
+    <nav aria-label="Navigation mobile">
+      <ul>
+        {NAVIGATION.map((l) => (
+          <li><a href={l.href} aria-current={estActif(l.href) ? 'page' : undefined}>{l.libelle}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <BoutonCuniSmart variante="grand" />
+  </div>
+</header>
+
+<style>
+  .entete { position: sticky; top: 0; z-index: 50; background: #FFFFFF; border-bottom: 1px solid var(--ae-vert-brume); }
+  .entete__barre { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-4); min-height: 4.5rem; }
+  .entete__logo { display: inline-flex; align-items: center; gap: var(--esp-2); text-decoration: none; }
+  .entete__logo img { height: 44px; width: auto; }
+  .entete__nom { font-family: var(--font-titre); font-weight: 800; font-size: 1.25rem; color: var(--ae-vert-foret); }
+  .entete__nav { display: none; }
+  .entete__nav ul, .menu-mobile ul { list-style: none; margin: 0; padding: 0; }
+  .entete__nav ul { display: flex; gap: var(--esp-1); }
+  .entete__nav a { display: block; padding: var(--esp-2) 0.5rem; border-radius: 8px; white-space: nowrap; color: var(--ae-brun-terre); font-weight: 600; text-decoration: none; }
+  .entete__nav a:hover { background: var(--ae-vert-brume); }
+  .entete__nav a[aria-current='page'] { color: var(--ae-vert-foret); background: var(--ae-vert-brume); }
+  .entete__actions { display: flex; align-items: center; gap: var(--esp-2); }
+  .entete__menu, .menu-mobile__fermer {
+    display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem;
+    border: 0; border-radius: var(--radius); background: transparent; color: var(--ae-vert-foret); cursor: pointer;
+  }
+  .menu-mobile {
+    inset: 0 0 0 auto; width: min(22rem, 100vw); height: 100dvh; margin: 0; padding: var(--esp-4);
+    border: 0; background: #FFFFFF; box-shadow: -8px 0 24px rgb(73 34 15 / 0.15);
+  }
+  .menu-mobile::backdrop { background: rgb(34 75 43 / 0.4); }
+  .menu-mobile__fermer { margin-left: auto; }
+  .menu-mobile ul { margin-block: var(--esp-4); }
+  .menu-mobile a:not(.bouton-cunismart) { display: block; padding: var(--esp-3) 0; border-bottom: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); font-weight: 600; font-size: 1.1rem; text-decoration: none; }
+  .menu-mobile a[aria-current='page'] { color: var(--ae-vert-foret); }
+  @media (min-width: 80rem) {
+    .entete__nav { display: block; }
+    .entete__menu { display: none; }
+  }
+</style>

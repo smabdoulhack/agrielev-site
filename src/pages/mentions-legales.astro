@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site.ts';
+---
+<BaseLayout titre="Mentions légales">
+  <article class="section"><div class="conteneur texte-legal">
+    <p class="a-valider">Texte à valider par la direction avant publication.</p>
+    <h1>Mentions légales</h1>
+    <h2>Éditeur du site</h2>
+    <p>{SITE.raisonSociale}, société à responsabilité limitée au capital de {SITE.capital}.<br />
+      RCCM {SITE.rccm} · IFU {SITE.ifu}<br />
+      Siège : {SITE.siege}<br />
+      Téléphone : {SITE.telephones.join(' ou ')} · E-mail : <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+    <h2>Directeur de la publication</h2>
+    <p>Thierry Kouembi, fondateur et gérant.</p>
+    <h2>Hébergement</h2>
+    <p>Netlify, Inc., 512 2nd Street, Suite 200, San Francisco, CA 94107, États-Unis.</p>
+    <h2>Propriété intellectuelle</h2>
+    <p>Les textes, logos et photographies de ce site appartiennent à {SITE.raisonSociale} ou sont utilisés avec l'autorisation de leurs auteurs et des personnes photographiées. Toute reproduction demande une autorisation écrite.</p>
+    <h2>CuniSmart</h2>
+    <p>CuniSmart est une application éditée par {SITE.raisonSociale}. Son utilisation relève de ses propres conditions.</p>
+  </div></article>
+</BaseLayout>
+
+<style is:global>
+  .texte-legal { max-width: 46rem; }
+  .texte-legal h2 { font-size: 1.3rem; margin-top: var(--esp-5); }
+  .a-valider { display: inline-block; padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--ae-vert-brume); color: var(--ae-vert-foret); font-weight: 600; }
+</style>

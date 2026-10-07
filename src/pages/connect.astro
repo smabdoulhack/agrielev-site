@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EnTetePage from '../components/EnTetePage.astro';
+import CarteExpert from '../components/CarteExpert.astro';
+import FormulaireExpert from '../components/FormulaireExpert.astro';
+import Icone from '../components/Icone.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { SITE } from '../data/site.ts';
+import { chargerVisibles } from '../lib/collections.ts';
+
+const experts = (await chargerVisibles('experts')).filter((e) => e.data.role === 'expert');
+---
+<BaseLayout titre="AgriElev Connect" description="AgriElev Connect : radio web agricole, contenus et réseau d'experts agronomiques et vétérinaires.">
+  <EnTetePage
+    surtitre="Information et expertise agricole"
+    titre="AgriElev Connect"
+    chapeau="AgriElev Connect rapproche les connaissances techniques des besoins du terrain : contenus agricoles, radio web et échanges avec des professionnels."
+    photo={PHOTOS.connect}
+  />
+
+  <section class="section">
+    <div class="conteneur grille">
+      <div class="volet">
+        <Icone nom="radio" taille={32} />
+        <h2>La radio web</h2>
+        <p>Une radio web agricole pour informer et orienter les producteurs : conseils pratiques, actualités des filières, paroles de terrain.</p>
+        {SITE.whatsapp && <p><a href={SITE.whatsapp}>Suivre le canal WhatsApp AgriElev</a></p>}
+      </div>
+      <div class="volet">
+        <Icone nom="chat-circle-text" taille={32} />
+        <h2>Des contenus agricoles</h2>
+        <p>Des contenus pratiques pour l'élevage et les cultures, publiés sur notre blog et diffusés sur nos canaux.</p>
+        <p><a href="/blog/categorie/conseils-techniques">Lire les conseils techniques</a></p>
+      </div>
+      <div class="volet">
+        <Icone nom="users-three" taille={32} />
+        <h2>Téléexpertise</h2>
+        <p><strong>En préparation.</strong> Les consultations individuelles demanderont un parcours dédié, des intervenants habilités et des conditions explicites. En attendant, le canal public informe et oriente.</p>
+      </div>
+    </div>
+  </section>
+
+  {experts.length > 0 && (
+    <section class="section section--creme">
+      <div class="conteneur">
+        <h2>Les experts du réseau</h2>
+        <div class="grille">{experts.map((e) => <CarteExpert expert={e} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--brume">
+    <div class="conteneur candidature">
+      <div>
+        <p class="surtitre">Rejoindre le réseau</p>
+        <h2>Vous êtes agronome, vétérinaire ou technicien ?</h2>
+        <p>AgriElev Connect mobilise des experts agronomiques et vétérinaires pour partager leurs connaissances avec les producteurs. Présentez-vous : nous vous recontactons pour échanger sur une collaboration.</p>
+      </div>
+      <FormulaireExpert />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .volet { padding: var(--esp-4); border-radius: var(--radius); border: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); }
+  .volet :global(.icone) { color: var(--ae-vert-foret); margin-bottom: var(--esp-3); }
+  .volet h2 { font-size: 1.35rem; }
+  .candidature { display: grid; gap: var(--esp-5); }
+  @media (min-width: 64rem) { .candidature { grid-template-columns: 1fr 1.3fr; } }
+</style>

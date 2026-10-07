@@ -1,0 +1,37 @@
+:root {
+  /* AgriElev */
+  --ae-vert-foret: #224B2B;
+  --ae-or-recolte: #D6A01B;
+  --ae-or-fonce: #B0832B;
+  --ae-sauge: #7FB88F;
+  --ae-creme: #F2EDD9;
+  --ae-vert-brume: #E9F3EA;
+  --ae-brun-terre: #49220F;
+  /* CuniSmart */
+  --cs-orange: #ED8C23;
+  --cs-orange-clair: #F6A124;
+  --cs-orange-brule: #B24A17;
+  --cs-creme: #FDF0D2;
+  --cs-vert: #0D7A46;
+  --cs-jaune: #F8B413;
+  --cs-degrade: linear-gradient(135deg, #F6A124 0%, #ED8C23 35%, #B24A17 100%);
+  /* Modules et fonctions */
+  --mod-vert-pousse: #4E8F5C;
+  --mod-terracotta: #B8603A;
+  --mod-bleu-lagune: #2F6F86;
+  --gris-ardoise: #5E6B66;
+  --rouge-alerte: #C0392B;
+  /* Typographie */
+  --font-titre: "Plus Jakarta Sans", Arial, sans-serif;
+  --font-texte: "Source Sans 3", Calibri, Arial, sans-serif;
+  --font-officiel: "Caladea", Cambria, Georgia, serif;
+  --radius: 12px;
+  /* Espacements et largeur */
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 1rem;
+  --esp-4: 1.5rem;
+  --esp-5: 2.5rem;
+  --esp-6: 4rem;
+  --largeur-max: 72rem;
+}

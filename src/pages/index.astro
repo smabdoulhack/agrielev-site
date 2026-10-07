@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Photo from '../components/Photo.astro';
+import Icone from '../components/Icone.astro';
+import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
+import AccesProfil from '../components/AccesProfil.astro';
+import CarteOffre from '../components/CarteOffre.astro';
+import CarteArticle from '../components/CarteArticle.astro';
+import CarteExpert from '../components/CarteExpert.astro';
+import BandeauContact from '../components/BandeauContact.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { SITE } from '../data/site.ts';
+import { chargerVisibles } from '../lib/collections.ts';
+import { lienContact } from '../lib/sujets.ts';
+import { trierParDate } from '../lib/blog.ts';
+import { formatDate } from '../lib/format.ts';
+
+const offres = (await chargerVisibles('offres')).sort((a, b) => a.data.ordre - b.data.ordre);
+const articles = trierParDate((await chargerVisibles('articles')).map((a) => ({ ...a, date: a.data.date }))).slice(0, 3);
+const etude = trierParDate((await chargerVisibles('etudes')).map((e) => ({ ...e, date: e.data.date })))[0];
+const experts = await chargerVisibles('experts');
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.raisonSociale,
+  alternateName: 'AgriElev',
+  url: SITE.url,
+  logo: `${SITE.url}/apple-touch-icon.png`,
+  email: SITE.email,
+  telephone: SITE.telephones,
+  address: { '@type': 'PostalAddress', addressLocality: SITE.siege, addressCountry: 'BJ' },
+};
+---
+<BaseLayout titre="AgriElev · Outils et accompagnement pour les filières agricoles" jsonLd={jsonLd}>
+  <section class="ouverture">
+    <Photo photo={PHOTOS.accueilOuverture} classe="ouverture__photo" prioritaire sizes="100vw" />
+    <div class="ouverture__voile"></div>
+    <div class="conteneur ouverture__texte">
+      <p class="surtitre">{SITE.signature}</p>
+      <h1>Des outils et un accompagnement pour développer vos activités agricoles</h1>
+      <p class="chapeau">AgriElev associe gestion numérique, formation et expertise de terrain pour accompagner les producteurs et leurs organisations.</p>
+      <div class="actions">
+        <a class="bouton bouton--principal" href="/cunismart">Découvrir CuniSmart <Icone nom="arrow-right" taille={20} /></a>
+        <a class="bouton bouton--clair" href="/contact">Échanger sur un projet</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="conteneur">
+      <h2>Vous êtes…</h2>
+      <div class="grille grille--4">
+        <AccesProfil icone="user" titre="Producteur ou productrice" texte="Suivez votre élevage et vos cultures avec CuniSmart et des formations pratiques." href="/cunismart" libelleLien="Découvrir CuniSmart" />
+        <AccesProfil icone="users-three" titre="Coopérative" texte="Diagnostic, pilote, formation et suivi consolidé pour vos membres." href="/cooperatives" libelleLien="Voir l'accompagnement" />
+        <AccesProfil icone="handshake" titre="Partenaire" texte="Institutions, programmes et entreprises : construisons ensemble des projets de filière." href={lienContact('partenariat', '/', 'partenaire')} libelleLien="Nous écrire" />
+        <AccesProfil icone="graduation-cap" titre="Expert" texte="Agronomes, vétérinaires, techniciens : rejoignez le réseau AgriElev Connect." href="/connect#candidature" libelleLien="Proposer sa candidature" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--creme">
+    <div class="conteneur">
+      <p class="surtitre">Nos solutions</p>
+      <h2>Cinq offres pour accompagner les filières</h2>
+      <p class="chapeau">Chaque offre affiche son état réel : disponible, en pilote ou en préparation.</p>
+      <div class="grille">
+        {offres.map((offre) => <CarteOffre offre={offre} />)}
+      </div>
+      <div class="actions"><a class="bouton bouton--secondaire" href="/solutions">Voir le détail des offres</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="conteneur deux-colonnes">
+      <Photo photo={PHOTOS.accueilCunismart} classe="photo-arrondie" />
+      <div>
+        <p class="surtitre">Notre outil numérique</p>
+        <h2>CuniSmart by AgriElev</h2>
+        <p>CuniSmart rassemble les informations utiles à la gestion de l'élevage et des cultures : cheptel, reproduction, santé, finances, nutrition et traçabilité.</p>
+        <p>L'application a été lancée le {formatDate(SITE.dateLancementCuniSmart)}. AgriElev l'accompagne de formations et d'un appui de terrain.</p>
+        <div class="actions">
+          <BoutonCuniSmart variante="grand" />
+          <a class="bouton bouton--secondaire" href={lienContact('demo-cunismart', '/')}>Demander une démonstration</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {etude && (
+    <section class="section section--brume">
+      <div class="conteneur">
+        <p class="surtitre">Réalisation</p>
+        <h2>Sur le terrain</h2>
+        <h3>{etude.data.titre}</h3>
+        <p>{etude.data.lieu}, {etude.data.periode}. {etude.data.population}.</p>
+        <p><strong>{etude.data.indicateur} :</strong> {etude.data.resultat}</p>
+        <p class="source">Source : {etude.data.source}</p>
+        <a href="/ressources#etudes-de-cas">Toutes les études de cas</a>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--creme">
+    <div class="conteneur">
+      <p class="surtitre">Réseau d'expertise</p>
+      <h2>Des compétences au service du terrain</h2>
+      <p class="chapeau">L'équipe s'appuie sur des compétences entrepreneuriales, numériques, commerciales et techniques, et sur un réseau d'experts agronomiques et vétérinaires mobilisés autour d'AgriElev Connect.</p>
+      {experts.length > 0 && <div class="grille">{experts.map((e) => <CarteExpert expert={e} />)}</div>}
+      <div class="actions">
+        <a class="bouton bouton--secondaire" href="/entreprise">Découvrir AgriElev</a>
+        <a class="bouton bouton--secondaire" href="/connect">AgriElev Connect</a>
+      </div>
+    </div>
+  </section>
+
+  {articles.length > 0 && (
+    <section class="section">
+      <div class="conteneur">
+        <h2>Derniers articles</h2>
+        <div class="grille">{articles.map((a) => <CarteArticle article={a} />)}</div>
+        <div class="actions"><a class="bouton bouton--secondaire" href="/blog">Tous les articles</a></div>
+      </div>
+    </section>
+  )}
+
+  <BandeauContact />
+</BaseLayout>
+
+<style>
+  .ouverture { position: relative; display: grid; min-height: min(80vh, 44rem); color: var(--ae-creme); overflow: hidden; }
+  :global(.ouverture__photo) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ouverture__voile { position: absolute; inset: 0; background: linear-gradient(to top, rgb(34 75 43 / 0.9) 0%, rgb(34 75 43 / 0.75) 60%, rgb(34 75 43 / 0.55) 100%); }
+  @media (min-width: 64rem) {
+    .ouverture__voile { background: linear-gradient(to right, rgb(34 75 43 / 0.85) 0%, rgb(34 75 43 / 0.6) 50%, rgb(34 75 43 / 0) 100%); }
+  }
+  .ouverture__texte { position: relative; align-self: end; padding-block: var(--esp-6); }
+  .ouverture h1 { color: #FFFFFF; max-width: 40rem; }
+  .ouverture .surtitre { color: var(--ae-creme); }
+  .ouverture .surtitre::before { background: var(--ae-or-recolte); }
+  .ouverture .chapeau { color: var(--ae-creme); }
+  .grille--4 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+  .deux-colonnes { display: grid; gap: var(--esp-5); align-items: center; }
+  @media (min-width: 64rem) { .deux-colonnes { grid-template-columns: 1fr 1fr; } }
+  :global(.photo-arrondie) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+  .source { font-size: 0.9rem; color: var(--gris-ardoise); }
+</style>

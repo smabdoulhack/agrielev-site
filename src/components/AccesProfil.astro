@@ -1,0 +1,30 @@
+---
+import Icone from './Icone.astro';
+
+interface Props {
+  icone: string;
+  titre: string;
+  texte: string;
+  href: string;
+  libelleLien: string;
+}
+const { icone, titre, texte, href, libelleLien } = Astro.props;
+---
+<a class="profil" href={href} data-test="acces-profil">
+  <span class="profil__icone"><Icone nom={icone} taille={28} /></span>
+  <span class="profil__titre">{titre}</span>
+  <span class="profil__texte">{texte}</span>
+  <span class="profil__lien">{libelleLien} <Icone nom="arrow-right" taille={18} /></span>
+</a>
+
+<style>
+  .profil {
+    display: flex; flex-direction: column; gap: var(--esp-2); height: 100%;
+    padding: var(--esp-4); border-radius: var(--radius); background: #FFFFFF;
+    border: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); text-decoration: none;
+  }
+  .profil:hover { border-color: var(--ae-vert-foret); color: var(--ae-brun-terre); }
+  .profil__icone { display: inline-grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .profil__titre { font-family: var(--font-titre); font-weight: 800; font-size: 1.2rem; color: var(--ae-vert-foret); }
+  .profil__lien { margin-top: auto; display: inline-flex; align-items: center; gap: var(--esp-1); font-weight: 600; color: var(--ae-vert-foret); }
+</style>

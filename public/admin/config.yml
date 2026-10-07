@@ -1,0 +1,69 @@
+# Interface d'écriture des articles du blog (Sveltia CMS) : https://agrielev-benin.netlify.app/admin/
+# Seuls les articles sont modifiables ici ; le reste du site se modifie dans le code.
+# Connexion : compte GitHub ayant accès au dépôt (OAuth GitHub déclaré dans Netlify).
+backend:
+  name: github
+  repo: smabdoulhack/agrielev-site
+  branch: main
+  commit_messages:
+    create: "contenu: nouvel article « {{slug}} »"
+    update: "contenu: mise à jour de l'article « {{slug}} »"
+    delete: "contenu: suppression de l'article « {{slug}} »"
+    uploadMedia: "contenu: ajout de l'image « {{path}} »"
+    deleteMedia: "contenu: suppression de l'image « {{path}} »"
+
+locale: fr
+site_url: https://agrielev-benin.netlify.app
+logo_url: /favicon.png
+
+media_folder: src/assets/images/articles
+
+# Noms de fichiers d'articles sans accents ni caractères spéciaux.
+slug:
+  encoding: ascii
+  clean_accents: true
+
+collections:
+  - name: articles
+    label: Articles du blog
+    label_singular: Article
+    folder: src/content/articles
+    # Images rangées dans src/assets/images/articles, chemin relatif à l'article pour qu'Astro les optimise.
+    media_folder: ../../assets/images/articles
+    public_folder: ../../assets/images/articles
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{slug}}"
+    identifier_field: titre
+    summary: "{{titre}} · {{etat}}"
+    sortable_fields: [date, titre]
+    fields:
+      - { name: titre, label: Titre, widget: string }
+      - { name: resume, label: Résumé, hint: "Une ou deux phrases affichées dans la liste des articles.", widget: text }
+      - { name: date, label: Date de publication, widget: datetime, format: "YYYY-MM-DD", date_format: "DD/MM/YYYY", time_format: false, picker_utc: true }
+      - { name: auteur, label: Auteur, widget: string, default: "Équipe AgriElev" }
+      - name: categorie
+        label: Catégorie
+        widget: select
+        default: actualites
+        options:
+          - { label: "Actualités AgriElev", value: actualites }
+          - { label: "Conseils techniques", value: conseils-techniques }
+          - { label: "Filières et marchés", value: filieres-marches }
+          - { label: "Terrain", value: terrain }
+      - { name: couverture, label: Photo de couverture, widget: image, required: false }
+      - { name: couvertureAlt, label: Description de la photo, hint: "Ce que montre la photo, pour les personnes malvoyantes. Si vide, le titre est utilisé.", widget: string, required: false }
+      - { name: couvertureCredit, label: Crédit photo, widget: string, required: false }
+      - { name: etiquettes, label: Étiquettes, widget: list, required: false, default: [] }
+      - { name: sources, label: Sources, hint: "Une source par ligne : institution, document, année.", widget: list, required: false, default: [] }
+      - name: etat
+        label: État
+        hint: "« Publié » met l'article en ligne environ 2 minutes après l'enregistrement."
+        widget: select
+        default: brouillon
+        options:
+          - { label: "Brouillon", value: brouillon }
+          - { label: "Publié", value: publie }
+      - { name: body, label: Texte de l'article, widget: markdown }

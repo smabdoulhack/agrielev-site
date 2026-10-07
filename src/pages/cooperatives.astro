@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EnTetePage from '../components/EnTetePage.astro';
+import Icone from '../components/Icone.astro';
+import BandeauContact from '../components/BandeauContact.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { lienContact } from '../lib/sujets.ts';
+
+const pilote = lienContact('pilote-cooperative', '/cooperatives');
+const ETAPES = [
+  { titre: 'Diagnostic', texte: 'Nous faisons le point avec votre organisation : activités des membres, besoins de suivi, moyens disponibles.' },
+  { titre: 'Pilote', texte: 'Un groupe de membres utilise CuniSmart sur une période définie, avec un accompagnement de prise en main.' },
+  { titre: 'Formation', texte: 'Des parcours pratiques renforcent les compétences des membres et des animateurs de la coopérative.' },
+  { titre: 'Suivi', texte: 'Des indicateurs consolidés aident la coopérative à suivre les activités de ses membres et à décider.' },
+  { titre: 'Couverture collective', texte: 'Une formule adaptée aux moyens de l’organisation étend le service à ses groupements.' },
+];
+---
+<BaseLayout titre="Coopératives" description="AgriElev accompagne les coopératives : diagnostic, pilote, formation, suivi consolidé et couverture collective.">
+  <EnTetePage
+    surtitre="Coopératives et organisations"
+    titre="Accompagner les coopératives et leurs membres"
+    chapeau="AgriElev propose aux coopératives et fédérations un déploiement collectif de CuniSmart, avec prise en main, formation et indicateurs de suivi adaptés."
+    photo={PHOTOS.cooperatives}
+  >
+    <div class="actions"><a class="bouton bouton--principal" href={pilote}>Organiser un pilote avec ma coopérative</a></div>
+  </EnTetePage>
+
+  <section class="section">
+    <div class="conteneur">
+      <h2>Un parcours en cinq étapes</h2>
+      <ol class="parcours">
+        {ETAPES.map((e, i) => (
+          <li>
+            <span class="parcours__numero" aria-hidden="true">{i + 1}</span>
+            <h3>{e.titre}</h3>
+            <p>{e.texte}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--creme">
+    <div class="conteneur texte-long">
+      <h2>La couverture collective</h2>
+      <p>Pour les coopératives et organisations agricoles, AgriElev construit une formule de couverture collective adaptée au périmètre du projet. L'organisation définit ses priorités et mobilise une enveloppe pour les services convenus. Un socle gratuit peut être maintenu selon les conditions de l'offre.</p>
+      <p>Les bénéficiaires, la durée, l'accompagnement et les modalités de renouvellement sont précisés dans une proposition écrite.</p>
+      <div class="actions">
+        <a class="bouton bouton--principal" href={pilote}>Organiser un pilote avec ma coopérative <Icone nom="arrow-right" taille={20} /></a>
+        <a class="bouton bouton--secondaire" href="/cunismart">Découvrir CuniSmart</a>
+      </div>
+    </div>
+  </section>
+
+  <BandeauContact />
+</BaseLayout>
+
+<style>
+  .texte-long > * { max-width: 52rem; }
+  .parcours { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); }
+  .parcours li { padding: var(--esp-4); border-radius: var(--radius); background: var(--ae-vert-brume); }
+  .parcours__numero { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; margin-bottom: var(--esp-3); border-radius: 50%; background: var(--ae-vert-foret); color: var(--ae-creme); font-family: var(--font-titre); font-weight: 800; }
+</style>

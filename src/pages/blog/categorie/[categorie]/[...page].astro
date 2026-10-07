@@ -1,0 +1,24 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import EnTetePage from '../../../../components/EnTetePage.astro';
+import ListeArticles from '../../../../components/ListeArticles.astro';
+import { chargerVisibles } from '../../../../lib/collections.ts';
+import { CATEGORIES, libelleCategorie, type CategorieCode } from '../../../../lib/blog.ts';
+import { PHOTOS } from '../../../../data/photos.ts';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const articles = (await chargerVisibles('articles')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return CATEGORIES.flatMap((c) =>
+    paginate(articles.filter((a) => a.data.categorie === c.code), { params: { categorie: c.code }, pageSize: 9 }),
+  );
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const categorie = Astro.params.categorie as CategorieCode;
+const libelle = libelleCategorie(categorie);
+---
+<BaseLayout titre={`${libelle}, blog`} description={`Articles AgriElev de la catégorie ${libelle}.`}>
+  <EnTetePage surtitre="Blog" titre={libelle} photo={PHOTOS.blogDefaut} />
+  <section class="section"><div class="conteneur"><ListeArticles page={page} categorieActive={categorie} /></div></section>
+</BaseLayout>
