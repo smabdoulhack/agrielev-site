@@ -1,0 +1,80 @@
+# Le site agrielev.com : fichiers statiques produits par le constructeur, servis
+# derrière le proxy partagé du VPS (qui porte le certificat HTTPS).
+# Copie sur le VPS : /srv/agrielev/Caddyfile. Le site est dans /srv/agrielev/site,
+# dont « courant » désigne la dernière version construite.
+{
+	admin off
+	auto_https off
+	servers {
+		# L'adresse du visiteur arrive du proxy partagé (réseau Docker privé).
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	root * /srv/site/courant
+	encode zstd gzip
+
+	# Formulaires (contact, candidature d'expert) : l'envoi part au service des formulaires,
+	# qui répond par une redirection vers la page de remerciement.
+	@envoi {
+		method POST
+		path /contact/merci /contact/merci/
+	}
+	handle @envoi {
+		reverse_proxy agrielev-formulaires:8000
+	}
+
+	handle {
+		# Anciennes adresses du site précédent (liens partagés, référencement).
+		redir /index.html / 308
+		redir /solutions.html /solutions/ 308
+		redir /cooperatives.html /cooperatives/ 308
+		redir /cunismart.html /cunismart/ 308
+		redir /mentions-legales.html /mentions-legales/ 308
+
+		# Une seule forme par adresse, celle des balises canoniques : avec barre finale.
+		# La requête est gardée (le formulaire de contact se préremplit avec ?sujet=…).
+		@sansBarre {
+			not path */
+			file {path}/index.html
+			expression {query} == ""
+		}
+		redir @sansBarre {path}/ 308
+		@sansBarreAvecRequete {
+			not path */
+			file {path}/index.html
+			expression {query} != ""
+		}
+		redir @sansBarreAvecRequete {path}/?{query} 308
+
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	handle_errors {
+		@introuvable expression {err.status_code} == 404
+		handle @introuvable {
+			rewrite * /404.html
+			file_server {
+				status 404
+			}
+		}
+		handle {
+			respond "{err.status_code} {err.status_text}"
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+	# Fichiers d'Astro : leur nom change à chaque modification.
+	header /_astro/* Cache-Control "public, max-age=31536000, immutable"
+	# Pages et autres fichiers : toujours revalidés.
+	@autres not path /_astro/*
+	header @autres Cache-Control "no-cache"
+}

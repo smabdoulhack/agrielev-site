@@ -13,3 +13,6 @@ lighthouse.json
 docs/
 CLAUDE.md
 src/assets/photos/SOURCES.md
+
+# Python (tests du service des formulaires)
+__pycache__/

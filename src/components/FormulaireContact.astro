@@ -1,5 +1,6 @@
 ---
-// Formulaire de contact (Netlify Forms). Trois temps numérotés : le besoin, les coordonnées, le message.
+// Formulaire de contact. Sur le VPS, l'envoi vers /contact/merci/ est reçu par deploiement/vps/formulaires ;
+// sur Netlify, par Netlify Forms (attributs data-netlify gardés). Trois temps numérotés : le besoin, les coordonnées, le message.
 // Les noms, identifiants et attributs Netlify sont attendus par src/scripts/formulaire.ts et les tests e2e.
 import { PROFILS, SUJETS, objetEmail } from '../lib/sujets.ts';
 import Icone from './Icone.astro';

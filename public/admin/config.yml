@@ -1,10 +1,13 @@
-# Interface d'écriture des articles du blog (Sveltia CMS) : https://agrielev-benin.netlify.app/admin/
+# Interface d'écriture des articles du blog (Sveltia CMS) : https://agrielev.com/admin/
 # Seuls les articles sont modifiables ici ; le reste du site se modifie dans le code.
-# Connexion : compte GitHub ayant accès au dépôt (OAuth GitHub déclaré dans Netlify).
+# Connexion : compte GitHub ayant accès au dépôt (OAuth GitHub déclaré dans le site Netlify
+# agrielev-benin, d'où site_domain), ou jeton d'accès GitHub personnel.
+# Chaque enregistrement est un commit sur main : le VPS reconstruit le site dans les 5 minutes.
 backend:
   name: github
   repo: smabdoulhack/agrielev-site
   branch: main
+  site_domain: agrielev-benin.netlify.app
   commit_messages:
     create: "contenu: nouvel article « {{slug}} »"
     update: "contenu: mise à jour de l'article « {{slug}} »"
@@ -13,7 +16,7 @@ backend:
     deleteMedia: "contenu: suppression de l'image « {{path}} »"
 
 locale: fr
-site_url: https://agrielev-benin.netlify.app
+site_url: https://agrielev.com
 logo_url: /favicon.png
 
 media_folder: src/assets/images/articles

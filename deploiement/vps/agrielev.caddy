@@ -1,0 +1,12 @@
+# agrielev.com sur le proxy partagé du VPS : /srv/proxy/sites/agrielev.caddy.
+# Installé seulement quand le DNS pointe sur le VPS (deploiement/vps/deployer.sh --bascule),
+# pour que Caddy obtienne le certificat du premier coup.
+# Les sous-domaines (api., cunismart., v2-api.agrielev.com) ne passent pas ici.
+agrielev.com {
+	encode zstd gzip
+	reverse_proxy agrielev-site:80
+}
+
+www.agrielev.com {
+	redir https://agrielev.com{uri} 308
+}

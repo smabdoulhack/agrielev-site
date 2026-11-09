@@ -1,0 +1,79 @@
+# Le site agrielev.com sur le VPS : /srv/agrielev/compose.yml (copie de ce fichier).
+# Trois conteneurs, aucun port publié : le proxy partagé joint le site par le
+# réseau `proxy`, sous le nom agrielev-site.
+#   site          Caddy, sert /srv/agrielev/site/courant
+#   formulaires   reçoit les formulaires et les envoie par e-mail
+#   construction  reconstruit le site à chaque nouveau commit du dépôt
+name: agrielev
+
+services:
+  site:
+    image: caddy:2.10-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/site:ro
+    restart: unless-stopped
+    mem_limit: 128m
+    depends_on: [formulaires]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      interne: {}
+      proxy:
+        aliases: [agrielev-site]
+
+  formulaires:
+    image: python:3.13-alpine
+    command: ["python", "-u", "/app/service.py"]
+    user: "1000:1000"
+    environment:
+      SMTP_HOTE: ${SMTP_HOTE:-smtp.hostinger.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_UTILISATEUR: ${SMTP_UTILISATEUR:?compte SMTP, dans /srv/agrielev/.env}
+      SMTP_MOT_DE_PASSE_FICHIER: /run/secrets/smtp
+      EXPEDITEUR: ${EXPEDITEUR:-hello@cunismart.com}
+      DESTINATAIRE: ${DESTINATAIRE:?adresse qui reçoit les demandes, dans /srv/agrielev/.env}
+      FILE_ATTENTE: /file-attente
+    secrets: [smtp]
+    volumes:
+      - ./formulaires/service.py:/app/service.py:ro
+      - ./file-attente:/file-attente
+    restart: unless-stopped
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/sante', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      interne:
+        aliases: [agrielev-formulaires]
+
+  construction:
+    build: ./construction
+    image: agrielev-construction
+    environment:
+      BRANCHE: ${BRANCHE:-main}
+      INTERVALLE: ${INTERVALLE:-300}
+      # Vide en production : l'article de test n'est pas publié sur agrielev.com.
+      ARTICLES_EXEMPLE: ${ARTICLES_EXEMPLE:-}
+    volumes:
+      - ./site:/site
+      - ./travail:/travail
+    restart: unless-stopped
+    # La construction (images) ne doit pas gêner CuniSmart, qui tourne sur la même machine.
+    cpus: 2
+    mem_limit: 2g
+    networks: [interne]
+
+secrets:
+  smtp:
+    file: ./secrets/smtp
+
+networks:
+  interne: {}
+  proxy:
+    external: true
