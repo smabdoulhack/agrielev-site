@@ -1,70 +1,324 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EnTetePage from '../components/EnTetePage.astro';
+import Photo from '../components/Photo.astro';
 import CarteExpert from '../components/CarteExpert.astro';
+import CarteArticle from '../components/CarteArticle.astro';
+import EtatVide from '../components/EtatVide.astro';
 import FormulaireExpert from '../components/FormulaireExpert.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
+import Sillons from '../components/Sillons.astro';
 import Icone from '../components/Icone.astro';
 import { PHOTOS } from '../data/photos.ts';
 import { SITE } from '../data/site.ts';
 import { chargerVisibles } from '../lib/collections.ts';
+import { CATEGORIES, trierParDate, type CategorieCode } from '../lib/blog.ts';
+import { lienContact } from '../lib/sujets.ts';
+import type { Statut } from '../lib/statut.ts';
 
 const experts = (await chargerVisibles('experts')).filter((e) => e.data.role === 'expert');
+const articles = trierParDate((await chargerVisibles('articles')).map((a) => ({ ...a, date: a.data.date }))).slice(0, 2);
+
+const VOLETS: { ancre: string; icone: string; titre: string; texte: string; statut?: Statut; libre?: string }[] = [
+  { ancre: '#contenus', icone: 'newspaper', titre: 'Des contenus agricoles', texte: 'Des conseils pratiques pour l’élevage et les cultures, publiés sur le blog.', statut: 'disponible' },
+  { ancre: '#radio', icone: 'broadcast', titre: 'La radio web', texte: 'Conseils pratiques, actualités des filières et paroles de terrain, à écouter.', statut: 'preparation' },
+  { ancre: '#reseau', icone: 'stethoscope', titre: 'Le réseau d’experts', texte: 'Agronomes, vétérinaires et techniciens qui partagent leurs connaissances.', libre: 'Candidatures ouvertes' },
+];
+
+const ICONES_RUBRIQUES: Record<CategorieCode, string> = {
+  'actualites': 'newspaper',
+  'conseils-techniques': 'lightbulb',
+  'filieres-marches': 'storefront',
+  'terrain': 'mountains',
+};
+
+const PROGRAMME = [
+  { icone: 'lightbulb', titre: 'Conseils pratiques', texte: 'Élevage, cultures, santé des bêtes : des gestes concrets.' },
+  { icone: 'chart-line-up', titre: 'Actualités des filières', texte: 'Ce qui bouge dans les filières et sur les marchés.' },
+  { icone: 'chats', titre: 'Paroles de terrain', texte: 'Producteurs, techniciens et experts racontent leur pratique.' },
+];
+
+const SPECIALITES = [
+  { icone: 'stethoscope', titre: 'Santé animale', role: 'Vétérinaires et zootechniciens', texte: 'Conduite d’élevage, prophylaxie, biosécurité et appui aux éleveurs.' },
+  { icone: 'plant', titre: 'Cultures et sols', role: 'Agronomes et techniciens', texte: 'Itinéraires techniques, fertilité des sols et appui aux coopératives.' },
+  { icone: 'fish', titre: 'Aquaculture', role: 'Techniciens aquacoles', texte: 'Bassins, mises en charge, alimentation et suivi des pertes.' },
+  { icone: 'factory', titre: 'Transformation', role: 'Technologues agroalimentaires', texte: 'Lait, karité, soja, manioc : procédés, hygiène et rendement.' },
+];
+
+const SUITE = [
+  { titre: 'Nous lisons votre candidature', texte: 'Spécialité, expérience, zone et disponibilité.' },
+  { titre: 'Nous vous appelons', texte: 'Un échange pour parler d’une collaboration possible.' },
+  { titre: 'Vous intervenez', texte: 'Contenus, formations ou appui de terrain, selon ce qui a été convenu.' },
+];
 ---
-<BaseLayout titre="AgriElev Connect" description="AgriElev Connect : radio web agricole, contenus et réseau d'experts agronomiques et vétérinaires.">
+<BaseLayout titre="AgriElev Connect" description="AgriElev Connect : contenus agricoles, radio web en préparation et réseau d'experts agronomiques et vétérinaires. Candidatures d'experts ouvertes.">
   <EnTetePage
     surtitre="Information et expertise agricole"
     titre="AgriElev Connect"
-    chapeau="AgriElev Connect rapproche les connaissances techniques des besoins du terrain : contenus agricoles, radio web et échanges avec des professionnels."
+    chapeau="Rapprocher les connaissances techniques des besoins du terrain : des contenus agricoles, une radio web en préparation et un réseau d’experts."
     photo={PHOTOS.connect}
-  />
+    portrait
+    etiquette="Sur le terrain, octobre 2026"
+    panneau={{ icone: 'tree', titre: 'Le savoir au plus près du terrain', texte: 'Des connaissances techniques utiles aux producteurs.' }}
+  >
+    <div class="actions">
+      <a class="bouton bouton--principal bouton--grand" href="#candidature">Rejoindre le réseau d’experts<Icone nom="arrow-right" taille={20} /></a>
+      <a class="bouton bouton--fantome bouton--grand" href="/blog"><Icone nom="book-open" taille={20} />Lire le blog</a>
+    </div>
+  </EnTetePage>
 
-  <section class="section">
-    <div class="conteneur grille">
-      <div class="volet">
-        <Icone nom="radio" taille={32} />
-        <h2>La radio web</h2>
-        <p>Une radio web agricole pour informer et orienter les producteurs : conseils pratiques, actualités des filières, paroles de terrain.</p>
-        {SITE.whatsapp && <p><a href={SITE.whatsapp}>Suivre le canal WhatsApp AgriElev</a></p>}
+  <!-- Les trois volets : sommaire de la page -->
+  <section class="section section--serree section--blanc">
+    <div class="conteneur">
+      <h2 class="titre-bloc volets__titre">Trois volets, un même but : que le bon conseil arrive au bon endroit</h2>
+      <ol class="liste-nue volets">
+        {VOLETS.map((v, i) => (
+          <li class:list={['carte', 'carte--interactive', 'volet', { 'carte--preparation': v.statut === 'preparation' }]}>
+            <span class="volet__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <span class:list={['pastille', 'pastille--grande', { 'pastille--or': i === 2 }]}><Icone nom={v.icone} taille={24} /></span>
+            <div class="volet__texte">
+              <h3><a class="lien-etendu" href={v.ancre}>{v.titre}</a></h3>
+              <p>{v.texte}</p>
+            </div>
+            <div class="volet__statut">
+              {v.statut ? <BadgeStatut statut={v.statut} /> : <span class="etiquette etiquette--forte"><span class="point" aria-hidden="true"></span>{v.libre}</span>}
+              <Icone nom="caret-down" taille={18} />
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 1. Contenus -->
+  <section id="contenus" class="section section--creme">
+    <div class="conteneur disposition disposition--4-8 disposition--haut contenus">
+      <div class="empile contenus__texte">
+        <p class="volet-repere"><span>01</span>Contenus agricoles</p>
+        <h2>Des conseils pratiques, sur le blog</h2>
+        <p class="texte-doux">Conseils techniques, actualités des filières et retours de terrain, écrits pour être appliqués.</p>
+        <ul class="liste-nue rubriques" aria-label="Rubriques du blog">
+          {CATEGORIES.map((c) => (
+            <li><a href={`/blog/categorie/${c.code}`}><Icone nom={ICONES_RUBRIQUES[c.code]} taille={18} />{c.libelle}</a></li>
+          ))}
+        </ul>
+        <div class="actions"><a class="bouton bouton--secondaire" href="/blog">Tous les articles</a></div>
       </div>
-      <div class="volet">
-        <Icone nom="chat-circle-text" taille={32} />
-        <h2>Des contenus agricoles</h2>
-        <p>Des contenus pratiques pour l'élevage et les cultures, publiés sur notre blog et diffusés sur nos canaux.</p>
-        <p><a href="/blog/categorie/conseils-techniques">Lire les conseils techniques</a></p>
-      </div>
-      <div class="volet">
-        <Icone nom="users-three" taille={32} />
-        <h2>Téléexpertise</h2>
-        <p><strong>En préparation.</strong> Les consultations individuelles demanderont un parcours dédié, des intervenants habilités et des conditions explicites. En attendant, le canal public informe et oriente.</p>
+      <div class="contenus__articles">
+        {articles.length === 0 && (
+          <EtatVide icone="newspaper" titre="Les premiers articles arrivent bientôt" texte="Une question de terrain que vous aimeriez voir traitée ? Proposez-nous un sujet.">
+            <a class="lien-fleche" href={lienContact('autre', '/connect')}>Proposer un sujet<Icone nom="arrow-right" taille={18} /></a>
+          </EtatVide>
+        )}
+        {articles.length === 1 && <CarteArticle article={articles[0]} une />}
+        {articles.length > 1 && <div class="grille grille--2">{articles.map((a) => <CarteArticle article={a} />)}</div>}
       </div>
     </div>
   </section>
 
-  {experts.length > 0 && (
-    <section class="section section--creme">
-      <div class="conteneur">
-        <h2>Les experts du réseau</h2>
-        <div class="grille">{experts.map((e) => <CarteExpert expert={e} />)}</div>
+  <!-- 2. Radio web (en préparation) -->
+  <section id="radio" class="section section--blanc">
+    <div class="conteneur">
+      <div class="radio sombre">
+        <Sillons classe="radio__sillons" fuite={0.9} rangs={22} />
+        <div class="radio__intro">
+          <p class="volet-repere volet-repere--sombre"><span>02</span>Radio web</p>
+          <div class="radio__tete">
+            <span class="pastille pastille--grande pastille--or"><Icone nom="radio" taille={26} /></span>
+            <BadgeStatut statut="preparation" />
+          </div>
+          <h2>La radio web AgriElev Connect</h2>
+          <p class="chapeau">Une radio web agricole pour informer et orienter les producteurs, là où l’écrit ne suffit pas.</p>
+          {SITE.whatsapp && <a class="bouton bouton--clair" href={SITE.whatsapp}><Icone nom="whatsapp-logo" taille={20} />Suivre le canal WhatsApp</a>}
+        </div>
+        <div class="radio__programme">
+          <p class="radio__programme-titre">Ce que vous y entendrez</p>
+          <ul class="liste-nue">
+            {PROGRAMME.map((p) => (
+              <li>
+                <span class="radio__icone"><Icone nom={p.icone} taille={20} /></span>
+                <div><h3>{p.titre}</h3><p>{p.texte}</p></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="radio__suite">
+          <span class="radio__icone radio__icone--clair"><Icone nom="chat-circle-text" taille={20} /></span>
+          <div>
+            <h3>Téléexpertise</h3>
+            <p>Les consultations individuelles demanderont un parcours dédié, des intervenants habilités et des conditions explicites. En attendant, le canal public informe et oriente.</p>
+          </div>
+          <BadgeStatut statut="preparation" />
+        </div>
       </div>
-    </section>
-  )}
+    </div>
+  </section>
 
-  <section class="section section--brume">
-    <div class="conteneur candidature">
-      <div>
-        <p class="surtitre">Rejoindre le réseau</p>
-        <h2>Vous êtes agronome, vétérinaire ou technicien ?</h2>
-        <p>AgriElev Connect mobilise des experts agronomiques et vétérinaires pour partager leurs connaissances avec les producteurs. Présentez-vous : nous vous recontactons pour échanger sur une collaboration.</p>
+  <!-- 3. Réseau d'experts -->
+  <section id="reseau" class="section section--creme">
+    <div class="conteneur disposition disposition--7-5 reseau">
+      <div class="empile reseau__texte">
+        <p class="volet-repere"><span>03</span>Réseau d’experts</p>
+        <h2>Le réseau d’experts</h2>
+        <p class="chapeau">AgriElev Connect mobilise des experts agronomiques et vétérinaires pour partager leurs connaissances avec les producteurs.</p>
+        <div class="reseau__sous-titre">
+          <h3 class="titre-bloc">Les spécialités recherchées</h3>
+          <span class="etiquette etiquette--forte"><span class="point" aria-hidden="true"></span>Candidatures ouvertes</span>
+        </div>
+        <ul class="liste-nue specialites">
+          {SPECIALITES.map((s, i) => (
+            <li class="carte specialite">
+              <span class:list={['pastille', 'pastille--ronde', 'specialite__icone', { 'pastille--creme': i % 2 === 1 }]}><Icone nom={s.icone} taille={24} /></span>
+              <div>
+                <h4>{s.titre}</h4>
+                <p class="specialite__role">{s.role}</p>
+                <p>{s.texte}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-      <FormulaireExpert />
+      <div class="photo-carte photo-carte--terre reseau__photo">
+        <Photo photo={PHOTOS.eleveur} sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+        <div class="photo-carte__bas">
+          <span class="pastille pastille--moyenne pastille--creme"><Icone nom="paw-print" taille={22} /></span>
+          <div>
+            <strong>Au plus près des éleveurs</strong>
+            <p>Les connaissances techniques, là où sont les bêtes et les cultures.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {experts.length > 0 && (
+      <div class="conteneur experts">
+        <h3 class="titre-bloc">Les experts du réseau</h3>
+        <div class="grille grille--4">{experts.map((e) => <CarteExpert expert={e} />)}</div>
+      </div>
+    )}
+  </section>
+
+  <!-- Candidature -->
+  <section id="candidature-section" class="section section--brume">
+    <div class="conteneur disposition disposition--5-7 disposition--haut">
+      <div class="collant empile candidature__texte">
+        <h2>Vous êtes agronome, vétérinaire ou technicien ?</h2>
+        <p class="chapeau">Présentez-vous en quelques lignes : nous vous recontactons pour échanger sur une collaboration.</p>
+        <ol class="liste-nue suite">
+          {SUITE.map((s, i) => (
+            <li>
+              <span class="suite__numero" aria-hidden="true">{i + 1}</span>
+              <div><h3>{s.titre}</h3><p>{s.texte}</p></div>
+            </li>
+          ))}
+        </ol>
+        <p class="candidature__note"><Icone nom="shield-check" taille={18} />Vos informations servent uniquement à étudier votre candidature.</p>
+      </div>
+      <div class="formulaire-carte candidature__carte">
+        <FormulaireExpert />
+      </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  .volet { padding: var(--esp-4); border-radius: var(--radius); border: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); }
-  .volet :global(.icone) { color: var(--ae-vert-foret); margin-bottom: var(--esp-3); }
-  .volet h2 { font-size: 1.35rem; }
-  .candidature { display: grid; gap: var(--esp-5); }
-  @media (min-width: 64rem) { .candidature { grid-template-columns: 1fr 1.3fr; } }
+  /* ---------- Sommaire des trois volets ---------- */
+  .volets__titre { max-width: 34rem; margin: 0 0 var(--esp-4); }
+  .volets { display: grid; gap: var(--esp-3); }
+  .volet { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--esp-3); padding: var(--esp-3) var(--esp-4); }
+  .volet__numero { display: none; font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-2xl); line-height: 1; letter-spacing: -0.03em; color: var(--ae-or-fonce); font-variant-numeric: tabular-nums; }
+  .volet__texte h3 { margin: 0 0 0.125rem; }
+  .volet__texte h3 a { color: var(--ae-vert-foret); }
+  .volet__texte p { margin: 0; }
+  .volet__statut { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); }
+  .volet__statut > :global(.icone) { color: var(--ae-vert-foret); transition: transform var(--transition); }
+  .volet:hover .volet__statut > :global(.icone) { transform: translateY(3px); }
+  @media (min-width: 48rem) {
+    .volet { grid-template-columns: 3.5rem auto minmax(0, 1fr) auto; padding: var(--esp-4) var(--esp-5); gap: var(--esp-4); }
+    .volet__numero { display: block; }
+    .volet__statut { grid-column: auto; justify-content: flex-end; }
+  }
+
+  /* Repère du volet au-dessus des titres de section. */
+  .volet-repere { display: inline-flex; align-items: center; gap: var(--esp-2); margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+  .volet-repere span { display: inline-grid; place-items: center; min-width: 2rem; height: 1.5rem; padding-inline: 0.375rem; border-radius: 6px; background: var(--ae-vert-foret); color: #FFFFFF; font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-label-sm); }
+  .volet-repere--sombre { color: var(--ae-vert-brume); }
+  .volet-repere--sombre span { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+
+  /* ---------- Contenus ---------- */
+  .contenus { row-gap: var(--esp-5); }
+  .contenus__texte { gap: var(--esp-3); }
+  .contenus__texte h2 { margin: 0; }
+  .rubriques { display: grid; gap: var(--esp-2); }
+  .rubriques a {
+    display: flex; align-items: center; gap: var(--esp-2); padding: 0.75rem var(--esp-3); border-radius: var(--radius);
+    background: #FFFFFF; box-shadow: var(--ombre-1); font-weight: 700; color: var(--ae-vert-foret); text-decoration: none;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+  .rubriques a:hover { box-shadow: var(--ombre-2); transform: translateX(3px); }
+  .rubriques :global(.icone) { color: var(--ae-or-fonce); }
+  .contenus__texte .actions { margin-top: var(--esp-2); }
+  @media (min-width: 40rem) and (max-width: 63.99rem) { .rubriques { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* ---------- Radio ---------- */
+  .radio {
+    position: relative; overflow: hidden; isolation: isolate; display: grid; gap: var(--esp-5);
+    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem); border-radius: var(--radius); box-shadow: var(--ombre-3);
+  }
+  .radio::after { content: ''; position: absolute; inset: 0.75rem; z-index: -1; border-radius: calc(var(--radius) - 4px); outline: 1.5px dashed rgb(233 243 234 / 0.35); pointer-events: none; }
+  :global(.radio__sillons) { position: absolute !important; inset: 0 0 0 52%; width: auto !important; height: auto !important; z-index: -2; color: var(--ae-or-recolte); opacity: 0.22; }
+  .radio__intro { display: flex; flex-direction: column; align-items: flex-start; gap: var(--esp-3); }
+  .radio__intro > * { margin: 0; }
+  .radio__tete { display: flex; align-items: center; gap: var(--esp-3); }
+  .radio__intro .chapeau { color: var(--ae-vert-brume); }
+  .radio__programme { padding: var(--esp-4); border-radius: var(--radius); background: rgb(255 255 255 / 0.07); backdrop-filter: blur(4px); }
+  .radio__programme-titre { margin: 0 0 var(--esp-3); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ae-creme); }
+  .radio__programme ul { display: grid; gap: 0; }
+  .radio__programme li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--esp-3); padding-block: var(--esp-3); border-top: 1px dashed rgb(233 243 234 / 0.25); }
+  .radio__programme li:first-child { border-top: 0; padding-top: 0; }
+  .radio__programme h3 { margin: 0 0 0.125rem; font-size: var(--fs-lg); }
+  .radio__programme p { margin: 0; font-size: var(--fs-sm); color: var(--ae-vert-brume); }
+  .radio__icone { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: var(--radius); background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .radio__icone--clair { background: rgb(255 255 255 / 0.12); color: var(--ae-creme); }
+  .radio__suite { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--esp-3); align-items: start; padding-top: var(--esp-4); border-top: 1px solid rgb(233 243 234 / 0.2); }
+  .radio__suite h3 { margin: 0 0 0.25rem; font-size: var(--fs-lg); }
+  .radio__suite p { margin: 0; font-size: var(--fs-sm); color: var(--ae-vert-brume); max-width: 46rem; }
+  .radio__suite > :global(.badge) { grid-column: 2; }
+  @media (min-width: 64rem) {
+    .radio { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); column-gap: var(--esp-6); align-items: center; }
+    .radio__suite { grid-column: 1 / -1; grid-template-columns: 2.5rem minmax(0, 1fr) auto; align-items: center; }
+    .radio__suite > :global(.badge) { grid-column: auto; }
+  }
+
+  /* ---------- Réseau ---------- */
+  .reseau { align-items: stretch; row-gap: var(--esp-5); }
+  .reseau__texte { gap: var(--esp-3); }
+  .reseau__texte h2, .reseau__texte .chapeau { margin: 0; }
+  .reseau__sous-titre { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-2); margin-top: var(--esp-3); }
+  .reseau__sous-titre h3 { margin: 0; }
+  .specialites { display: grid; gap: var(--esp-3); }
+  .specialite { flex-direction: row; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-4); }
+  .specialite__icone { width: 3.25rem; height: 3.25rem; }
+  .specialite h4 { margin: 0; font-size: var(--fs-lg); }
+  .carte p.specialite__role { margin: 0 0 0.375rem; font-size: var(--fs-sm); font-weight: 600; color: var(--or-texte); }
+  @media (min-width: 40rem) { .specialites { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .reseau__photo { --hauteur-photo: 22rem; }
+  @media (min-width: 64rem) {
+    .reseau__photo { min-height: 34rem; }
+    .reseau__photo :global(.photo-conteneur) { position: absolute; inset: 0; height: 100%; }
+  }
+  .experts { margin-top: var(--esp-6); }
+  .experts h3 { margin-bottom: var(--esp-4); }
+
+  /* ---------- Candidature ---------- */
+  .candidature__texte { gap: var(--esp-4); }
+  .candidature__texte h2, .candidature__texte .chapeau { margin: 0; }
+  .suite { display: grid; gap: 0; }
+  .suite li { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--esp-3); padding-bottom: var(--esp-4); }
+  .suite li:not(:last-child)::before { content: ''; position: absolute; left: calc(1.25rem - 1px); top: 2.5rem; bottom: 0; width: 2px; background: var(--ligne-forte); }
+  .suite__numero { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--ae-vert-foret); color: #FFFFFF; font-family: var(--font-titre); font-weight: 800; }
+  .suite li:last-child .suite__numero { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .suite h3 { margin: 0.35rem 0 0.15rem; font-size: var(--fs-lg); }
+  .suite p { margin: 0; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .candidature__note { display: flex; align-items: center; gap: var(--esp-2); margin: 0; padding: var(--esp-3); border-radius: var(--radius); background: rgb(255 255 255 / 0.6); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .candidature__carte { box-shadow: var(--ombre-3), inset 0 4px 0 var(--ae-or-recolte); }
 </style>

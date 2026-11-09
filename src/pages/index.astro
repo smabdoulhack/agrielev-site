@@ -2,23 +2,41 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Photo from '../components/Photo.astro';
 import Icone from '../components/Icone.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
 import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
 import AccesProfil from '../components/AccesProfil.astro';
 import CarteOffre from '../components/CarteOffre.astro';
 import CarteArticle from '../components/CarteArticle.astro';
-import CarteExpert from '../components/CarteExpert.astro';
-import BandeauContact from '../components/BandeauContact.astro';
+import EcranApp from '../components/EcranApp.astro';
+import Sillons from '../components/Sillons.astro';
 import { PHOTOS } from '../data/photos.ts';
-import { SITE } from '../data/site.ts';
+import { CAPTURES, MENTION_CAPTURES } from '../data/captures.ts';
+import { ESPECES, METIERS, STATUT_CUNISMART } from '../data/cunismart.ts';
+import { SITE, telLien } from '../data/site.ts';
 import { chargerVisibles } from '../lib/collections.ts';
-import { lienContact } from '../lib/sujets.ts';
+import { lienContact, PROFILS, SUJETS } from '../lib/sujets.ts';
 import { trierParDate } from '../lib/blog.ts';
 import { formatDate } from '../lib/format.ts';
 
 const offres = (await chargerVisibles('offres')).sort((a, b) => a.data.ordre - b.data.ordre);
 const articles = trierParDate((await chargerVisibles('articles')).map((a) => ({ ...a, date: a.data.date }))).slice(0, 3);
-const etude = trierParDate((await chargerVisibles('etudes')).map((e) => ({ ...e, date: e.data.date })))[0];
-const experts = await chargerVisibles('experts');
+
+const FONCTIONS = [
+  { icone: 'cow', titre: 'Élevage', texte: 'Vos bêtes une par une ou en bande, de la saillie au sevrage.' },
+  { icone: 'syringe', titre: 'Soins et rappels', texte: 'Vaccins et traitements notés, avec les rappels à faire.' },
+  { icone: 'plant', titre: 'Cultures', texte: 'Calendrier des travaux, récoltes et marge par culture.' },
+  { icone: 'factory', titre: 'Transformation', texte: 'Collecte, production, stock et ventes à crédit.' },
+  { icone: 'coins', titre: 'Finances', texte: 'Ce qui rentre, ce qui sort, mois par mois.' },
+  { icone: 'qr-code', titre: 'QR code des produits', texte: 'L’acheteur scanne et lit l’origine du lot.' },
+];
+
+// Carnet de terrain : photos des missions (dates des prises de vue).
+const TERRAIN = [
+  { photo: PHOTOS.maraichage, quand: 'Octobre 2026', titre: 'Cultures maraîchères', texte: 'Planches de choux et de légumes feuilles, suivies avec les producteurs.', icone: 'leaf', theme: 'Cultures' },
+  { photo: PHOTOS.papayers, quand: 'Octobre 2026', titre: 'Plantations de papayers', texte: 'Une filière fruitière à organiser.', icone: 'tree', theme: 'Arboriculture' },
+  { photo: PHOTOS.ananasBiodigesteur, quand: 'Octobre 2026', titre: 'Ananas et biodigesteur', texte: 'Valoriser les résidus de la parcelle.', icone: 'recycle', theme: 'Économie circulaire' },
+  { photo: PHOTOS.cheptelBovin, quand: 'Septembre 2026', titre: 'Suivi des troupeaux', texte: 'La santé animale au plus près des éleveurs, sur les pistes.', icone: 'paw-print', theme: 'Élevage' },
+];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -32,116 +50,455 @@ const jsonLd = {
   address: { '@type': 'PostalAddress', addressLocality: SITE.siege, addressCountry: 'BJ' },
 };
 ---
-<BaseLayout titre="AgriElev · Outils et accompagnement pour les filières agricoles" jsonLd={jsonLd}>
+<BaseLayout titre="AgriElev Bénin · Outils numériques et accompagnement agricole" jsonLd={jsonLd}>
+  <!-- Ouverture : le terrain et le cahier numérique, ensemble. -->
   <section class="ouverture">
-    <Photo photo={PHOTOS.accueilOuverture} classe="ouverture__photo" prioritaire sizes="100vw" />
-    <div class="ouverture__voile"></div>
-    <div class="conteneur ouverture__texte">
-      <p class="surtitre">{SITE.signature}</p>
-      <h1>Des outils et un accompagnement pour développer vos activités agricoles</h1>
-      <p class="chapeau">AgriElev associe gestion numérique, formation et expertise de terrain pour accompagner les producteurs et leurs organisations.</p>
-      <div class="actions">
-        <a class="bouton bouton--principal" href="/cunismart">Découvrir CuniSmart <Icone nom="arrow-right" taille={20} /></a>
-        <a class="bouton bouton--clair" href="/contact">Échanger sur un projet</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="conteneur">
-      <h2>Vous êtes…</h2>
-      <div class="grille grille--4">
-        <AccesProfil icone="user" titre="Producteur ou productrice" texte="Suivez votre élevage et vos cultures avec CuniSmart et des formations pratiques." href="/cunismart" libelleLien="Découvrir CuniSmart" />
-        <AccesProfil icone="users-three" titre="Coopérative" texte="Diagnostic, pilote, formation et suivi consolidé pour vos membres." href="/cooperatives" libelleLien="Voir l'accompagnement" />
-        <AccesProfil icone="handshake" titre="Partenaire" texte="Institutions, programmes et entreprises : construisons ensemble des projets de filière." href={lienContact('partenariat', '/', 'partenaire')} libelleLien="Nous écrire" />
-        <AccesProfil icone="graduation-cap" titre="Expert" texte="Agronomes, vétérinaires, techniciens : rejoignez le réseau AgriElev Connect." href="/connect#candidature" libelleLien="Proposer sa candidature" />
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--creme">
-    <div class="conteneur">
-      <p class="surtitre">Nos solutions</p>
-      <h2>Cinq offres pour accompagner les filières</h2>
-      <p class="chapeau">Chaque offre affiche son état réel : disponible, en pilote ou en préparation.</p>
-      <div class="grille">
-        {offres.map((offre) => <CarteOffre offre={offre} />)}
-      </div>
-      <div class="actions"><a class="bouton bouton--secondaire" href="/solutions">Voir le détail des offres</a></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="conteneur deux-colonnes">
-      <Photo photo={PHOTOS.accueilCunismart} classe="photo-arrondie" />
-      <div>
-        <p class="surtitre">Notre outil numérique</p>
-        <h2>CuniSmart by AgriElev</h2>
-        <p>CuniSmart rassemble les informations utiles à la gestion de l'élevage et des cultures : cheptel, reproduction, santé, finances, nutrition et traçabilité.</p>
-        <p>L'application a été lancée le {formatDate(SITE.dateLancementCuniSmart)}. AgriElev l'accompagne de formations et d'un appui de terrain.</p>
+    <div class="conteneur disposition disposition--7-5 ouverture__grille">
+      <div class="ouverture__texte">
+        <p class="pastille-titre ouverture__identite"><span class="point point--or" aria-hidden="true"></span>Agritech et accompagnement agricole, au Bénin</p>
+        <h1 class="titre-display">Des outils et un accompagnement pour développer vos activités agricoles</h1>
+        <p class="chapeau">AgriElev associe gestion numérique, formation et expertise de terrain pour accompagner les producteurs et leurs organisations.</p>
         <div class="actions">
-          <BoutonCuniSmart variante="grand" />
-          <a class="bouton bouton--secondaire" href={lienContact('demo-cunismart', '/')}>Demander une démonstration</a>
+          <a class="bouton bouton--principal bouton--grand" href="/cunismart">Découvrir CuniSmart<Icone nom="arrow-right" taille={20} /></a>
+          <a class="bouton bouton--fantome bouton--grand" href="/contact"><Icone nom="chat-circle" taille={20} />Échanger sur un projet</a>
+        </div>
+        <ul class="liste-nue ouverture__reperes">
+          <li><Icone nom="seal-check" taille={18} />Entreprise béninoise</li>
+          <li><Icone nom="wifi-slash" taille={18} />CuniSmart marche sans réseau</li>
+          <li><Icone nom="users-three" taille={18} />Équipe sur le terrain</li>
+        </ul>
+      </div>
+
+      <div class="ouverture__visuel">
+        <Sillons classe="ouverture__sillons" fuite={0.62} rangs={26} />
+        <div class="photo-carte ouverture__photo">
+          <Photo photo={PHOTOS.terrainReunion} prioritaire sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+          <div class="photo-carte__haut">
+            <span class="etiquette etiquette--blanc etiquette--forte"><span class="point" aria-hidden="true"></span>Réunion de village, septembre 2026</span>
+          </div>
+          <div class="photo-carte__bas ouverture__panneau">
+            <span class="pastille pastille--moyenne"><Icone nom="map-pin" taille={22} /></span>
+            <div>
+              <strong>Accompagnement de proximité</strong>
+              <p>Nos équipes vont à la rencontre des producteurs et de leurs groupements.</p>
+            </div>
+          </div>
+        </div>
+        <div class="ouverture__telephone">
+          <EcranApp capture={CAPTURES.aFaire} largeur={200} prioritaire />
+          <p class="synchro" role="img" aria-label="Illustration : les saisies faites sans réseau partent dès que le réseau revient">
+            <span class="synchro__etat synchro__etat--attente"><Icone nom="wifi-slash" taille={16} />Hors réseau : 3 saisies gardées</span>
+            <span class="synchro__etat synchro__etat--envoye"><Icone nom="check-circle" taille={16} />Réseau revenu : saisies envoyées</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="conteneur profils">
+      <h2 class="titre-bloc">Vous êtes…</h2>
+      <div class="grille grille--4">
+        <AccesProfil numero={1} couleur="vert" icone="tractor" titre="Producteur" texte="Suivez votre élevage et vos cultures avec CuniSmart, et formez-vous." href="/cunismart" />
+        <AccesProfil numero={2} couleur="or" icone="users-three" titre="Coopérative ou fédération" texte="Diagnostic, pilote, formation et suivi consolidé pour vos membres." href="/cooperatives" />
+        <AccesProfil numero={3} couleur="foret" icone="bank" titre="Partenaire ou institution" texte="Programmes et entreprises : construisons ensemble des projets de filière." href={lienContact('partenariat', '/', 'partenaire')} />
+        <AccesProfil numero={4} couleur="terre" icone="stethoscope" titre="Expert agricole" texte="Agronome, vétérinaire, technicien : rejoignez AgriElev Connect." href="/connect#candidature" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Présentation et faits vérifiables -->
+  <section id="presentation" class="section section--creme">
+    <div class="conteneur disposition disposition--5-7">
+      <div class="empile presentation__texte">
+        <p class="surtitre surtitre--icone"><Icone nom="shield-check" taille={18} />{SITE.raisonSociale}</p>
+        <h2>Une entreprise conçue pour les réalités d’Afrique de l’Ouest</h2>
+        <p class="texte-doux">Nous accompagnons les producteurs, les coopératives et les acteurs des filières dans la gestion de leurs activités et le développement de leurs compétences. Nos outils partent de ce que nous voyons sur le terrain : peu de réseau, des téléphones simples, des cahiers papier qui se perdent.</p>
+        <p class="identite"><span>RCCM {SITE.rccm}</span><span>IFU {SITE.ifu}</span></p>
+        <a class="lien-fleche lien-fleche--vert" href="/entreprise">Découvrir l’entreprise<Icone nom="arrow-right" taille={18} /></a>
+      </div>
+      <div class="faits">
+        <div class="carte carte--sombre fait fait--date">
+          <Icone nom="calendar-check" taille={24} />
+          <div>
+            <p class="fait__valeur">{formatDate(SITE.dateLancementCuniSmart)}</p>
+            <p class="fait__libelle">Lancement de CuniSmart</p>
+          </div>
+          <p>Le cahier d’exploitation numérique d’AgriElev, gratuit pendant le pilote.</p>
+        </div>
+        <div class="carte fait">
+          <Icone nom="paw-print" taille={24} />
+          <div>
+            <p class="fait__valeur">{ESPECES.length} espèces</p>
+            <p class="fait__libelle">suivies dans CuniSmart</p>
+          </div>
+          <ul class="puces">{ESPECES.map((e) => <li>{e.nom}</li>)}</ul>
+        </div>
+        <div class="carte fait">
+          <Icone nom="factory" taille={24} />
+          <div>
+            <p class="fait__valeur">{METIERS.length} métiers</p>
+            <p class="fait__libelle">dans un seul cahier</p>
+          </div>
+          <p>{METIERS.map((m) => m.nom).join(', ')}.</p>
+        </div>
+        <div class="carte fait">
+          <Icone nom="globe-hemisphere-east" taille={24} />
+          <div>
+            <p class="fait__valeur">Bénin</p>
+            <p class="fait__libelle">siège et équipe de terrain</p>
+          </div>
+          <p>Des utilisateurs de CuniSmart sont signalés dans d’autres pays : usages déclarés, en cours de confirmation.</p>
         </div>
       </div>
     </div>
   </section>
 
-  {etude && (
-    <section class="section section--brume">
-      <div class="conteneur">
-        <p class="surtitre">Réalisation</p>
-        <h2>Sur le terrain</h2>
-        <h3>{etude.data.titre}</h3>
-        <p>{etude.data.lieu}, {etude.data.periode}. {etude.data.population}.</p>
-        <p><strong>{etude.data.indicateur} :</strong> {etude.data.resultat}</p>
-        <p class="source">Source : {etude.data.source}</p>
-        <a href="/ressources#etudes-de-cas">Toutes les études de cas</a>
-      </div>
-    </section>
-  )}
-
-  <section class="section section--creme">
+  <!-- Offres -->
+  <section class="section">
     <div class="conteneur">
-      <p class="surtitre">Réseau d'expertise</p>
-      <h2>Des compétences au service du terrain</h2>
-      <p class="chapeau">L'équipe s'appuie sur des compétences entrepreneuriales, numériques, commerciales et techniques, et sur un réseau d'experts agronomiques et vétérinaires mobilisés autour d'AgriElev Connect.</p>
-      {experts.length > 0 && <div class="grille">{experts.map((e) => <CarteExpert expert={e} />)}</div>}
-      <div class="actions">
-        <a class="bouton bouton--secondaire" href="/entreprise">Découvrir AgriElev</a>
-        <a class="bouton bouton--secondaire" href="/connect">AgriElev Connect</a>
+      <header class="entete-section">
+        <div>
+          <h2>Cinq offres, chacune avec son état réel</h2>
+          <p>Ce qui est en pilote se teste dès aujourd’hui avec nous. Ce qui est en préparation se construit avec les acteurs concernés.</p>
+        </div>
+        <ul class="liste-nue legende" aria-label="Lecture des cartes">
+          <li><span class="legende__exemple legende__exemple--pilote" aria-hidden="true"></span>En pilote</li>
+          <li><span class="legende__exemple legende__exemple--preparation" aria-hidden="true"></span>En préparation</li>
+        </ul>
+      </header>
+      <div class="offres">
+        {offres.map((offre, i) => <CarteOffre offre={offre} numero={i + 1} grande={i < 2} capture={offre.id === 'gestion-numerique' ? CAPTURES.accueil : undefined} />)}
+      </div>
+      <p class="offres__suite"><a class="lien-fleche lien-fleche--vert" href="/solutions">Le détail des cinq offres<Icone nom="arrow-right" taille={18} /></a></p>
+    </div>
+  </section>
+
+  <!-- CuniSmart -->
+  <section id="cunismart" class="section section--degrade">
+    <div class="conteneur">
+      <div class="encadre cunismart-encadre">
+        <div>
+          <Icone nom="info" taille={24} />
+          <p><strong>CuniSmart</strong> est l’application de gestion éditée et exploitée par <strong>{SITE.raisonSociale}</strong>. Ce n’est pas une autre entreprise : c’est notre outil.</p>
+        </div>
+        <span class="etiquette etiquette--blanc marque-produit cunismart-encadre__marque">CuniSmart by AgriElev</span>
+      </div>
+      <div class="disposition disposition--6-6">
+        <figure class="vitrine">
+          <Sillons classe="vitrine__sillons" fuite={0.3} rangs={20} />
+          <div class="vitrine__ecrans">
+            <EcranApp capture={CAPTURES.soins} largeur={210} classe="vitrine__ecran vitrine__ecran--arriere" />
+            <EcranApp capture={CAPTURES.cultures} largeur={230} classe="vitrine__ecran" />
+          </div>
+          <figcaption class="vitrine__legende">
+            <span class="marque-produit">CuniSmart by AgriElev</span>
+            <BadgeStatut statut={STATUT_CUNISMART} />
+            <span class="vitrine__mention">{MENTION_CAPTURES}</span>
+          </figcaption>
+        </figure>
+        <div class="empile">
+          <div>
+            <p class="surtitre surtitre--orange">Le cahier de l’exploitation, sur le téléphone</p>
+            <h2>Suivez votre exploitation au jour le jour, même sans réseau</h2>
+            <p class="chapeau">Chaque bête, chaque soin, chaque récolte et chaque vente est noté sur le téléphone et retrouvé en un instant. Sans réseau, rien n’est perdu : tout part quand il revient.</p>
+          </div>
+          <div class="grille grille--2 tuiles">
+            {FONCTIONS.map((f) => (
+              <div class="tuile">
+                <Icone nom={f.icone} taille={20} />
+                <div><h3>{f.titre}</h3><p>{f.texte}</p></div>
+              </div>
+            ))}
+          </div>
+          <div class="actions">
+            <BoutonCuniSmart variante="moyen" />
+            <a class="bouton bouton--fantome" href={lienContact('demo-cunismart', '/')}>Demander une démonstration</a>
+          </div>
+          <a class="lien-fleche lien-fleche--vert" href="/cunismart">Tout savoir sur l’application<Icone nom="arrow-right" taille={18} /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coopératives -->
+  <section class="section section--blanc">
+    <div class="conteneur disposition disposition--6-6 disposition--inverse">
+      <div class="photo-carte photo-carte--terre" style="--hauteur-photo: 26rem; --hauteur-photo-large: 32rem;">
+        <Photo photo={PHOTOS.equipeTerrain} sizes="(min-width: 80rem) 39rem, (min-width: 64rem) 48vw, 100vw" />
+        <div class="photo-carte__bas">
+          <span class="pastille pastille--grande pastille--creme"><Icone nom="users-three" taille={24} /></span>
+          <div>
+            <strong>L’équipe AgriElev sur le terrain</strong>
+            <p>Diagnostic, formation des techniciens et suivi des membres.</p>
+          </div>
+        </div>
+      </div>
+      <div class="empile">
+        <p class="pastille-titre pastille-titre--cs"><Icone nom="seal-check" taille={16} />Pour les coopératives et fédérations</p>
+        <h2>Un accompagnement collectif pour les groupements agricoles</h2>
+        <p class="texte-doux">Un déploiement encadré, adapté aux moyens de la coopérative : les membres prennent en main CuniSmart, les techniciens sont formés, le bureau suit l’ensemble. Aucun résultat n’est promis avant le pilote.</p>
+        <ol class="etapes">
+          <li class="etape"><span class="puce-numero">1</span><div><h3>Diagnostic de la coopérative</h3><p>Membres, activités et besoins : nous regardons ensemble ce qui doit être suivi.</p></div></li>
+          <li class="etape"><span class="puce-numero">2</span><div><h3>Pilote avec quelques membres</h3><p>Prise en main de CuniSmart ; le technicien tient le cahier de ceux qui n’ont pas de téléphone.</p></div></li>
+          <li class="etape"><span class="puce-numero">3</span><div><h3>Suivi consolidé</h3><p>Le bureau suit les totaux de ses membres, mois par mois.</p></div></li>
+        </ol>
+        <div class="actions">
+          <a class="bouton bouton--foret" href={lienContact('pilote-cooperative', '/', 'cooperative')}>Organiser un pilote</a>
+          <a class="lien-fleche lien-fleche--vert" href="/cooperatives">Voir l’accompagnement complet<Icone nom="arrow-right" taille={18} /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carnet de terrain -->
+  <section id="terrain" class="section section--filet">
+    <div class="conteneur">
+      <header class="entete-section">
+        <div>
+          <p class="surtitre surtitre--icone"><Icone nom="mountains" taille={18} />Carnet de terrain</p>
+          <h2>Cultures, filières et circularité, vues lors de nos missions</h2>
+        </div>
+        <a class="lien-fleche lien-fleche--vert" href="/ressources">Terrain et ressources<Icone nom="arrow-right" taille={18} /></a>
+      </header>
+      <div class="carnet">
+        {TERRAIN.map((t, i) => (
+          <figure class:list={['carnet__case', `carnet__case--${i + 1}`]}>
+            <Photo photo={t.photo} sizes={i === 0 ? '(min-width: 80rem) 40rem, (min-width: 64rem) 50vw, 100vw' : '(min-width: 80rem) 20rem, (min-width: 64rem) 25vw, 100vw'} />
+            <span class="etiquette etiquette--blanc etiquette--forte carnet__date">{t.quand}</span>
+            <figcaption class="carnet__legende">
+              <span class="carnet__theme"><Icone nom={t.icone} taille={16} />{t.theme}</span>
+              <strong>{t.titre}</strong>
+              <span class="carnet__texte">{t.texte}</span>
+            </figcaption>
+          </figure>
+        ))}
       </div>
     </div>
   </section>
 
   {articles.length > 0 && (
-    <section class="section">
+    <section class="section section--blanc">
       <div class="conteneur">
-        <h2>Derniers articles</h2>
-        <div class="grille">{articles.map((a) => <CarteArticle article={a} />)}</div>
-        <div class="actions"><a class="bouton bouton--secondaire" href="/blog">Tous les articles</a></div>
+        <header class="entete-section">
+          <div>
+            <h2>Derniers articles</h2>
+            <p>Conseils techniques, actualités d’AgriElev et retours de terrain.</p>
+          </div>
+          <a class="lien-fleche lien-fleche--vert" href="/blog">Tous les articles<Icone nom="arrow-right" taille={18} /></a>
+        </header>
+        {articles.length === 1
+          ? <CarteArticle article={articles[0]} une />
+          : <div class:list={['grille', articles.length === 2 ? 'grille--2' : 'grille--3']}>{articles.map((a) => <CarteArticle article={a} />)}</div>}
       </div>
     </section>
   )}
 
-  <BandeauContact />
+  <!-- Réseau et orientation -->
+  <section id="reseau" class="section section--creme">
+    <div class="conteneur disposition disposition--7-5 disposition--haut">
+      <div class="empile">
+        <div>
+          <h2>Le réseau d’expertise AgriElev Connect</h2>
+          <p class="chapeau">Agronomes, vétérinaires et techniciens de terrain, pour rapprocher les connaissances techniques des besoins des exploitations.</p>
+        </div>
+        <div class="grille grille--2">
+          <div class="carte expert">
+            <div class="expert__haut">
+              <span class="pastille pastille--ronde"><Icone nom="stethoscope" taille={26} /></span>
+              <div><h3>Santé animale</h3><p class="expert__role">Vétérinaires et zootechniciens</p></div>
+            </div>
+            <p>Conduite d’élevage, prophylaxie, biosécurité et appui aux éleveurs.</p>
+            <p class="expert__pied"><Icone nom="seal-check" taille={16} />Candidatures ouvertes</p>
+          </div>
+          <div class="carte expert">
+            <div class="expert__haut">
+              <span class="pastille pastille--ronde pastille--creme"><Icone nom="plant" taille={26} /></span>
+              <div><h3>Cultures et sols</h3><p class="expert__role">Agronomes et techniciens</p></div>
+            </div>
+            <p>Itinéraires techniques, fertilité des sols et appui aux coopératives.</p>
+            <p class="expert__pied"><Icone nom="seal-check" taille={16} />Candidatures ouvertes</p>
+          </div>
+        </div>
+        <div class="carte carte--sombre radio">
+          <div class="radio__texte">
+            <span class="pastille pastille--grande pastille--or"><Icone nom="radio" taille={24} /></span>
+            <div>
+              <p class="radio__titre">Radio web AgriElev Connect</p>
+              <p>Conseils pratiques, actualités des filières et paroles de terrain. En préparation.</p>
+            </div>
+          </div>
+          <a class="bouton bouton--clair bouton--petit" href="/connect">Découvrir AgriElev Connect</a>
+        </div>
+      </div>
+
+      <div id="contact-profil" class="formulaire-carte orientation">
+        <h2 class="titre-bloc">Échanger avec nos équipes</h2>
+        <p class="mention">Choisissez votre profil et votre besoin : le formulaire de contact s’ouvre déjà orienté vers la bonne personne.</p>
+        <form class="formulaire" method="get" action="/contact">
+          <input type="hidden" name="depuis" value="/" />
+          <div class="champ">
+            <label for="o-profil">Vous êtes</label>
+            <select id="o-profil" name="profil">{PROFILS.map((p) => <option value={p.code}>{p.libelle}</option>)}</select>
+          </div>
+          <div class="champ">
+            <label for="o-sujet">Votre besoin</label>
+            <select id="o-sujet" name="sujet">{SUJETS.map((s) => <option value={s.code}>{s.libelle}</option>)}</select>
+          </div>
+          <button class="bouton bouton--principal" type="submit">Continuer<Icone nom="arrow-right" taille={20} /></button>
+        </form>
+        <ul class="liste-nue orientation__contacts">
+          <li><Icone nom="phone" taille={18} /><a href={telLien(SITE.telephones[0])}>{SITE.telephones[0]}</a></li>
+          <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .ouverture { position: relative; display: grid; min-height: min(80vh, 44rem); color: var(--ae-creme); overflow: hidden; }
-  :global(.ouverture__photo) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .ouverture__voile { position: absolute; inset: 0; background: linear-gradient(to top, rgb(34 75 43 / 0.9) 0%, rgb(34 75 43 / 0.75) 60%, rgb(34 75 43 / 0.55) 100%); }
-  @media (min-width: 64rem) {
-    .ouverture__voile { background: linear-gradient(to right, rgb(34 75 43 / 0.85) 0%, rgb(34 75 43 / 0.6) 50%, rgb(34 75 43 / 0) 100%); }
+  /* ---------- Ouverture ---------- */
+  .ouverture { position: relative; overflow: hidden; padding: clamp(2rem, 1rem + 4vw, 4.5rem) 0 var(--section-y-serree); background: linear-gradient(to bottom, rgb(233 243 234 / 0.85), var(--surface) 70%); }
+  :global(.ouverture__sillons) { position: absolute !important; top: -3rem; bottom: -5rem; left: -2rem; right: calc(-1 * var(--gouttiere) - 4rem); width: auto !important; height: auto !important; color: var(--ae-sauge); opacity: 0.5; }
+  @media (min-width: 64rem) { :global(.ouverture__sillons) { top: -6rem; bottom: -6rem; left: -8rem; right: -40vw; } }
+  @media (min-width: 64rem) and (max-width: 79.99rem) { .ouverture h1 { font-size: 3.5rem; } }
+  .ouverture__grille { position: relative; align-items: center; row-gap: var(--esp-5); }
+  .ouverture__texte { display: flex; flex-direction: column; gap: var(--esp-4); }
+  .ouverture__texte > * { margin: 0; }
+  .ouverture__identite { text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); background: #FFFFFF; }
+  .ouverture h1 { max-width: 14ch; }
+  .ouverture .chapeau { max-width: 34rem; }
+  .ouverture .actions { margin-top: 0; }
+  .ouverture__reperes { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .ouverture__reperes li { display: inline-flex; align-items: center; gap: 0.375rem; }
+
+  .ouverture__visuel { position: relative; padding: 0 0 var(--esp-5) 0; }
+  .ouverture__photo { position: relative; --hauteur-photo: 24rem; --hauteur-photo-large: 36rem; }
+  .ouverture__photo :global(img) { object-position: 50% 62%; }
+  .ouverture__panneau { left: auto; width: min(19rem, calc(100% - 2rem)); }
+  .ouverture__telephone { position: absolute; left: 0.75rem; bottom: 0; width: 7.5rem; z-index: 2; animation: telephone-monte 800ms 250ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+  .synchro { position: absolute; left: calc(100% - 1.5rem); top: 1.5rem; display: grid; margin: 0; width: max-content; }
+  .synchro__etat {
+    grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 0.375rem;
+    padding: 0.375rem 0.75rem; border-radius: var(--radius); box-shadow: var(--ombre-2);
+    font-size: var(--fs-label-sm); font-weight: 700; line-height: 1.35; white-space: nowrap;
   }
-  .ouverture__texte { position: relative; align-self: end; padding-block: var(--esp-6); }
-  .ouverture h1 { color: #FFFFFF; max-width: 40rem; }
-  .ouverture .surtitre { color: var(--ae-creme); }
-  .ouverture .surtitre::before { background: var(--ae-or-recolte); }
-  .ouverture .chapeau { color: var(--ae-creme); }
-  .grille--4 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
-  .deux-colonnes { display: grid; gap: var(--esp-5); align-items: center; }
-  @media (min-width: 64rem) { .deux-colonnes { grid-template-columns: 1fr 1fr; } }
-  :global(.photo-arrondie) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
-  .source { font-size: 0.9rem; color: var(--gris-ardoise); }
+  .synchro__etat--attente { background: var(--cs-creme); color: var(--ae-brun-terre); opacity: 0; animation: synchro-attente 3s 600ms ease both; }
+  .synchro__etat--envoye { background: var(--ae-vert-foret); color: #FFFFFF; animation: synchro-envoye 3.6s 600ms ease backwards; }
+  @keyframes telephone-monte { from { opacity: 0; transform: translateY(1.5rem); } }
+  @keyframes synchro-attente { 0% { opacity: 0; } 12%, 82% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes synchro-envoye { 0%, 84% { opacity: 0; transform: scale(0.96); } 100% { opacity: 1; transform: none; } }
+  @media (max-width: 39.99rem) {
+    .ouverture__panneau { display: none; }
+    .synchro { left: auto; right: auto; top: auto; bottom: 1.75rem; left: calc(100% + 0.5rem); }
+  }
+  @media (min-width: 40rem) {
+    .ouverture__telephone { width: 9.5rem; left: 1rem; }
+  }
+  @media (min-width: 64rem) {
+    .ouverture__visuel { padding: 0 0 var(--esp-4) 0; margin-left: 3rem; }
+    .ouverture__telephone { width: 11.5rem; left: -5.5rem; bottom: -0.5rem; }
+    .ouverture__panneau { bottom: 1.25rem; right: 1.25rem; }
+  }
+
+  .profils { position: relative; margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem); }
+  .profils h2 { margin-bottom: var(--esp-3); }
+
+  /* ---------- Présentation ---------- */
+  .presentation__texte { gap: var(--esp-4); }
+  .identite { display: flex; flex-wrap: wrap; gap: var(--esp-2); margin: 0; }
+  .identite span { padding: 0.25rem 0.625rem; border-radius: 8px; background: #FFFFFF; box-shadow: var(--ombre-1); font-size: var(--fs-label-sm); font-weight: 600; color: var(--ae-vert-foret); font-variant-numeric: tabular-nums; }
+  .faits { display: grid; gap: var(--esp-3); }
+  @media (min-width: 40rem) { .faits { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .fait { gap: var(--esp-3); padding: var(--esp-4); }
+  .fait > :global(.icone) { color: var(--ae-or-fonce); }
+  .fait--date > :global(.icone) { color: var(--ae-or-recolte); }
+  .carte p.fait__valeur { margin: 0; font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-2xl); line-height: 1.1; letter-spacing: -0.03em; color: var(--ae-vert-foret); font-variant-numeric: tabular-nums; }
+  .carte--sombre p.fait__valeur { color: #FFFFFF; }
+  .carte p.fait__libelle { margin: 0.375rem 0 0; font-family: var(--font-titre); font-weight: 700; font-size: var(--fs-base); color: var(--ae-brun-terre); }
+  .carte--sombre p.fait__libelle { color: var(--cs-creme); }
+
+  /* ---------- Offres ---------- */
+  .legende { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+  .legende li { display: inline-flex; align-items: center; gap: var(--esp-2); }
+  .legende__exemple { width: 2rem; height: 1.25rem; border-radius: 6px; background: #FFFFFF; }
+  .legende__exemple--pilote { box-shadow: var(--ombre-1), inset 0 3px 0 var(--ae-or-recolte); }
+  .legende__exemple--preparation { background: transparent; outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px; }
+  .offres { display: grid; gap: var(--gouttiere-colonnes); }
+  @media (min-width: 48rem) { .offres { grid-template-columns: repeat(2, minmax(0, 1fr)); } .offres > :global(:nth-child(-n + 2)), .offres > :global(:last-child) { grid-column: 1 / -1; } }
+  @media (min-width: 64rem) {
+    .offres { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .offres > :global(:nth-child(1)) { grid-column: span 7; }
+    .offres > :global(:nth-child(2)) { grid-column: span 5; }
+    .offres > :global(:nth-child(n + 3)) { grid-column: span 4; }
+    .offres > :global(:last-child) { grid-column: span 4; }
+  }
+  .offres__suite { margin: var(--esp-4) 0 0; }
+
+  /* ---------- CuniSmart ---------- */
+  .cunismart-encadre { margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem); }
+  .cunismart-encadre > div > :global(.icone) { color: var(--cs-orange-brule); }
+  .cunismart-encadre__marque { color: var(--cs-vert); }
+  .vitrine { position: relative; overflow: hidden; margin: 0; padding: var(--esp-5) var(--esp-3) 0; border-radius: var(--radius); background: var(--ae-vert-foret); box-shadow: var(--ombre-3); display: grid; }
+  :global(.vitrine__sillons) { position: absolute !important; inset: 0; color: var(--ae-or-recolte); opacity: 0.35; }
+  .vitrine__ecrans { position: relative; display: flex; justify-content: center; align-items: flex-end; }
+  :global(.vitrine__ecran) { position: relative; flex: none; width: clamp(9rem, 6rem + 10vw, 14rem) !important; margin-bottom: -3rem; }
+  :global(.vitrine__ecran--arriere) { width: clamp(8rem, 5rem + 9vw, 12.5rem) !important; margin-right: -2.5rem; margin-bottom: -5rem; transform: rotate(-5deg); opacity: 0.95; }
+  .vitrine__legende { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin: 0 calc(-1 * var(--esp-3)); padding: var(--esp-3); background: rgb(255 255 255 / 0.96); }
+  .vitrine__legende .marque-produit { color: var(--cs-orange-brule); }
+  .vitrine__mention { flex-basis: 100%; font-size: var(--fs-xs); color: var(--texte-doux); }
+  .tuiles { gap: var(--esp-2); }
+  @media (max-width: 39.99rem) {
+    .tuiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tuiles .tuile { flex-direction: column; gap: 0.375rem; padding: var(--esp-3); }
+    .tuiles .tuile p { display: none; }
+    .tuiles .tuile h3 { font-size: var(--fs-base); }
+  }
+
+  /* ---------- Carnet de terrain : une grande case, trois petites ---------- */
+  .carnet { display: grid; gap: var(--esp-3); }
+  .carnet__case { position: relative; margin: 0; overflow: hidden; min-height: 17rem; border-radius: var(--radius); background: var(--ae-creme); box-shadow: var(--ombre-1); isolation: isolate; }
+  .carnet__case :global(.photo-conteneur) { position: absolute; inset: 0; }
+  .carnet__case :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms ease; }
+  @media (prefers-reduced-motion: no-preference) { .carnet__case:hover :global(img) { transform: scale(1.04); } }
+  .carnet__date { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 1; }
+  .carnet__legende {
+    position: absolute; z-index: 1; left: 0.75rem; right: 0.75rem; bottom: 0.75rem;
+    display: grid; gap: 0.125rem; padding: var(--esp-2) var(--esp-3);
+    border-radius: var(--radius); background: rgb(255 255 255 / 0.95); backdrop-filter: blur(6px); box-shadow: var(--ombre-2);
+  }
+  .carnet__legende strong { font-family: var(--font-titre); font-size: var(--fs-lg); line-height: 1.3; color: var(--ae-vert-foret); }
+  .carnet__theme { display: inline-flex; align-items: center; gap: 0.25rem; font-size: var(--fs-label-sm); font-weight: 700; color: var(--cs-vert); }
+  .carnet__texte { font-size: var(--fs-sm); line-height: 1.43; color: var(--texte-doux); }
+  @media (min-width: 40rem) {
+    .carnet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .carnet__case--1 { grid-column: 1 / -1; min-height: 22rem; }
+  }
+  @media (min-width: 64rem) {
+    .carnet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, 17rem); }
+    .carnet__case--1 { grid-column: 1 / 3; grid-row: 1 / 3; min-height: 0; }
+    .carnet__case--2 { grid-column: 3; grid-row: 1; }
+    .carnet__case--3 { grid-column: 4; grid-row: 1; }
+    .carnet__case--4 { grid-column: 3 / 5; grid-row: 2; }
+    .carnet__case--1 .carnet__legende { left: 1.25rem; right: auto; bottom: 1.25rem; max-width: 24rem; padding: var(--esp-3) var(--esp-4); }
+    .carnet__case--1 .carnet__legende strong { font-size: var(--fs-xl); }
+    .carnet__case:not(.carnet__case--1) .carnet__texte { display: none; }
+  }
+
+  /* ---------- Réseau ---------- */
+  .expert { justify-content: space-between; gap: var(--esp-3); padding: var(--esp-4); }
+  .expert__haut { display: flex; align-items: center; gap: var(--esp-3); }
+  .expert__haut .pastille { width: 3.5rem; height: 3.5rem; }
+  .expert__haut h3 { margin: 0; }
+  .carte p.expert__role { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--or-texte); }
+  .carte p.expert__pied { display: flex; align-items: center; gap: 0.375rem; font-size: var(--fs-label-sm); font-weight: 700; color: var(--cs-vert); }
+  .radio { flex-direction: column; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-4); }
+  .radio__texte { display: flex; align-items: center; gap: var(--esp-3); }
+  .radio__texte p { margin: 0; }
+  .carte p.radio__titre { font-family: var(--font-titre); font-size: var(--fs-lg); font-weight: 700; color: var(--cs-creme); }
+  @media (min-width: 40rem) { .radio { flex-direction: row; align-items: center; justify-content: space-between; } }
+
+  .orientation .titre-bloc { margin: 0 0 0.25rem; }
+  .orientation .formulaire { margin-top: var(--esp-4); }
+  .orientation__contacts { display: grid; gap: var(--esp-2); margin-top: var(--esp-4); padding-top: var(--esp-3); border-top: 1px solid var(--sauge-ligne); font-size: var(--fs-sm); }
+  .orientation__contacts li { display: flex; align-items: center; gap: var(--esp-2); color: var(--ae-vert-foret); }
+  .orientation__contacts a { font-weight: 600; text-decoration: none; }
 </style>

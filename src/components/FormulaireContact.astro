@@ -1,63 +1,105 @@
 ---
+// Formulaire de contact (Netlify Forms). Trois temps numérotés : le besoin, les coordonnées, le message.
+// Les noms, identifiants et attributs Netlify sont attendus par src/scripts/formulaire.ts et les tests e2e.
 import { PROFILS, SUJETS, objetEmail } from '../lib/sujets.ts';
+import Icone from './Icone.astro';
 ---
-<form name="contact" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="contact" class="formulaire">
+<form name="contact" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="contact" class="formulaire formulaire-contact">
   <input type="hidden" name="form-name" value="contact" />
   <input type="hidden" name="subject" data-remove-prefix value={objetEmail(null)} />
   <input type="hidden" name="depuis" value="" />
   <p class="visuellement-cache"><label>Ne pas remplir : <input name="site_web" tabindex="-1" autocomplete="off" /></label></p>
+  <p class="aide">Les champs marqués <span class="obligatoire" aria-hidden="true">*</span> sont obligatoires.</p>
 
-  <div class="champ">
-    <label for="c-sujet">Sujet <span aria-hidden="true">*</span></label>
-    <select id="c-sujet" name="sujet" required>
-      <option value="">Choisir un sujet</option>
-      {SUJETS.map((s) => <option value={s.code}>{s.libelle}</option>)}
-    </select>
+  <div class="groupe">
+    <h3 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">1</span>Votre besoin</h3>
+    <div class="formulaire__ligne">
+      <div class="champ">
+        <label for="c-sujet">Sujet <span class="obligatoire" aria-hidden="true">*</span></label>
+        <select id="c-sujet" name="sujet" required>
+          <option value="">Choisir un sujet</option>
+          {SUJETS.map((s) => <option value={s.code}>{s.libelle}</option>)}
+        </select>
+      </div>
+      <div class="champ">
+        <label for="c-profil">Vous êtes <span class="obligatoire" aria-hidden="true">*</span></label>
+        <select id="c-profil" name="profil" required>
+          <option value="">Choisir</option>
+          {PROFILS.map((p) => <option value={p.code}>{p.libelle}</option>)}
+        </select>
+      </div>
+    </div>
   </div>
-  <div class="champ">
-    <label for="c-nom">Nom et prénom <span aria-hidden="true">*</span></label>
-    <input id="c-nom" name="nom" required autocomplete="name" maxlength="120" />
-  </div>
-  <div class="champ">
-    <label for="c-organisation">Organisation <span class="facultatif">(facultatif)</span></label>
-    <input id="c-organisation" name="organisation" autocomplete="organization" maxlength="160" />
-  </div>
-  <div class="champ">
-    <label for="c-profil">Vous êtes <span aria-hidden="true">*</span></label>
-    <select id="c-profil" name="profil" required>
-      <option value="">Choisir</option>
-      {PROFILS.map((p) => <option value={p.code}>{p.libelle}</option>)}
-    </select>
-  </div>
-  <div class="champ">
-    <label for="c-zone">Commune, région ou pays <span aria-hidden="true">*</span></label>
-    <input id="c-zone" name="zone" required maxlength="120" />
-  </div>
-  <fieldset class="champ-groupe">
-    <legend>Pour vous répondre (au moins l'un des deux)</legend>
-    <div class="champ">
-      <label for="c-email">E-mail</label>
-      <input id="c-email" name="email" type="email" autocomplete="email" maxlength="160" />
+
+  <div class="groupe">
+    <h3 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">2</span>Vos coordonnées</h3>
+    <div class="formulaire__ligne">
+      <div class="champ">
+        <label for="c-nom">Nom et prénom <span class="obligatoire" aria-hidden="true">*</span></label>
+        <input id="c-nom" name="nom" required autocomplete="name" maxlength="120" />
+      </div>
+      <div class="champ">
+        <label for="c-organisation">Organisation <span class="facultatif">(facultatif)</span></label>
+        <input id="c-organisation" name="organisation" autocomplete="organization" maxlength="160" />
+      </div>
     </div>
     <div class="champ">
-      <label for="c-telephone">Téléphone ou WhatsApp</label>
-      <input id="c-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+      <label for="c-zone">Commune, région ou pays <span class="obligatoire" aria-hidden="true">*</span></label>
+      <input id="c-zone" name="zone" required maxlength="120" />
     </div>
-  </fieldset>
-  <div class="champ">
-    <label for="c-message">Votre message <span aria-hidden="true">*</span></label>
-    <textarea id="c-message" name="message" required rows="6" maxlength="4000" aria-describedby="c-message-aide"></textarea>
-    <p id="c-message-aide" class="aide">N'envoyez pas de dossier vétérinaire détaillé ni de données confidentielles d'exploitation.</p>
+    <fieldset class="champ-groupe reponse">
+      <legend><Icone nom="chat-circle-text" taille={18} />Pour vous répondre <span class="facultatif">(au moins l’un des deux)</span></legend>
+      <div class="formulaire__ligne">
+        <div class="champ">
+          <label for="c-email">E-mail</label>
+          <input id="c-email" name="email" type="email" autocomplete="email" maxlength="160" />
+        </div>
+        <div class="champ">
+          <label for="c-telephone">Téléphone ou WhatsApp</label>
+          <input id="c-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+        </div>
+      </div>
+    </fieldset>
   </div>
-  <div class="champ champ--case">
-    <input id="c-consentement" name="consentement" type="checkbox" value="oui" required />
-    <label for="c-consentement">J'accepte que mes informations servent à traiter ma demande (<a href="/confidentialite">confidentialité</a>).</label>
+
+  <div class="groupe">
+    <h3 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">3</span>Votre message</h3>
+    <div class="champ">
+      <label for="c-message">Message <span class="obligatoire" aria-hidden="true">*</span></label>
+      <textarea id="c-message" name="message" required rows="6" maxlength="4000" aria-describedby="c-message-aide"></textarea>
+      <p id="c-message-aide" class="aide message-aide"><Icone nom="shield-check" taille={16} /><span>N’envoyez pas de dossier vétérinaire détaillé ni de données confidentielles d’exploitation.</span></p>
+    </div>
+    <div class="champ champ--case">
+      <input id="c-consentement" name="consentement" type="checkbox" value="oui" required />
+      <label for="c-consentement">J’accepte que mes informations servent à traiter ma demande (<a href="/confidentialite">confidentialité</a>).</label>
+    </div>
   </div>
-  <p class="aide">Les champs marqués * sont obligatoires.</p>
-  <button type="submit" class="bouton bouton--principal" data-umami-event="envoi-contact" data-umami-event-sujet="autre">Envoyer ma demande</button>
+  <button type="submit" class="bouton bouton--principal bouton--grand" data-umami-event="envoi-contact" data-umami-event-sujet="autre">Envoyer ma demande <Icone nom="arrow-right" taille={20} /></button>
 </form>
 
 <script>
   import { initialiserFormulaires } from '../scripts/formulaire.ts';
   initialiserFormulaires();
 </script>
+
+<style>
+  .formulaire-contact { gap: var(--esp-4); }
+  .formulaire-contact > .aide { margin-bottom: calc(-1 * var(--esp-2)); }
+
+  /* Chaque temps du formulaire : un numéro, un titre, puis ses champs. */
+  .groupe { display: grid; gap: var(--esp-3); padding-top: var(--esp-4); border-top: 1px solid var(--ligne); }
+  .groupe__titre { display: flex; align-items: center; gap: 0.625rem; margin: 0; font-size: var(--fs-base); letter-spacing: -0.01em; }
+  .groupe__numero {
+    display: inline-grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; border-radius: 8px;
+    background: var(--ae-vert-foret); color: #FFFFFF; font-size: var(--fs-sm); font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+
+  /* Coordonnées de réponse : encadré Vert Brume, titre avec icône. */
+  .reponse legend { display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap; color: var(--ae-vert-foret); }
+  .reponse legend :global(.icone) { color: var(--ae-vert-foret); }
+  .reponse legend .facultatif { font-size: var(--fs-sm); }
+
+  .message-aide { display: flex; align-items: flex-start; gap: 0.375rem; }
+  .message-aide :global(.icone) { margin-top: 0.15rem; color: var(--ae-vert-foret); }
+  .champ--case { padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--creme-douce); }
+</style>

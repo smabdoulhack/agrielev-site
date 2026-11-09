@@ -1,23 +1,27 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '../assets/logo-agrielev.jpg';
+import logo from '../assets/logo-agrielev.png';
 import Icone from './Icone.astro';
 import BoutonCuniSmart from './BoutonCuniSmart.astro';
 import { NAVIGATION } from '../data/site.ts';
 
 const chemin = Astro.url.pathname.replace(/\/$/, '') || '/';
-const estActif = (href: string) => chemin === href || chemin.startsWith(`${href}/`);
+const estActif = (href: string) => (href === '/' ? chemin === '/' : chemin === href || chemin.startsWith(`${href}/`));
+const LIENS = [{ libelle: 'Accueil', href: '/' }, ...NAVIGATION];
 ---
 <header class="entete">
-  <div class="conteneur entete__barre">
-    <a href="/" class="entete__logo" aria-label="AgriElev, accueil">
-      <Image src={logo} alt="" height={44} loading="eager" />
-      <span class="entete__nom" aria-hidden="true">AgriElev</span>
+  <div class="entete__barre">
+    <a href="/" class="entete__logo" aria-label="AgriElev Bénin, accueil">
+      <Image src={logo} alt="" height={40} densities={[1, 2, 3]} loading="eager" />
+      <span class="entete__nom" aria-hidden="true">
+        <span class="entete__marque">AgriElev<span class="entete__pays"> Bénin</span></span>
+        <span class="entete__sous-titre">Agritech &amp; Élevage</span>
+      </span>
     </a>
 
     <nav class="entete__nav" aria-label="Navigation principale">
       <ul>
-        {NAVIGATION.map((l) => (
+        {LIENS.map((l) => (
           <li><a href={l.href} aria-current={estActif(l.href) ? 'page' : undefined}>{l.libelle}</a></li>
         ))}
       </ul>
@@ -26,54 +30,94 @@ const estActif = (href: string) => chemin === href || chemin.startsWith(`${href}
     <div class="entete__actions">
       <BoutonCuniSmart />
       <button class="entete__menu" popovertarget="menu-mobile" aria-label="Ouvrir le menu" data-test="ouvrir-menu">
-        <Icone nom="list" taille={28} />
+        <span class="entete__icone-ouvrir"><Icone nom="list" taille={24} /></span>
+        <span class="entete__icone-fermer"><Icone nom="x" taille={24} /></span>
       </button>
     </div>
   </div>
 
   <div id="menu-mobile" popover class="menu-mobile">
-    <button class="menu-mobile__fermer" popovertarget="menu-mobile" popovertargetaction="hide" aria-label="Fermer le menu">
-      <Icone nom="x" taille={28} />
-    </button>
     <nav aria-label="Navigation mobile">
       <ul>
-        {NAVIGATION.map((l) => (
+        {LIENS.map((l) => (
           <li><a href={l.href} aria-current={estActif(l.href) ? 'page' : undefined}>{l.libelle}</a></li>
         ))}
       </ul>
     </nav>
-    <BoutonCuniSmart variante="grand" />
+    <BoutonCuniSmart variante="plein" />
   </div>
 </header>
 
 <style>
-  .entete { position: sticky; top: 0; z-index: 50; background: #FFFFFF; border-bottom: 1px solid var(--ae-vert-brume); }
-  .entete__barre { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-4); min-height: 4.5rem; }
-  .entete__logo { display: inline-flex; align-items: center; gap: var(--esp-2); text-decoration: none; }
-  .entete__logo img { height: 44px; width: auto; }
-  .entete__nom { font-family: var(--font-titre); font-weight: 800; font-size: 1.25rem; color: var(--ae-vert-foret); }
+  .entete {
+    position: sticky; top: 0; z-index: 50;
+    background: rgb(254 250 241 / 0.96); backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: var(--ombre-entete);
+  }
+  .entete__barre {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3);
+    height: var(--hauteur-entete); max-width: var(--largeur-max); margin-inline: auto; padding-inline: var(--gouttiere);
+  }
+  .entete__logo { display: inline-flex; flex: none; align-items: center; gap: var(--esp-3); min-width: 0; text-decoration: none; }
+  .entete__logo :global(img) { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; }
+  .entete__nom { display: flex; flex-direction: column; }
+  .entete__marque { font-family: var(--font-titre); font-weight: 700; font-size: 1.125rem; line-height: 1.33; letter-spacing: -0.025em; color: var(--ae-vert-foret); }
+  .entete__sous-titre { font-size: var(--fs-label-sm); font-weight: 600; line-height: 1.35; letter-spacing: 0.1em; text-transform: uppercase; color: var(--or-texte); }
+
   .entete__nav { display: none; }
   .entete__nav ul, .menu-mobile ul { list-style: none; margin: 0; padding: 0; }
-  .entete__nav ul { display: flex; gap: var(--esp-1); }
-  .entete__nav a { display: block; padding: var(--esp-2) 0.5rem; border-radius: 8px; white-space: nowrap; color: var(--ae-brun-terre); font-weight: 600; text-decoration: none; }
-  .entete__nav a:hover { background: var(--ae-vert-brume); }
-  .entete__nav a[aria-current='page'] { color: var(--ae-vert-foret); background: var(--ae-vert-brume); }
-  .entete__actions { display: flex; align-items: center; gap: var(--esp-2); }
-  .entete__menu, .menu-mobile__fermer {
-    display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem;
-    border: 0; border-radius: var(--radius); background: transparent; color: var(--ae-vert-foret); cursor: pointer;
+  .entete__nav ul { display: flex; align-items: center; gap: 0.25rem; }
+  .entete__nav a {
+    display: block; padding: 0.25rem 0.5rem; border-radius: 8px; white-space: nowrap;
+    color: var(--texte-doux); font-weight: 600; font-size: var(--fs-sm); line-height: 1.43; text-decoration: none;
   }
+  .entete__nav a:hover { color: var(--ae-brun-terre); }
+  .entete__nav a[aria-current='page'] { background: var(--ae-vert-brume); color: var(--ae-vert-foret); font-weight: 700; }
+
+  .entete__actions { display: flex; flex: none; align-items: center; gap: var(--esp-3); }
+  .entete__menu {
+    display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem;
+    border: 0; border-radius: var(--radius); background: var(--ae-vert-brume); color: var(--ae-vert-foret); cursor: pointer;
+  }
+  .entete__menu:hover { background: color-mix(in srgb, var(--ae-sauge) 35%, var(--ae-vert-brume)); }
+  .entete__menu .entete__icone-fermer { display: none; }
+  :global(html:has(.menu-mobile:popover-open)) .entete__menu .entete__icone-ouvrir { display: none; }
+  :global(html:has(.menu-mobile:popover-open)) .entete__menu .entete__icone-fermer { display: inline-grid; }
+  .entete__menu span { display: inline-grid; place-items: center; }
+
+  /* Menu mobile : panneau déroulant sous la barre, comme sur le site en ligne. */
   .menu-mobile {
-    inset: 0 0 0 auto; width: min(22rem, 100vw); height: 100dvh; margin: 0; padding: var(--esp-4);
-    border: 0; background: #FFFFFF; box-shadow: -8px 0 24px rgb(73 34 15 / 0.15);
+    inset: var(--hauteur-entete) 0 auto 0; width: 100%; max-width: none; max-height: calc(100dvh - var(--hauteur-entete)); margin: 0;
+    padding: var(--esp-2) var(--gouttiere) var(--esp-3); overflow-y: auto;
+    border: 0; border-top: 1px solid var(--ligne); background: var(--surface); color: var(--ae-brun-terre);
+    box-shadow: 0 16px 32px -16px rgb(73 34 15 / 0.25);
+    opacity: 0; translate: 0 -0.5rem;
+    transition: opacity 200ms ease, translate 200ms ease, display 200ms allow-discrete, overlay 200ms allow-discrete;
   }
-  .menu-mobile::backdrop { background: rgb(34 75 43 / 0.4); }
-  .menu-mobile__fermer { margin-left: auto; }
-  .menu-mobile ul { margin-block: var(--esp-4); }
-  .menu-mobile a:not(.bouton-cunismart) { display: block; padding: var(--esp-3) 0; border-bottom: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); font-weight: 600; font-size: 1.1rem; text-decoration: none; }
-  .menu-mobile a[aria-current='page'] { color: var(--ae-vert-foret); }
+  .menu-mobile:popover-open { display: grid; gap: var(--esp-2); opacity: 1; translate: 0 0; }
+  @starting-style { .menu-mobile:popover-open { opacity: 0; translate: 0 -0.5rem; } }
+  .menu-mobile::backdrop { background: rgb(73 34 15 / 0.12); }
+  .menu-mobile nav a {
+    display: block; padding: 0.75rem 1rem; border-radius: var(--radius);
+    color: var(--texte-doux); font-weight: 600; font-size: var(--fs-base); line-height: 1.375; text-decoration: none;
+  }
+  .menu-mobile nav a:hover { background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .menu-mobile nav a[aria-current='page'] { background: var(--ae-vert-brume); color: var(--ae-vert-foret); font-weight: 700; }
+
+  /* Petits écrans : le bouton CuniSmart reste visible, le nom se raccourcit. */
+  @media (max-width: 29.99rem) {
+    .entete__barre { gap: var(--esp-2); }
+    .entete__logo { gap: 0.625rem; }
+    .entete__actions { gap: var(--esp-2); }
+    .entete__sous-titre { display: none; }
+  }
+  @media (max-width: 23.5rem) { .entete__pays { display: none; } }
+  /* Navigation complète dès 80rem (1280 px), comme sur le site en ligne. */
   @media (min-width: 80rem) {
     .entete__nav { display: block; }
     .entete__menu { display: none; }
+  }
+  @media (min-width: 80rem) and (max-width: 89.99rem) {
+    .entete__nav ul { gap: 0; }
   }
 </style>

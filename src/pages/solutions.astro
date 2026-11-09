@@ -6,60 +6,556 @@ import Photo from '../components/Photo.astro';
 import Icone from '../components/Icone.astro';
 import BadgeStatut from '../components/BadgeStatut.astro';
 import ListeModules from '../components/ListeModules.astro';
+import EcranApp from '../components/EcranApp.astro';
+import Sillons from '../components/Sillons.astro';
 import BandeauContact from '../components/BandeauContact.astro';
+import { PHOTOS, type PhotoSite } from '../data/photos.ts';
+import { CAPTURES, MENTION_CAPTURES, type Capture } from '../data/captures.ts';
+import { ESPECES, METIERS, POUR_TOUS } from '../data/cunismart.ts';
+import { SITE } from '../data/site.ts';
 import { chargerVisibles } from '../lib/collections.ts';
 import { lienContact } from '../lib/sujets.ts';
+import { INFOS_FAMILLES } from '../lib/familles.ts';
+import { libelleStatut, type Statut } from '../lib/statut.ts';
+import { formatDate } from '../lib/format.ts';
 
 const offres = (await chargerVisibles('offres')).sort((a, b) => a.data.ordre - b.data.ordre);
 const modules = await getCollection('modules');
+
+// Repères de l'en-tête : comptés dans les collections, jamais saisis à la main.
+const compter = (s: Statut) => offres.filter((o) => o.data.statut === s).length;
+const REPERES = [
+  { valeur: offres.length, libelle: offres.length > 1 ? 'offres' : 'offre', point: '' },
+  ...(['disponible', 'pilote', 'preparation'] as const)
+    .map((s) => ({ valeur: compter(s), libelle: libelleStatut(s).toLowerCase(), point: s }))
+    .filter((r) => r.valeur > 0),
+  { valeur: modules.length, libelle: 'modules métier', point: '' },
+];
+
+const numero = (i: number) => String(i + 1).padStart(2, '0');
+const COURTS: Record<string, string> = {
+  'gestion-numerique': 'Gestion numérique',
+  'formation-expertise': 'Formation et expertise',
+  transformation: 'Transformation',
+  marches: 'Accès au marché',
+  innovation: 'Innovation',
+};
+
+// Visuel de chaque offre : photo de terrain et panneau d'information posé dessus.
+const VISUELS: Record<string, { photo: PhotoSite; etiquette?: string; panneau: { icone: string; titre: string; texte: string }; ecran?: Capture }> = {
+  'formation-expertise': {
+    photo: { ...PHOTOS.terrainReunion, position: '50% 35%' },
+    etiquette: 'Réunion de village, septembre 2026',
+    panneau: { icone: 'users-three', titre: 'Au plus près des producteurs', texte: 'Rapprocher les connaissances techniques des besoins du terrain.' },
+    ecran: CAPTURES.cunimaster,
+  },
+  transformation: {
+    photo: PHOTOS.karite,
+    panneau: { icone: 'factory', titre: 'Le karité, de la noix au beurre', texte: 'Une des filières concernées par nos démarches.' },
+  },
+  marches: {
+    photo: PHOTOS.offreMarches,
+    panneau: { icone: 'truck', titre: 'Du producteur à l’acheteur', texte: 'Rapprocher l’offre des organisations et la demande des acheteurs.' },
+  },
+  innovation: {
+    photo: PHOTOS.ananasBiodigesteur,
+    panneau: { icone: 'recycle', titre: 'Vu lors de nos missions', texte: 'Un biodigesteur en bord de parcelle d’ananas.' },
+  },
+};
+
+const lien = (offreId: string, a: { sujet?: string; url?: string }) => (a.sujet ? lienContact(a.sujet, `/solutions#${offreId}`) : a.url!);
+const paragraphes = (texte: string) => texte.split('\n\n').map((p) => p.trim()).filter(Boolean);
+
+const [principale, ...autres] = offres;
+const pleines = autres.slice(0, 2);
+const duo = autres.slice(2);
+const transformationCuniSmart = METIERS.find((m) => m.nom === 'Transformation');
+const cuniMaster = POUR_TOUS.find((f) => f.nom === 'CuniMaster');
 ---
-<BaseLayout titre="Nos solutions" description="Les cinq offres d'AgriElev : gestion numérique, formation et expertise, transformation, accès au marché, innovation. Chacune avec son état réel.">
+<BaseLayout titre="Nos solutions" description="Les cinq offres d'AgriElev : gestion numérique, formation et expertise, transformation, accès au marché, innovation. Chacune avec son état réel, et les onze modules de la plateforme.">
   <EnTetePage
     surtitre="Nos solutions"
-    titre="Cinq offres pour accompagner les filières agricoles"
-    chapeau="Chaque offre affiche son état réel : disponible, en pilote ou en préparation. Écrivez-nous pour en parler, le formulaire sera déjà orienté vers le bon sujet."
-  />
+    titre="Nos solutions pour les filières agricoles"
+    chapeau="Gestion numérique, formation, transformation, accès au marché et innovation : cinq offres pour les producteurs, les transformatrices, les coopératives et leurs partenaires. Chacune affiche son état réel."
+    photo={PHOTOS.suiviPastoral}
+    etiquette="Sur le terrain avec les éleveurs"
+    panneau={{ icone: 'map-pin', titre: 'Partir du terrain', texte: 'Chaque offre part de ce que nos équipes voient chez les producteurs.' }}
+  >
+    <ul class="liste-nue reperes" aria-label="Les offres en bref">
+      {REPERES.map((r) => (
+        <li class="repere">
+          <span class="repere__valeur">{r.valeur}</span>
+          <span class="repere__libelle">
+            {r.point && <span class:list={['point', { 'point--or': r.point === 'pilote', 'point--gris': r.point === 'preparation' }]} aria-hidden="true"></span>}
+            {r.libelle}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </EnTetePage>
 
-  {offres.map((offre, i) => (
-    <section id={offre.id} class:list={['section', { 'section--creme': i % 2 === 1 }]}>
-      <div class="conteneur offre">
-        <Photo photo={{ src: offre.data.photo, alt: '' }} classe="offre__photo" />
-        <div>
-          <div class="offre__haut">
-            <span class="offre__icone"><Icone nom={offre.data.icone} taille={24} /></span>
-            <BadgeStatut statut={offre.data.statut} />
-          </div>
-          <h2>{offre.data.titre}</h2>
-          {offre.data.description.split('\n\n').filter(Boolean).map((p) => <p>{p}</p>)}
-          <div class="actions">
-            {offre.data.actions.map((a, j) => (
-              <a
-                class:list={['bouton', j === 0 ? 'bouton--principal' : 'bouton--secondaire']}
-                href={a.sujet ? lienContact(a.sujet, `/solutions#${offre.id}`) : a.url}
-              >{a.libelle}</a>
-            ))}
-          </div>
-        </div>
+  <div class="zone-offres">
+    <nav class="sommaire" aria-label="Aller à une offre">
+      <div class="conteneur">
+        <ol class="liste-nue sommaire__liste">
+          {offres.map((offre, i) => (
+            <li>
+              <a href={`#${offre.id}`} class:list={['sommaire__lien', `sommaire__lien--${offre.data.statut}`]}>
+                <span class="sommaire__numero" aria-hidden="true">{numero(i)}</span>
+                <span class="sommaire__texte">
+                  <span class="sommaire__titre">{COURTS[offre.id] ?? offre.data.titre}</span>
+                  <span class="sommaire__statut"><span class="sommaire__point" aria-hidden="true"></span>{libelleStatut(offre.data.statut)}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
       </div>
-    </section>
-  ))}
+    </nav>
 
-  <section class="section section--brume">
+    <div class="conteneur offres-intro">
+      <p class="texte-doux">Une offre en pilote se teste dès aujourd’hui avec nous. Une offre en préparation se construit avec les acteurs concernés : rien n’y est présenté comme acquis.</p>
+      <ul class="liste-nue legende" aria-label="Lecture des cartes">
+        <li><span class="legende__exemple legende__exemple--pilote" aria-hidden="true"></span>En pilote : carte pleine, liseré or</li>
+        <li><span class="legende__exemple legende__exemple--preparation" aria-hidden="true"></span>En préparation : contour pointillé</li>
+      </ul>
+    </div>
+
+    <!-- Offre 1 : l'offre en pilote, avec les vrais écrans de CuniSmart. -->
+    {principale && (
+      <section id={principale.id} class="offre-section" aria-labelledby={`titre-${principale.id}`}>
+        <div class="conteneur">
+          <article class:list={['carte', 'offre', 'offre--phare', `carte--${principale.data.statut}`]}>
+            <div class="offre__corps">
+              <div class="offre__haut">
+                <span class="offre__numero" aria-hidden="true">01</span>
+                <BadgeStatut statut={principale.data.statut} />
+              </div>
+              <h2 id={`titre-${principale.id}`}>{principale.data.titre}</h2>
+              {paragraphes(principale.data.description).map((p, j) => <p class:list={{ 'offre__lead': j === 0 }}>{p}</p>)}
+              <ul class="liste-coches liste-coches--2 offre__points">
+                <li>Fonctionne sans réseau, tout part quand il revient</li>
+                <li>{METIERS.length} métiers dans un seul cahier</li>
+                <li>Vue d’ensemble pour la coopérative</li>
+                <li>Connexion avec votre numéro, sans e-mail</li>
+              </ul>
+              <div class="offre__especes">
+                <p class="offre__petit-titre">Espèces suivies en élevage</p>
+                <ul class="puces">{ESPECES.map((e) => <li>{e.nom}</li>)}</ul>
+              </div>
+              <div class="offre__pied">
+                <ul class="liste-nue familles" aria-label="Familles concernées">
+                  {principale.data.familles.map((f) => <li style={`--couleur: var(${INFOS_FAMILLES[f].couleur})`}>{INFOS_FAMILLES[f].libelle}</li>)}
+                </ul>
+                <div class="actions">
+                  {principale.data.actions.map((a, j) => (
+                    <a class:list={['bouton', j === 0 ? 'bouton--principal' : 'bouton--secondaire']} href={lien(principale.id, a)}>
+                      {a.libelle}{j === 0 && <Icone nom="arrow-right" taille={20} />}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <figure class="vitrine">
+              <Sillons classe="vitrine__sillons" fuite={0.5} rangs={20} />
+              <div class="vitrine__pastilles">
+                <span class="etiquette etiquette--blanc etiquette--forte"><Icone nom="device-mobile" taille={14} />Android ou iPhone, dans le navigateur</span>
+                <span class="etiquette etiquette--or">Gratuit pendant le pilote</span>
+              </div>
+              <div class="vitrine__ecrans">
+                <EcranApp capture={CAPTURES.aFaire} largeur={200} classe="vitrine__ecran vitrine__ecran--gauche" />
+                <EcranApp capture={CAPTURES.accueil} largeur={240} classe="vitrine__ecran vitrine__ecran--centre" />
+                <EcranApp capture={CAPTURES.cooperative} largeur={200} classe="vitrine__ecran vitrine__ecran--droite" />
+              </div>
+              <figcaption class="vitrine__legende">
+                <span class="vitrine__marque">CuniSmart by AgriElev</span>
+                <span class="vitrine__date">Lancée le {formatDate(SITE.dateLancementCuniSmart)}</span>
+                <span class="vitrine__mention">{MENTION_CAPTURES}</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+    )}
+
+    <!-- Offres 2 et 3 : grandes cartes, photo de terrain en panneau latéral. -->
+    {pleines.map((offre, i) => {
+      const v = VISUELS[offre.id];
+      return (
+        <section id={offre.id} class="offre-section" aria-labelledby={`titre-${offre.id}`}>
+          <div class="conteneur">
+            <article class:list={['carte', 'offre', `carte--${offre.data.statut}`, { 'offre--inverse': i % 2 === 0 }]}>
+              <div class="offre__corps">
+                <div class="offre__haut">
+                  <span class="offre__numero" aria-hidden="true">{numero(i + 1)}</span>
+                  <BadgeStatut statut={offre.data.statut} />
+                </div>
+                <h2 id={`titre-${offre.id}`}>{offre.data.titre}</h2>
+                {paragraphes(offre.data.description).map((p, j) => <p class:list={{ 'offre__lead': j === 0 }}>{p}</p>)}
+
+                {offre.id === 'formation-expertise' && (
+                  <div class="volets">
+                    <div class="volet">
+                      <span class="pastille pastille--moyenne pastille--creme"><Icone nom="graduation-cap" taille={22} /></span>
+                      <div>
+                        <div class="volet__titre"><h3>CuniMaster</h3>{cuniMaster && <BadgeStatut statut={cuniMaster.statut} />}</div>
+                        <p>Des leçons et leurs quiz par filière, dans CuniSmart. Elles s’ouvrent sans réseau.</p>
+                      </div>
+                    </div>
+                    <div class="volet">
+                      <span class="pastille pastille--moyenne"><Icone nom="broadcast" taille={22} /></span>
+                      <div>
+                        <h3>AgriElev Connect</h3>
+                        <p>Des contenus agricoles et des échanges avec des agronomes, des vétérinaires et des techniciens.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {offre.id === 'transformation' && (
+                  <div class="etude">
+                    <p class="offre__petit-titre">Ce que nous étudions avec vous</p>
+                    <ol class="liste-nue etude__liste">
+                      <li><span class="puce-numero">1</span><div><strong>Vos volumes</strong><span>Ce que vous transformez, et à quel rythme.</span></div></li>
+                      <li><span class="puce-numero">2</span><div><strong>Vos moyens</strong><span>L’équipement adapté à votre organisation.</span></div></li>
+                      <li><span class="puce-numero">3</span><div><strong>Vos débouchés</strong><span>Les marchés que vous visez.</span></div></li>
+                    </ol>
+                    {transformationCuniSmart && (
+                      <p class="etude__lien">
+                        <Icone nom="device-mobile" taille={18} />
+                        <span>Déjà dans CuniSmart ({libelleStatut(transformationCuniSmart.statut).toLowerCase()}) : la collecte, la production, le stock et les ventes de votre unité. <a href="/cunismart#metiers">Voir le métier Transformation</a></span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div class="offre__pied">
+                  {offre.data.familles.length > 0 && (
+                    <ul class="liste-nue familles" aria-label="Familles concernées">
+                      {offre.data.familles.map((f) => <li style={`--couleur: var(${INFOS_FAMILLES[f].couleur})`}>{INFOS_FAMILLES[f].libelle}</li>)}
+                    </ul>
+                  )}
+                  <div class="actions">
+                    {offre.data.actions.map((a, j) => (
+                      <a class:list={j === 0 ? ['bouton', 'bouton--foret'] : ['lien-fleche', 'lien-fleche--vert']} href={lien(offre.id, a)}>
+                        {a.libelle}{j > 0 && <Icone nom="arrow-right" taille={18} />}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {v && (
+                <div class="offre__visuel">
+                  <div class="photo-carte offre__photo">
+                    <Photo photo={v.photo} sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+                    {v.etiquette && <div class="photo-carte__haut"><span class="etiquette etiquette--blanc etiquette--forte"><span class="point" aria-hidden="true"></span>{v.etiquette}</span></div>}
+                    <div class:list={['photo-carte__bas', 'offre__panneau', { 'offre__panneau--avec-ecran': v.ecran }]}>
+                      <span class="pastille pastille--moyenne"><Icone nom={v.panneau.icone} taille={22} /></span>
+                      <div><strong>{v.panneau.titre}</strong><p>{v.panneau.texte}</p></div>
+                    </div>
+                  </div>
+                  {v.ecran && <EcranApp capture={v.ecran} largeur={190} classe="offre__ecran" />}
+                </div>
+              )}
+            </article>
+          </div>
+        </section>
+      );
+    })}
+
+    <!-- Offres 4 et 5 : deux démarches en préparation, côte à côte. -->
+    <div class="conteneur duo">
+      {duo.map((offre, i) => {
+        const v = VISUELS[offre.id];
+        return (
+          <section id={offre.id} class="offre-section offre-section--duo" aria-labelledby={`titre-${offre.id}`}>
+            <article class:list={['carte', 'offre', 'offre--colonne', `carte--${offre.data.statut}`]}>
+              {v && (
+                <div class="photo-carte offre__photo offre__photo--haut">
+                  <Photo photo={v.photo} sizes="(min-width: 80rem) 38rem, (min-width: 64rem) 46vw, 100vw" />
+                  <div class="photo-carte__bas offre__panneau">
+                    <span class="pastille pastille--moyenne"><Icone nom={v.panneau.icone} taille={22} /></span>
+                    <div><strong>{v.panneau.titre}</strong><p>{v.panneau.texte}</p></div>
+                  </div>
+                </div>
+              )}
+              <div class="offre__corps">
+                <div class="offre__haut">
+                  <span class="offre__numero" aria-hidden="true">{numero(i + 3)}</span>
+                  <BadgeStatut statut={offre.data.statut} />
+                </div>
+                <h2 id={`titre-${offre.id}`}>{offre.data.titre}</h2>
+                {paragraphes(offre.data.description).map((p, j) => <p class:list={{ 'offre__lead': j === 0 }}>{p}</p>)}
+
+                {offre.id === 'marches' && (
+                  <div>
+                    <p class="offre__petit-titre">Démarches engagées</p>
+                    <ul class="liste-nue produits">
+                      <li><span class="produits__nom">Karité</span><span class="produits__etat">Démarche en cours</span></li>
+                      <li><span class="produits__nom">Miel</span><span class="produits__etat">Démarche en cours</span></li>
+                      <li><span class="produits__nom">Néré</span><span class="produits__etat">Démarche en cours</span></li>
+                    </ul>
+                  </div>
+                )}
+
+                {offre.id === 'innovation' && (
+                  <div class="hub">
+                    <div class="hub__titre">
+                      <span class="pastille pastille--moyenne pastille--foret"><Icone nom="lightbulb" taille={22} /></span>
+                      <div><h3>Smart Hub à Ouèdo</h3><p>Un lieu en préparation pour le numérique, la formation et l’expérimentation.</p></div>
+                    </div>
+                    <ul class="liste-nue hub__axes">
+                      <li><Icone nom="student" taille={20} /><span>Former de jeunes développeurs</span></li>
+                      <li><Icone nom="recycle" taille={20} /><span>Valoriser les ressources organiques</span></li>
+                    </ul>
+                  </div>
+                )}
+
+                <div class="offre__pied">
+                  {offre.data.familles.length > 0 && (
+                    <ul class="liste-nue familles" aria-label="Familles concernées">
+                      {offre.data.familles.map((f) => <li style={`--couleur: var(${INFOS_FAMILLES[f].couleur})`}>{INFOS_FAMILLES[f].libelle}</li>)}
+                    </ul>
+                  )}
+                  <div class="actions actions--serrees">
+                    {offre.data.actions.map((a, j) => (
+                      <a class:list={['bouton', 'bouton--petit', j === 0 ? 'bouton--foret' : 'bouton--brume']} href={lien(offre.id, a)}>{a.libelle}</a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- Les onze modules de la plateforme, par famille. -->
+  <section id="modules" class="section section--creme modules-section">
     <div class="conteneur">
-      <p class="surtitre">La plateforme</p>
-      <h2>Les modules AgriElev</h2>
-      <p class="chapeau">Les onze modules de la plateforme, regroupés par famille.</p>
+      <header class="entete-section">
+        <div>
+          <h2>Onze modules, de l’élevage au marché</h2>
+          <p>La plateforme AgriElev se construit module par module, rangés en cinq familles. Chacun affiche son état réel.</p>
+        </div>
+        <ul class="liste-nue legende" aria-label="Lecture des modules">
+          <li><span class="legende__exemple legende__exemple--pilote" aria-hidden="true"></span>En pilote</li>
+          <li><span class="legende__exemple legende__exemple--preparation" aria-hidden="true"></span>En préparation</li>
+        </ul>
+      </header>
       <ListeModules modules={modules} />
     </div>
   </section>
 
-  <BandeauContact />
+  <BandeauContact
+    titre="Une de ces offres vous concerne ?"
+    texte="Dites-nous laquelle et où vous en êtes. Le formulaire s’ouvre déjà orienté vers la bonne équipe."
+  />
 </BaseLayout>
 
+<script>
+  // Sommaire : marque l'offre en cours de lecture (amélioration progressive, aucun effet sans JavaScript).
+  const liste = document.querySelector<HTMLElement>('.sommaire__liste');
+  const liens = [...document.querySelectorAll<HTMLAnchorElement>('.sommaire__lien')];
+  const cibles = liens.map((a) => document.getElementById(a.hash.slice(1))).filter((c): c is HTMLElement => c !== null);
+  if (liste && cibles.length && 'IntersectionObserver' in window) {
+    const doux = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const observateur = new IntersectionObserver((entrees) => {
+      for (const e of entrees) {
+        if (!e.isIntersecting) continue;
+        for (const a of liens) {
+          const actif = a.hash === `#${e.target.id}`;
+          if (actif) {
+            a.setAttribute('aria-current', 'true');
+            if (liste.scrollWidth > liste.clientWidth) liste.scrollTo({ left: a.offsetLeft - 16, behavior: doux ? 'smooth' : 'auto' });
+          } else a.removeAttribute('aria-current');
+        }
+      }
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    cibles.forEach((c) => observateur.observe(c));
+  }
+</script>
+
 <style>
-  .offre { display: grid; gap: var(--esp-5); align-items: center; }
-  @media (min-width: 64rem) { .offre { grid-template-columns: 1fr 1.2fr; } }
-  :global(.offre__photo) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
-  .offre__haut { display: flex; align-items: center; gap: var(--esp-3); margin-bottom: var(--esp-3); }
-  .offre__icone { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  /* ---------- Repères de l'en-tête ---------- */
+  .reperes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-2); margin-top: var(--esp-2) !important; max-width: 36rem; }
+  @media (min-width: 30rem) { .reperes { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .repere { display: grid; gap: 0.125rem; padding: 0.75rem 1rem; background: #FFFFFF; border-radius: var(--radius); box-shadow: var(--ombre-1); }
+  .repere__valeur { font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-2xl); line-height: 1; letter-spacing: -0.03em; color: var(--ae-vert-foret); font-variant-numeric: tabular-nums; }
+  .repere__libelle { display: inline-flex; align-items: center; gap: 0.375rem; font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; color: var(--texte-doux); }
+
+  /* ---------- Sommaire collant ---------- */
+  .zone-offres { position: relative; padding-bottom: var(--section-y); }
+  .sommaire {
+    position: sticky; top: var(--hauteur-entete); z-index: 40;
+    background: rgb(254 250 241 / 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-block: 1px solid var(--ligne);
+  }
+  .sommaire__liste {
+    display: flex; gap: var(--esp-1); overflow-x: auto; scrollbar-width: none;
+    padding-block: 0.5rem; scroll-snap-type: x proximity;
+  }
+  .sommaire__liste::-webkit-scrollbar { display: none; }
+  .sommaire__liste > li { flex: none; scroll-snap-align: start; }
+  .sommaire__lien {
+    display: flex; align-items: center; gap: 0.625rem; height: 100%;
+    padding: 0.4rem 0.875rem 0.4rem 0.5rem; border-radius: var(--radius);
+    color: var(--ae-vert-foret); text-decoration: none;
+    transition: background-color var(--transition), box-shadow var(--transition);
+  }
+  .sommaire__lien:hover { background: #FFFFFF; box-shadow: var(--ombre-1); color: var(--ae-vert-foret); }
+  .sommaire__lien[aria-current] { background: #FFFFFF; box-shadow: var(--ombre-2); }
+  .sommaire__lien[aria-current] .sommaire__numero { background: var(--ae-vert-foret); color: #FFFFFF; }
+  .sommaire__numero {
+    display: inline-grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 8px;
+    background: var(--ae-vert-brume); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-xs); font-variant-numeric: tabular-nums;
+    transition: background-color var(--transition), color var(--transition);
+  }
+  .sommaire__texte { display: grid; line-height: 1.25; }
+  .sommaire__titre { font-family: var(--font-titre); font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; }
+  .sommaire__statut { display: inline-flex; align-items: center; gap: 0.3rem; font-size: var(--fs-label-sm); font-weight: 600; color: var(--texte-doux); white-space: nowrap; }
+  .sommaire__point { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--gris-ardoise); }
+  .sommaire__lien--pilote .sommaire__point { background: var(--ae-or-recolte); }
+  .sommaire__lien--disponible .sommaire__point { background: var(--cs-vert); }
+  @media (min-width: 64rem) {
+    .sommaire__liste { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: visible; }
+    .sommaire__lien { padding-block: 0.5rem; }
+  }
+
+  .offres-intro { display: flex; flex-direction: column; gap: var(--esp-3); padding-block: clamp(2rem, 1.5rem + 2vw, 3rem) var(--esp-4); }
+  .offres-intro p { margin: 0; max-width: 40rem; }
+  @media (min-width: 64rem) { .offres-intro { flex-direction: row; align-items: center; justify-content: space-between; } }
+  .legende { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+  .legende li { display: inline-flex; align-items: center; gap: var(--esp-2); }
+  .legende__exemple { width: 2rem; height: 1.25rem; border-radius: 6px; background: #FFFFFF; }
+  .legende__exemple--pilote { box-shadow: var(--ombre-1), inset 0 3px 0 var(--ae-or-recolte); }
+  .legende__exemple--preparation { background: transparent; outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px; }
+
+  /* ---------- Offres ---------- */
+  .offre-section { scroll-margin-top: calc(var(--hauteur-entete) + 4.5rem); padding-block: var(--esp-3); }
+  .offre { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
+  /* Sur petit écran, le visuel ouvre la carte. */
+  @media (max-width: 63.99rem) { .offre > .vitrine, .offre > .offre__visuel { order: -1; } }
+  @media (max-width: 40rem) { .offre .actions .bouton { white-space: normal; text-align: center; } }
+  .offre__corps { display: flex; flex-direction: column; gap: var(--esp-3); padding: var(--esp-4); }
+  .offre__corps > * { margin: 0; }
+  @media (min-width: 64rem) { .offre__corps { padding: var(--esp-5); } }
+  .offre__haut { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); }
+  .offre__numero { margin-right: var(--esp-1); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-2xl); line-height: 1; letter-spacing: -0.03em; color: var(--ae-or-fonce); font-variant-numeric: tabular-nums; }
+  .offre h2 { font-size: var(--fs-2xl); max-width: 20ch; margin: 0; }
+  .offre.carte p { font-size: var(--fs-base); line-height: 1.6; color: var(--texte-doux); max-width: 38rem; }
+  .offre.carte p.offre__lead { font-size: var(--fs-md); color: var(--ae-brun-terre); }
+  .offre__petit-titre { margin: 0 0 var(--esp-2) !important; font-size: var(--fs-sm) !important; font-weight: 700; color: var(--ae-vert-foret) !important; }
+  .offre__pied { display: flex; flex-direction: column; gap: var(--esp-3); margin-top: auto !important; padding-top: var(--esp-2); }
+  .offre__pied .actions { margin-top: 0; }
+  .familles { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+  .familles li {
+    display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.75rem;
+    border-radius: var(--radius); background: color-mix(in srgb, var(--couleur) 12%, #FFFFFF);
+    font-size: var(--fs-sm); font-weight: 600; color: var(--ae-brun-terre);
+  }
+  .familles li::before { content: ''; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--couleur); }
+
+  /* Offre phare : texte à gauche, vitrine Vert Forêt à droite. */
+  @media (min-width: 64rem) {
+    .offre--phare { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  }
+  .offre__points { padding: var(--esp-3); border-radius: var(--radius); background: var(--ae-vert-brume); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .offre__especes .puces > * { background: var(--cs-creme); color: var(--ae-brun-terre); }
+  .vitrine {
+    position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 24rem; margin: var(--esp-2) var(--esp-2) 0; border-radius: var(--radius); background: var(--ae-vert-foret);
+  }
+  @media (min-width: 64rem) { .vitrine { margin: var(--esp-2) var(--esp-2) var(--esp-2) 0; min-height: 0; } }
+  :global(.vitrine__sillons) { position: absolute !important; inset: 0; z-index: -1; color: var(--ae-or-recolte); opacity: 0.35; }
+  .vitrine__ecrans { position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-end; padding-top: 4.5rem; margin-bottom: -3.5rem; }
+  :global(.vitrine__ecran) { position: relative; flex: none; }
+  :global(.vitrine__ecran--centre) { z-index: 2; width: 12rem !important; }
+  :global(.vitrine__ecran--gauche), :global(.vitrine__ecran--droite) { z-index: 1; width: 9rem !important; margin-bottom: 2.5rem; }
+  :global(.vitrine__ecran--gauche) { margin-right: -3rem; transform: rotate(-6deg); }
+  :global(.vitrine__ecran--droite) { margin-left: -3rem; transform: rotate(6deg); }
+  @media (min-width: 40rem) {
+    :global(.vitrine__ecran--centre) { width: 15rem !important; }
+    :global(.vitrine__ecran--gauche), :global(.vitrine__ecran--droite) { width: 11.5rem !important; }
+  }
+  @media (min-width: 64rem) {
+    .vitrine__ecrans { padding-top: 5rem; margin-bottom: -4rem; }
+    :global(.vitrine__ecran--centre) { width: clamp(12rem, 2rem + 16vw, 17.5rem) !important; }
+    :global(.vitrine__ecran--gauche), :global(.vitrine__ecran--droite) { width: clamp(9rem, 1rem + 12.5vw, 13rem) !important; margin-bottom: 3.5rem; }
+    :global(.vitrine__ecran--gauche) { margin-right: -4rem; }
+    :global(.vitrine__ecran--droite) { margin-left: -4rem; }
+  }
+  .vitrine__pastilles { position: absolute; top: 1rem; left: 1rem; right: 1rem; z-index: 3; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--esp-2); }
+  .vitrine__legende {
+    position: relative; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem var(--esp-2);
+    padding: var(--esp-3); background: rgb(255 255 255 / 0.97);
+  }
+  .vitrine__marque { font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cs-orange-brule); }
+  .vitrine__date { font-size: var(--fs-label-sm); font-weight: 700; color: var(--ae-vert-foret); }
+  .vitrine__mention { flex-basis: 100%; font-size: var(--fs-xs); color: var(--texte-doux); }
+
+  /* Offres 2 et 3 : photo encadrée dans la carte, en panneau latéral. */
+  @media (min-width: 64rem) {
+    .offre:not(.offre--phare):not(.offre--colonne) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+    .offre--inverse:not(.offre--colonne) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr) !important; }
+    .offre--inverse .offre__visuel { order: -1; }
+  }
+  .offre__visuel { position: relative; padding: var(--esp-2) var(--esp-2) 0; }
+  @media (min-width: 64rem) { .offre__visuel { padding: var(--esp-2); } }
+  .offre__photo { height: 100%; box-shadow: none; --hauteur-photo: 20rem; --hauteur-photo-large: 100%; }
+  @media (min-width: 64rem) { .offre__photo :global(.photo-conteneur) { position: absolute; inset: 0; } .offre__photo { min-height: 30rem; } }
+  .offre__panneau { left: 0.75rem; right: 0.75rem; bottom: 0.75rem; }
+  @media (min-width: 40rem) { .offre__panneau { right: auto; max-width: 21rem; } }
+  .offre__panneau--avec-ecran { right: 0.75rem; }
+  @media (min-width: 40rem) { .offre__panneau--avec-ecran { max-width: calc(100% - 9.5rem); } }
+  :global(.offre__ecran) { position: absolute !important; z-index: 2; right: 1rem; bottom: -1.5rem; width: 8rem !important; }
+  @media (min-width: 40rem) { :global(.offre__ecran) { width: 9.5rem !important; right: 1.5rem; } }
+  @media (min-width: 64rem) { :global(.offre__ecran) { width: 10.5rem !important; right: -1.25rem; bottom: 2rem; } .offre--inverse .offre__visuel { overflow: visible; } }
+  @media (max-width: 39.99rem) { .offre__panneau--avec-ecran { right: 9.5rem; } .offre__panneau--avec-ecran p { display: none; } .offre__panneau--avec-ecran strong { font-size: var(--fs-base); } }
+
+  .volets { display: grid; gap: var(--esp-2); }
+  @media (min-width: 40rem) { .volets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .volet { display: flex; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .volet h3 { margin: 0; font-size: var(--fs-lg); }
+  .volet__titre { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem var(--esp-2); margin-bottom: 0.25rem; }
+  .offre.carte .volet p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; }
+
+  .etude__liste { display: grid; gap: var(--esp-2); }
+  @media (min-width: 40rem) { .etude__liste { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .etude__liste li { display: flex; align-items: flex-start; gap: var(--esp-2); padding: var(--esp-3); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .etude__liste .puce-numero { width: 1.75rem; height: 1.75rem; font-size: var(--fs-xs); background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .etude__liste div { display: grid; gap: 0.125rem; }
+  .etude__liste strong { font-family: var(--font-titre); color: var(--ae-vert-foret); line-height: 1.3; }
+  .etude__liste span:not(.puce-numero) { font-size: var(--fs-sm); line-height: 1.4; color: var(--texte-doux); }
+  .offre.carte p.etude__lien { display: flex; align-items: flex-start; gap: var(--esp-2); margin-top: var(--esp-3); padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--cs-creme); font-size: var(--fs-sm); line-height: 1.45; color: var(--ae-brun-terre); max-width: none; }
+  .etude__lien :global(.icone) { margin-top: 0.1rem; color: var(--cs-orange-brule); }
+  .etude__lien a { font-weight: 700; }
+
+  /* Offres 4 et 5 : deux cartes côte à côte, photo en haut. */
+  .duo { display: grid; gap: var(--esp-3); padding-top: var(--esp-3); }
+  .offre-section--duo { padding: 0; }
+  @media (min-width: 64rem) { .duo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gouttiere-colonnes); } }
+  .offre--colonne { height: 100%; grid-template-rows: auto 1fr; }
+  .offre--colonne .offre__corps { padding: var(--esp-4); }
+  .offre--colonne h2 { font-size: var(--fs-xl); line-height: 1.2; }
+  .offre__photo--haut { margin: var(--esp-2) var(--esp-2) 0; --hauteur-photo: 17rem; --hauteur-photo-large: 19rem; min-height: 0 !important; }
+  .offre__photo--haut :global(.photo-conteneur) { position: static !important; }
+
+  .produits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--esp-2); }
+  .produits li { display: grid; gap: 0.25rem; padding: var(--esp-3); border-radius: var(--radius); background: color-mix(in srgb, var(--ae-or-recolte) 12%, #FFFFFF); border-top: 3px solid var(--ae-or-recolte); }
+  .produits__nom { font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-lg); line-height: 1.2; color: var(--ae-brun-terre); }
+  .produits__etat { font-size: var(--fs-label-sm); font-weight: 600; color: var(--texte-doux); }
+
+  .hub { display: grid; gap: var(--esp-2); padding: var(--esp-3); border-radius: var(--radius); background: var(--ae-vert-brume); }
+  .hub__titre { display: flex; align-items: flex-start; gap: var(--esp-3); }
+  .hub__titre h3 { margin: 0 0 0.125rem; font-size: var(--fs-lg); }
+  .offre.carte .hub__titre p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; }
+  .hub__axes { display: grid; gap: var(--esp-2); }
+  @media (min-width: 40rem) { .hub__axes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .hub__axes li { display: flex; align-items: center; gap: var(--esp-2); padding: 0.625rem 0.75rem; border-radius: var(--radius); background: #FFFFFF; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+
+  /* ---------- Modules ---------- */
+  .modules-section .entete-section h2 { max-width: 18ch; }
 </style>

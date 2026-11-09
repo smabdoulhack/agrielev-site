@@ -1,35 +1,56 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Photo from './Photo.astro';
+import Icone from './Icone.astro';
 import { PHOTOS } from '../data/photos.ts';
-import { libelleCategorie, type CategorieCode } from '../lib/blog.ts';
+import { libelleCategorie, tempsLecture, type CategorieCode } from '../lib/blog.ts';
 import { formatDate } from '../lib/format.ts';
 
 interface Props {
   article: CollectionEntry<'articles'>;
+  /** Article mis en avant : carte horizontale, plus grande. */
+  une?: boolean;
+  titreNiveau?: 'h2' | 'h3';
 }
-const { article } = Astro.props;
+const { article, une = false, titreNiveau = 'h3' } = Astro.props;
 const { titre, resume, date, categorie, couverture } = article.data;
 const image = couverture ? { src: couverture, alt: '' } : { src: PHOTOS.blogDefaut.src, alt: '' };
+const Titre = titreNiveau;
 ---
-<article class="carte-article" data-test="carte-article">
-  <Photo photo={image} classe="carte-article__photo" sizes="(min-width: 72rem) 22rem, (min-width: 48rem) 45vw, 100vw" />
-  <div class="carte-article__corps">
+<article class:list={['carte-photo', 'carte-article', { 'carte-article--une': une }]} data-test="carte-article">
+  <div class="carte-photo__image carte-article__media">
+    <Photo photo={image} classe="carte-article__photo" prioritaire={une} sizes={une ? '(min-width: 90rem) 44rem, (min-width: 48rem) 55vw, 100vw' : '(min-width: 90rem) 28rem, (min-width: 48rem) 46vw, 100vw'} />
+    <a class="etiquette etiquette--blanc etiquette--forte carte-article__categorie" href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie as CategorieCode)}</a>
+  </div>
+  <div class="carte-photo__corps carte-article__corps">
     <p class="carte-article__meta">
-      <a href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie as CategorieCode)}</a>
-      · <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      <Icone nom="calendar-blank" taille={14} />
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      <span aria-hidden="true">·</span>
+      <span>{tempsLecture(article.body ?? '')}&nbsp;min de lecture</span>
     </p>
-    <h3><a class="carte-article__lien" href={`/blog/${article.id}`}>{titre}</a></h3>
-    <p>{resume}</p>
+    <Titre class="carte-article__titre"><a class="lien-etendu" href={`/blog/${article.id}`}>{titre}</a></Titre>
+    <p class="carte-article__resume">{resume}</p>
+    <span class="lien-fleche carte-article__lire" aria-hidden="true">Lire l’article<Icone nom="caret-right" taille={16} /></span>
   </div>
 </article>
 
 <style>
-  .carte-article { position: relative; display: flex; flex-direction: column; background: #FFFFFF; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgb(73 34 15 / 0.12); }
-  :global(.carte-article__photo) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-  .carte-article__corps { padding: var(--esp-4); }
-  .carte-article__meta { font-size: 0.9rem; color: var(--gris-ardoise); }
-  .carte-article__meta a { position: relative; z-index: 1; color: var(--ae-vert-foret); font-weight: 600; }
-  .carte-article__lien { color: var(--ae-vert-foret); text-decoration: none; }
-  .carte-article__lien::after { content: ''; position: absolute; inset: 0; }
+  .carte-article { height: 100%; }
+  .carte-article__media { height: auto; aspect-ratio: 16 / 9; }
+  .carte-article__categorie { z-index: 2; text-decoration: none; }
+  .carte-article__categorie:hover { color: var(--ae-brun-terre); }
+  .carte-article__corps { gap: var(--esp-2); }
+  .carte-article__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.375rem; font-size: var(--fs-label-sm) !important; font-weight: 600; color: var(--texte-doux); }
+  .carte-article__titre { margin: 0; font-size: var(--fs-lg); }
+  .carte-article__titre a { color: var(--ae-vert-foret); }
+  .carte-article__resume { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+  .carte-article__lire { margin-top: auto; padding-top: var(--esp-2); }
+  @media (min-width: 48rem) {
+    .carte-article--une { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+    .carte-article--une .carte-article__media { aspect-ratio: auto; min-height: 20rem; }
+    .carte-article--une .carte-article__corps { padding: var(--esp-5); justify-content: center; }
+    .carte-article--une .carte-article__titre { font-size: var(--fs-xl); }
+    .carte-article--une .carte-article__resume { -webkit-line-clamp: 5; line-clamp: 5; font-size: var(--fs-base); }
+  }
 </style>

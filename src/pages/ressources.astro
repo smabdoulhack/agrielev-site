@@ -3,61 +3,207 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import EnTetePage from '../components/EnTetePage.astro';
 import BadgeStatut from '../components/BadgeStatut.astro';
 import Icone from '../components/Icone.astro';
+import Photo from '../components/Photo.astro';
+import EcranApp from '../components/EcranApp.astro';
+import EtatVide from '../components/EtatVide.astro';
+import CarteArticle from '../components/CarteArticle.astro';
 import BandeauContact from '../components/BandeauContact.astro';
+import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
+import Sillons from '../components/Sillons.astro';
 import { PHOTOS } from '../data/photos.ts';
+import { CAPTURES, MENTION_CAPTURES } from '../data/captures.ts';
+import { ESPECES, STATUT_CUNISMART } from '../data/cunismart.ts';
 import { chargerVisibles } from '../lib/collections.ts';
+import { trierParDate } from '../lib/blog.ts';
+import { lienContact } from '../lib/sujets.ts';
 import { formatDate } from '../lib/format.ts';
 
 const etudes = (await chargerVisibles('etudes')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 const formations = (await chargerVisibles('formations')).sort((a, b) => a.data.ordre - b.data.ordre);
 const documents = (await chargerVisibles('documents')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const article = trierParDate((await chargerVisibles('articles')).map((a) => ({ ...a, date: a.data.date })))[0];
 const FORMATS = { video: 'Vidéo', audio: 'Audio', texte: 'Texte' } as const;
+const etrePrevenu = lienContact('autre', '/ressources');
+
+// Carnet de terrain de la page : d'autres prises de vue que celles de l'accueil (dates des missions).
+const CARNET = [
+  { photo: PHOTOS.arbreTerrain, quand: 'Octobre 2026', theme: 'Agroforesterie', icone: 'tree', titre: 'L’arbre et la parcelle', texte: 'Le feuillage d’un arbre, présenté lors d’une mission.' },
+  { photo: PHOTOS.karite, quand: 'Octobre 2026', theme: 'Transformation', icone: 'factory', titre: 'Noix et beurre de karité', texte: 'Une productrice présente des noix et un bloc de beurre de karité.' },
+  { photo: PHOTOS.parcelleBiodigesteur, quand: 'Octobre 2026', theme: 'Économie circulaire', icone: 'recycle', titre: 'Une parcelle, un biodigesteur', texte: 'Des ananas devant le biodigesteur, en lisière de forêt.' },
+  { photo: PHOTOS.merci, quand: 'Septembre 2026', theme: 'Élevage', icone: 'paw-print', titre: 'Troupeau au pâturage', texte: 'Des zébus dans la savane, lors du suivi des troupeaux.' },
+];
+
+const FILIERES = [...ESPECES.map((e) => e.nom), 'Cultures'];
+const nbDocuments = documents.length === 0 ? 'À venir' : `${documents.length} document${documents.length > 1 ? 's' : ''}`;
 ---
-<BaseLayout titre="Terrain et ressources" description="Études de cas, parcours de formation et documents publics d'AgriElev.">
-  <EnTetePage surtitre="Ressources" titre="Terrain et ressources" chapeau="Des réalisations documentées, des parcours de formation et des documents publics." photo={PHOTOS.ressources}>
-    <nav class="actions" aria-label="Sections de la page">
-      <a class="bouton bouton--secondaire" href="#etudes-de-cas">Études de cas</a>
-      <a class="bouton bouton--secondaire" href="#formations">Formations</a>
-      <a class="bouton bouton--secondaire" href="#documents">Documents</a>
-      <a class="bouton bouton--secondaire" href="/blog">Lire le blog</a>
+<BaseLayout titre="Terrain et ressources" description="Parcours de formation CuniMaster, carnet de terrain, études de cas et documents publics d'AgriElev.">
+  <EnTetePage
+    surtitre="Ressources"
+    titre="Terrain et ressources"
+    chapeau="Des parcours de formation, ce que nous voyons sur le terrain et des documents publics. Nous ne publions une étude de cas qu’une fois ses résultats vérifiés."
+    photo={PHOTOS.ressources}
+    portrait
+    etiquette="Maraîchage, octobre 2026"
+  >
+    <nav class="sommaire" aria-label="Sur cette page">
+      <a href="#formations"><span class="pastille pastille--moyenne"><Icone nom="graduation-cap" taille={20} /></span><span><strong>Formations</strong><span>Les leçons CuniMaster</span></span></a>
+      <a href="#etudes-de-cas"><span class="pastille pastille--moyenne pastille--creme"><Icone nom="mountains" taille={20} /></span><span><strong>Sur le terrain</strong><span>Carnet et études de cas</span></span></a>
+      <a href="#documents"><span class="pastille pastille--moyenne pastille--terre"><Icone nom="file-text" taille={20} /></span><span><strong>Documents</strong><span>{nbDocuments}</span></span></a>
     </nav>
   </EnTetePage>
 
-  <section id="etudes-de-cas" class="section">
-    <div class="conteneur">
-      <h2>Études de cas</h2>
-      {etudes.length === 0 ? (
-        <p class="vide">Les premières études de cas seront publiées dès que leurs résultats auront été vérifiés.</p>
-      ) : (
-        <div class="grille">
-          {etudes.map((e) => (
-            <article class="fiche">
-              <h3>{e.data.titre}</h3>
-              <p>{e.data.lieu}, {e.data.periode}. {e.data.population}.</p>
-              <p><strong>{e.data.indicateur} :</strong> {e.data.resultat}</p>
-              <p class="fiche__source">Source : {e.data.source}</p>
-            </article>
-          ))}
+  <!-- Formations -->
+  <section id="formations" class="section section--blanc">
+    <div class="conteneur disposition disposition--5-7 disposition--haut formations">
+      <figure class="cunimaster">
+        <Sillons classe="cunimaster__sillons" fuite={0.5} rangs={18} />
+        <EcranApp capture={CAPTURES.cunimaster} largeur={280} classe="cunimaster__ecran" />
+        <ul class="liste-nue cunimaster__reperes" aria-hidden="true">
+          <li><Icone nom="wifi-slash" taille={16} />S’ouvre sans réseau</li>
+          <li><Icone nom="check-circle" taille={16} />Leçons et quiz</li>
+        </ul>
+        <figcaption>{MENTION_CAPTURES}</figcaption>
+      </figure>
+
+      <div class="formations__texte">
+        <h2>CuniMaster, les leçons par filière</h2>
+        <p class="chapeau">Les parcours CuniMaster se suivent dans CuniSmart : des leçons et leurs quiz par filière d’élevage et de cultures, organisés en niveaux, qui s’ouvrent sans réseau.</p>
+        <p class="statut"><BadgeStatut statut={STATUT_CUNISMART} /><span>Accessible dans CuniSmart pendant le pilote.</span></p>
+
+        <div class="filieres">
+          <h3 class="filieres__titre">Les filières suivies</h3>
+          <ul class="liste-nue filieres__liste">{FILIERES.map((f) => <li>{f}</li>)}</ul>
         </div>
-      )}
+
+        {formations.length > 0 && (
+          <div class="parcours-formation">
+            <h3 class="filieres__titre">Les parcours</h3>
+            <ol class="liste-nue rail">
+              {formations.map((f) => (
+                <li class:list={['rail__arret', `rail__arret--${f.data.statut}`]}>
+                  <span class="rail__point" aria-hidden="true"></span>
+                  <div class="rail__texte">
+                    <div>
+                      <h4>{f.data.titre}</h4>
+                      <p>{f.data.filiere}{f.data.formats.length > 0 && ` · ${f.data.formats.map((x) => FORMATS[x]).join(', ')}`}{f.data.langues.length > 0 && ` · ${f.data.langues.join(', ')}`}</p>
+                      {f.data.lien && <a class="lien-fleche" href={f.data.lien}>Accéder au parcours<Icone nom="arrow-right" taille={16} /></a>}
+                    </div>
+                    <BadgeStatut statut={f.data.statut} />
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        <div class="actions">
+          <BoutonCuniSmart variante="grand" />
+          <a class="lien-fleche lien-fleche--vert" href="/cunismart">Découvrir CuniSmart<Icone nom="arrow-right" taille={18} /></a>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="formations" class="section section--creme">
+  <!-- Sur le terrain : carnet, études de cas, dernier article -->
+  <section id="etudes-de-cas" class="section section--creme">
     <div class="conteneur">
-      <h2>Formations CuniMaster</h2>
-      {formations.length === 0 ? (
-        <p class="vide">Les parcours de formation seront présentés ici une fois confirmés. <a href="/contact">Être informé</a></p>
+      <header class="entete-section">
+        <div>
+          <h2>Sur le terrain</h2>
+          <p>Ce que nous voyons lors de nos missions, avant de le documenter.</p>
+        </div>
+        <a class="lien-fleche lien-fleche--vert" href="/blog/categorie/terrain">Les articles « Terrain »<Icone nom="arrow-right" taille={18} /></a>
+      </header>
+
+      <ul class="liste-nue carnet" aria-label="Carnet de terrain" tabindex="0">
+        {CARNET.map((c, i) => (
+          <li class:list={['carnet__page', `carnet__page--${i + 1}`]}><figure>
+            <div class="carnet__photo">
+              <Photo photo={c.photo} sizes="(min-width: 80rem) 19rem, (min-width: 48rem) 45vw, 75vw" />
+              <span class="etiquette etiquette--blanc etiquette--forte carnet__date">{c.quand}</span>
+            </div>
+            <figcaption>
+              <span class="carnet__theme"><Icone nom={c.icone} taille={16} />{c.theme}</span>
+              <strong>{c.titre}</strong>
+              <span class="carnet__texte">{c.texte}</span>
+            </figcaption>
+          </figure></li>
+        ))}
+      </ul>
+
+      <div class="disposition disposition--7-5 disposition--haut terrain-bas">
+        <div class="etudes">
+          {etudes.length === 0 ? (
+            <EtatVide
+              icone="seal-check"
+              etiquette="À venir"
+              titre="Études de cas"
+              texte="Les premières études de cas seront publiées dès que leurs résultats auront été vérifiés."
+              legende="Chaque étude indiquera"
+              elements={['Le lieu', 'La période', 'La population suivie', 'L’indicateur mesuré', 'La source']}
+            >
+              <a class="lien-fleche lien-fleche--vert" href={etrePrevenu}>Être prévenu<Icone nom="arrow-right" taille={18} /></a>
+              <a class="lien-fleche" href={lienContact('proposer-experimentation', '/ressources')}>Proposer une expérimentation<Icone nom="arrow-right" taille={18} /></a>
+            </EtatVide>
+          ) : (
+            <div class="etudes__liste">
+              {etudes.map((e) => (
+                <article class="carte carte--grande etude">
+                  <div class="carte__haut">
+                    <span class="etiquette"><Icone nom="map-pin" taille={14} />{e.data.lieu}</span>
+                    <span class="mention">{e.data.periode}</span>
+                  </div>
+                  <h3>{e.data.titre}</h3>
+                  <p>{e.data.population}.</p>
+                  <p class="etude__resultat"><strong>{e.data.indicateur}</strong>{e.data.resultat}</p>
+                  <p class="mention">Source : {e.data.source}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+        <div class="dernier">
+          <p class="dernier__titre"><Icone nom="newspaper" taille={18} />À lire sur le blog</p>
+          {article ? (
+            <CarteArticle article={article} />
+          ) : (
+            <EtatVide icone="newspaper" titre="Le blog" texte="Actualités, conseils techniques et retours de terrain.">
+              <a class="lien-fleche" href="/blog">Lire le blog<Icone nom="arrow-right" taille={18} /></a>
+            </EtatVide>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Documents publics -->
+  <section id="documents" class="section section--blanc">
+    <div class="conteneur disposition disposition--4-8 disposition--haut">
+      <div class="empile documents__texte">
+        <h2>Documents publics</h2>
+        <p class="texte-doux">Rapports, fiches techniques et présentations d’AgriElev, à télécharger et à partager.</p>
+      </div>
+      {documents.length === 0 ? (
+        <EtatVide
+          icone="file-text"
+          etiquette="À venir"
+          titre="Bientôt en téléchargement"
+          texte="Rapports, fiches techniques et présentations seront proposés ici au téléchargement."
+          elements={['Rapports', 'Fiches techniques', 'Présentations']}
+          forme="tuiles"
+        >
+          <a class="lien-fleche lien-fleche--vert" href={etrePrevenu}>Être prévenu<Icone nom="arrow-right" taille={18} /></a>
+        </EtatVide>
       ) : (
-        <ul class="grille liste-nue">
-          {formations.map((f) => (
-            <li class="fiche">
-              <h3>{f.data.titre}</h3>
-              <p>{f.data.filiere}</p>
-              <BadgeStatut statut={f.data.statut} />
-              {f.data.formats.length > 0 && <p>{f.data.formats.map((x) => FORMATS[x]).join(', ')}</p>}
-              {f.data.langues.length > 0 && <p>Langues : {f.data.langues.join(', ')}</p>}
-              {f.data.lien && <a href={f.data.lien}>Accéder au parcours</a>}
+        <ul class="liste-nue documents">
+          {documents.map((d) => (
+            <li class="carte carte--interactive document">
+              <span class="pastille pastille--grande pastille--creme"><Icone nom="file-pdf" taille={24} /></span>
+              <div>
+                <h3><a class="lien-etendu" href={d.data.fichier}>{d.data.titre}</a></h3>
+                <p>{d.data.description}</p>
+              </div>
+              <time class="mention" datetime={d.data.date.toISOString()}>{formatDate(d.data.date)}</time>
             </li>
           ))}
         </ul>
@@ -65,28 +211,93 @@ const FORMATS = { video: 'Vidéo', audio: 'Audio', texte: 'Texte' } as const;
     </div>
   </section>
 
-  <section id="documents" class="section">
-    <div class="conteneur">
-      <h2>Documents publics</h2>
-      {documents.length === 0 ? (
-        <p class="vide">Aucun document public pour le moment.</p>
-      ) : (
-        <ul class="liste-nue documents">
-          {documents.map((d) => (
-            <li><a href={d.data.fichier}><Icone nom="file-pdf" taille={24} /> {d.data.titre}</a> <span>({formatDate(d.data.date)})</span><p>{d.data.description}</p></li>
-          ))}
-        </ul>
-      )}
-    </div>
-  </section>
-
-  <BandeauContact />
+  <BandeauContact titre="Un sujet à documenter ?" texte="Une pratique, un résultat de terrain, une question de filière : proposez-nous un sujet ou une collaboration." action={{ libelle: 'Proposer un sujet', href: etrePrevenu }} />
 </BaseLayout>
 
 <style>
-  .liste-nue { list-style: none; margin: 0; padding: 0; }
-  .fiche { padding: var(--esp-4); background: #FFFFFF; border-radius: var(--radius); border: 1px solid var(--ae-vert-brume); }
-  .fiche__source { font-size: 0.9rem; color: var(--gris-ardoise); }
-  .documents { display: grid; gap: var(--esp-4); }
-  .documents a { display: inline-flex; align-items: center; gap: var(--esp-2); font-weight: 600; }
+  /* ---------- Sommaire de la page (dans l'en-tête) ---------- */
+  .sommaire { display: grid; gap: var(--esp-2); margin-top: var(--esp-3) !important; }
+  .sommaire a {
+    display: flex; align-items: center; gap: var(--esp-3); padding: 0.625rem var(--esp-3) 0.625rem 0.625rem;
+    border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); text-decoration: none; color: inherit;
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+  .sommaire a:hover { box-shadow: var(--ombre-2); transform: translateY(-2px); }
+  .sommaire strong { display: block; font-family: var(--font-titre); color: var(--ae-vert-foret); line-height: 1.25; }
+  .sommaire a > span:last-child > span { font-size: var(--fs-sm); color: var(--texte-doux); }
+  @media (min-width: 40rem) { .sommaire { grid-template-columns: repeat(3, minmax(0, 1fr)); } .sommaire a { flex-direction: column; align-items: flex-start; gap: var(--esp-2); padding: var(--esp-3); } }
+
+  /* ---------- Formations ---------- */
+  .formations { row-gap: var(--esp-5); }
+  .cunimaster {
+    position: relative; overflow: hidden; isolation: isolate; margin: 0;
+    display: grid; justify-items: center; gap: var(--esp-3); padding: var(--esp-5) var(--esp-3) var(--esp-4);
+    border-radius: var(--radius); background: linear-gradient(to bottom, var(--ae-vert-brume), color-mix(in srgb, var(--ae-vert-brume) 40%, #FFFFFF));
+  }
+  :global(.cunimaster__sillons) { position: absolute !important; inset: 0; z-index: -1; color: var(--ae-sauge); opacity: 0.45; }
+  :global(.cunimaster__ecran) { width: clamp(12rem, 8rem + 12vw, 17.5rem) !important; }
+  .cunimaster__reperes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--esp-2); }
+  .cunimaster__reperes li { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); font-size: var(--fs-label-sm); font-weight: 700; color: var(--ae-vert-foret); }
+  .cunimaster figcaption { font-size: var(--fs-xs); color: var(--texte-doux); text-align: center; }
+  @media (min-width: 64rem) {
+    .cunimaster { position: sticky; top: calc(var(--hauteur-entete) + var(--esp-4)); }
+  }
+
+  .formations__texte > * { margin: 0; }
+  .formations__texte h2 { margin-bottom: var(--esp-3); }
+  .formations__texte .chapeau { margin-bottom: var(--esp-3); }
+  .statut { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-3); font-size: var(--fs-sm); font-weight: 600; }
+  .filieres, .parcours-formation { margin-top: var(--esp-5) !important; }
+  .filieres__titre { margin: 0 0 var(--esp-3); font-size: var(--fs-lg); }
+  .filieres__liste { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+  .filieres__liste li { padding: 0.375rem 0.875rem; border-radius: var(--radius); background: var(--ae-vert-brume); font-weight: 700; font-size: var(--fs-sm); color: var(--ae-vert-foret); }
+
+  /* Les parcours : un chemin, chaque arrêt dit son état (plein = disponible, pointillé = en préparation). */
+  .rail { position: relative; display: grid; gap: 0; }
+  .rail::before { content: ''; position: absolute; left: calc(0.6875rem - 1px); top: 1rem; bottom: 1rem; width: 2px; background: var(--ligne-forte); }
+  .rail__arret { position: relative; display: grid; grid-template-columns: 1.375rem minmax(0, 1fr); align-items: center; gap: var(--esp-3); padding-block: var(--esp-2); }
+  .rail__point { position: relative; z-index: 1; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: var(--ae-vert-foret); box-shadow: 0 0 0 4px #FFFFFF; }
+  .rail__arret--pilote .rail__point { background: var(--ae-or-recolte); }
+  .rail__arret--preparation .rail__point { background: #FFFFFF; border: 2px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); }
+  .rail__texte { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-2) var(--esp-3); padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .rail__arret--preparation .rail__texte { box-shadow: none; background: rgb(255 255 255 / 0.55); outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px; }
+  .rail__texte h4 { margin: 0; font-size: var(--fs-base); }
+  .rail__texte p { margin: 0; font-size: var(--fs-sm); color: var(--texte-doux); }
+
+  /* ---------- Carnet de terrain : pages décalées, légende sous la photo ---------- */
+  .carnet { display: grid; grid-auto-flow: column; grid-auto-columns: min(17rem, 75vw); gap: var(--esp-3); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 0 0 var(--esp-3); margin-bottom: var(--esp-5); scrollbar-width: thin; scrollbar-color: var(--ligne-forte) transparent; }
+  .carnet__page figure { margin: 0; }
+  .carnet__page { scroll-snap-align: start; display: flex; flex-direction: column; padding: 0.625rem 0.625rem var(--esp-3); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-2); }
+  .carnet__photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 8px; background: var(--ae-creme); }
+  .carnet__photo :global(.photo-conteneur) { position: absolute; inset: 0; }
+  .carnet__photo :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms ease; }
+  @media (prefers-reduced-motion: no-preference) { .carnet__page:hover :global(img) { transform: scale(1.04); } }
+  .carnet__date { position: absolute; top: 0.5rem; left: 0.5rem; z-index: 1; }
+  .carnet__page figcaption { display: grid; gap: 0.25rem; padding: var(--esp-3) 0.375rem 0; }
+  .carnet__theme { display: inline-flex; align-items: center; gap: 0.25rem; font-size: var(--fs-label-sm); font-weight: 700; color: var(--cs-vert); }
+  .carnet__page strong { font-family: var(--font-titre); font-size: var(--fs-lg); line-height: 1.3; color: var(--ae-vert-foret); }
+  .carnet__texte { font-size: var(--fs-sm); line-height: 1.43; color: var(--texte-doux); }
+  @media (min-width: 48rem) {
+    .carnet { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; padding: 0; }
+    .carnet__photo { aspect-ratio: 3 / 2; }
+  }
+  @media (min-width: 64rem) {
+    .carnet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--esp-4); align-items: start; margin-bottom: var(--esp-6); }
+    .carnet__photo { aspect-ratio: 4 / 5; }
+    .carnet__page--2, .carnet__page--4 { margin-top: var(--esp-6); }
+  }
+
+  .terrain-bas { row-gap: var(--esp-5); }
+  .dernier { display: grid; gap: var(--esp-3); }
+  .dernier__titre { display: flex; align-items: center; gap: var(--esp-2); margin: 0; font-family: var(--font-titre); font-weight: 700; color: var(--ae-vert-foret); }
+  .etudes__liste { display: grid; gap: var(--esp-3); }
+  .etude__resultat { display: grid; gap: 0.125rem; padding: var(--esp-3); border-radius: var(--radius); background: var(--ae-vert-brume); color: var(--ae-vert-foret) !important; }
+
+  /* ---------- Documents ---------- */
+  .documents__texte h2 { margin: 0; }
+  .documents { display: grid; gap: var(--esp-3); }
+  .document { flex-direction: row; align-items: center; gap: var(--esp-3); padding: var(--esp-4); }
+  .document > div { flex: 1; }
+  .document h3 { margin: 0 0 0.25rem; }
+  .document h3 a { color: var(--ae-vert-foret); }
 </style>

@@ -1,0 +1,81 @@
+---
+// Gabarit des pages de service (confirmation d'envoi, page introuvable) : une ouverture
+// texte + photo de terrain, puis la suite propre à chaque page (slot « suite »).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Photo from './Photo.astro';
+import Icone from './Icone.astro';
+import Sillons from './Sillons.astro';
+import type { PhotoSite } from '../data/photos.ts';
+
+interface Props {
+  titrePage: string;
+  /** Pastille au-dessus du titre (état de la page : « Demande envoyée », « Erreur 404 »). */
+  surtitre: string;
+  titre: string;
+  chapeau: string;
+  photo: PhotoSite;
+  icone: string;
+  /** Teinte de l'icône d'état : vert (réussite) ou or (attention). */
+  ton?: 'vert' | 'or';
+  /** Panneau blanc posé en bas de la photo. */
+  panneau?: { icone: string; titre: string; texte?: string };
+}
+const { titrePage, surtitre, titre, chapeau, photo, icone, ton = 'vert', panneau } = Astro.props;
+---
+<BaseLayout titre={titrePage} noindex>
+  <section class="service">
+    <Sillons classe="service__sillons" fuite={0.78} rangs={24} />
+    <div class="conteneur disposition disposition--6-6 service__grille">
+      <div class="service__texte">
+        <p class="pastille-titre service__etat">
+          <span class:list={['service__icone', `service__icone--${ton}`]}><Icone nom={icone} taille={16} /></span>{surtitre}
+        </p>
+        <h1 class="titre-display">{titre}</h1>
+        <p class="chapeau">{chapeau}</p>
+        <slot />
+      </div>
+      <div class="service__visuel">
+        <div class="photo-carte service__photo">
+          <Photo photo={photo} prioritaire sizes="(min-width: 80rem) 39rem, (min-width: 64rem) 48vw, 100vw" />
+          {panneau && (
+            <div class="photo-carte__bas service__panneau">
+              <span class="pastille pastille--grande pastille--creme"><Icone nom={panneau.icone} taille={24} /></span>
+              <div>
+                <strong>{panneau.titre}</strong>
+                {panneau.texte && <p>{panneau.texte}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+  <slot name="suite" />
+</BaseLayout>
+
+<style>
+  .service {
+    position: relative; overflow: hidden;
+    padding: clamp(2rem, 1rem + 4vw, 5rem) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    background: linear-gradient(to bottom, rgb(233 243 234 / 0.85), var(--surface) 75%);
+  }
+  :global(.service__sillons) { position: absolute !important; top: -4rem; right: -10%; bottom: 0; width: 75% !important; height: auto !important; color: var(--ae-sauge); opacity: 0.45; pointer-events: none; }
+  .service__grille { position: relative; row-gap: var(--esp-5); }
+  .service__texte { display: flex; flex-direction: column; gap: var(--esp-4); }
+  .service__texte > * { margin: 0; }
+  .service__texte h1 { max-width: 13ch; }
+  .service__texte .chapeau { max-width: 32rem; }
+  .service__texte :global(.actions) { margin-top: 0; }
+  .service__etat { text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); background: #FFFFFF; padding-left: 0.375rem; }
+  .service__icone { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; }
+  .service__icone--vert { background: var(--cs-vert); color: #FFFFFF; }
+  .service__icone--or { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+
+  .service__photo { --hauteur-photo: 20rem; --hauteur-photo-large: 32rem; }
+  .service__panneau { right: auto; width: min(22rem, calc(100% - 2rem)); }
+  @media (min-width: 64rem) {
+    .service__visuel { margin-left: var(--esp-5); }
+    .service__panneau { left: 1.5rem; bottom: 1.5rem; }
+  }
+  @media (max-width: 29.99rem) { .service__panneau { width: auto; right: 1rem; } }
+</style>

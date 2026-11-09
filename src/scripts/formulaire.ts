@@ -46,7 +46,7 @@ function preparerContact(form: HTMLFormElement): void {
 function empecherDoubleEnvoi(form: HTMLFormElement): void {
   const bouton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
   if (!bouton) return;
-  const libelle = bouton.textContent ?? '';
+  const contenu = bouton.innerHTML;
   form.addEventListener('submit', (evenement) => {
     if (evenement.defaultPrevented) return;
     if (form.dataset.envoi === 'en-cours') { evenement.preventDefault(); return; }
@@ -60,7 +60,7 @@ function empecherDoubleEnvoi(form: HTMLFormElement): void {
     delete form.dataset.envoi;
     bouton.disabled = false;
     bouton.removeAttribute('aria-busy');
-    bouton.textContent = libelle;
+    bouton.innerHTML = contenu;
   });
 }
 

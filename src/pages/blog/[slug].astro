@@ -1,12 +1,18 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Photo from '../../components/Photo.astro';
 import Partage from '../../components/Partage.astro';
 import CarteArticle from '../../components/CarteArticle.astro';
+import BandeauContact from '../../components/BandeauContact.astro';
+import Sillons from '../../components/Sillons.astro';
+import Icone from '../../components/Icone.astro';
+import logo from '../../assets/logo-agrielev.png';
 import { chargerVisibles } from '../../lib/collections.ts';
 import { articlesLies, libelleCategorie, tempsLecture, type CategorieCode } from '../../lib/blog.ts';
+import { lienContact } from '../../lib/sujets.ts';
 import { formatDate } from '../../lib/format.ts';
 import { SITE } from '../../data/site.ts';
 
@@ -16,13 +22,19 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { article, tous } = Astro.props;
-const { Content } = await render(article);
+const { Content, headings } = await render(article);
 const d = article.data;
 const categorie = d.categorie as CategorieCode;
 const resume = (a: typeof article) => ({ ...a, categorie: a.data.categorie as CategorieCode, date: a.data.date });
 const lies = articlesLies(resume(article), tous.map(resume));
 const url = new URL(`/blog/${article.id}`, SITE.url).href;
 const image = d.couverture ? d.couverture.src : undefined;
+// Sommaire : les intertitres de niveau 2, dès qu'il y en a deux.
+const sommaire = headings.filter((h) => h.depth === 2);
+const avecSommaire = sommaire.length >= 2;
+// Signature : le logo pour l'équipe, les initiales pour une personne.
+const parEquipe = /équipe|agrielev/i.test(d.auteur);
+const initiales = d.auteur.split(/\s+/).filter(Boolean).slice(0, 2).map((m) => m[0]?.toUpperCase()).join('');
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -36,53 +48,208 @@ const jsonLd = {
 };
 ---
 <BaseLayout titre={d.titre} description={d.resume} type="article" image={image} jsonLd={jsonLd}>
-  <article class="section">
-    <div class="conteneur article">
-      <p class="article__meta">
-        <a href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie)}</a>
-        · <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
-        · {tempsLecture(article.body ?? '')} min de lecture
-      </p>
-      <h1>{d.titre}</h1>
-      <p class="chapeau">{d.resume}</p>
-      <p class="article__auteur">Par {d.auteur}{d.valideParExpert && <span>, contenu validé par {d.valideParExpert}</span>}</p>
-      {d.couverture && (
-        <figure>
-          <Photo photo={{ src: d.couverture, alt: d.couvertureAlt || d.titre }} classe="article__couverture" prioritaire sizes="(min-width: 52rem) 48rem, 100vw" />
-          {d.couvertureCredit && <figcaption>Photo : {d.couvertureCredit}</figcaption>}
-        </figure>
+  <article class="article">
+    <header class:list={['article-tete', { 'article-tete--couverture': d.couverture }]}>
+      <Sillons classe="article-tete__sillons" fuite={0.85} rangs={20} />
+      <div class="conteneur conteneur--moyen article-tete__contenu">
+        <nav class="ariane" aria-label="Fil d’Ariane">
+          <ol class="liste-nue">
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href={`/blog/categorie/${categorie}`}>{libelleCategorie(categorie)}</a></li>
+          </ol>
+        </nav>
+        <a class="etiquette etiquette--blanc etiquette--forte article__rubrique" href={`/blog/categorie/${categorie}`}><span class="point point--or" aria-hidden="true"></span>{libelleCategorie(categorie)}</a>
+        <h1>{d.titre}</h1>
+        <p class="article__chapeau">{d.resume}</p>
+        <div class="article__meta">
+          <span class="signature">
+            {parEquipe
+              ? <Image src={logo} alt="" width={44} height={44} densities={[1, 2]} class="signature__avatar" />
+              : <span class="signature__avatar signature__avatar--initiales" aria-hidden="true">{initiales}</span>}
+            <span class="signature__texte">
+              <span class="signature__nom">Par {d.auteur}</span>
+              {d.valideParExpert && <span class="signature__expert"><Icone nom="seal-check" taille={14} />Contenu validé par {d.valideParExpert}</span>}
+            </span>
+          </span>
+          <span class="article__infos">
+            <span><Icone nom="calendar-blank" taille={16} /><time datetime={d.date.toISOString()}>{formatDate(d.date)}</time></span>
+            <span><Icone nom="clock" taille={16} />{tempsLecture(article.body ?? '')}&nbsp;min de lecture</span>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {d.couverture && (
+      <figure class="conteneur conteneur--moyen article__figure">
+        <Photo photo={{ src: d.couverture, alt: d.couvertureAlt || d.titre }} classe="article__couverture" prioritaire sizes="(min-width: 64rem) 64rem, 100vw" />
+        {d.couvertureCredit && <figcaption class="mention">Photo : {d.couvertureCredit}</figcaption>}
+      </figure>
+    )}
+
+    <div class:list={['conteneur', 'conteneur--moyen', 'article__grille', { 'article__grille--sans-sommaire': !avecSommaire }]}>
+      {avecSommaire && (
+        <details class="sommaire-mobile">
+          <summary><Icone nom="list" taille={18} />Dans cet article</summary>
+          <ol class="liste-nue">{sommaire.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </details>
       )}
-      <div class="article__corps"><Content /></div>
-      {d.sources.length > 0 && (
-        <section class="article__sources">
-          <h2>Sources</h2>
-          <ul>{d.sources.map((s) => <li>{s}</li>)}</ul>
-        </section>
-      )}
-      <Partage titre={d.titre} url={url} />
+
+      <div class="article__corps">
+        <div class="prose"><Content /></div>
+
+        {d.sources.length > 0 && (
+          <section class="sources" aria-labelledby="sources">
+            <h2 id="sources"><Icone nom="book-open" taille={20} />Sources</h2>
+            <ol>{d.sources.map((s) => <li>{s}</li>)}</ol>
+          </section>
+        )}
+
+        <footer class="article__fin">
+          <a class="lien-fleche lien-fleche--vert" href="/blog"><Icone nom="arrow-left" taille={18} />Tous les articles du blog</a>
+          <a class="lien-fleche lien-fleche--vert" href={`/blog/categorie/${categorie}`}>Rubrique {libelleCategorie(categorie)}</a>
+        </footer>
+      </div>
+
+      <aside class="article__rail" aria-label="Sommaire et partage">
+        {avecSommaire && (
+          <nav class="sommaire" aria-labelledby="sommaire-titre">
+            <p id="sommaire-titre" class="rail__titre">Dans cet article</p>
+            <ol class="liste-nue">
+              {sommaire.map((h) => <li><a href={`#${h.slug}`} data-sommaire={h.slug}>{h.text}</a></li>)}
+            </ol>
+          </nav>
+        )}
+        <Partage titre={d.titre} url={url} />
+      </aside>
     </div>
   </article>
 
   {lies.length > 0 && (
-    <section class="section section--creme">
+    <section class="section section--creme lire-aussi">
       <div class="conteneur">
-        <h2>À lire aussi</h2>
-        <div class="grille">{lies.map((a) => <CarteArticle article={a} />)}</div>
+        <header class="entete-section">
+          <div><h2>À lire aussi</h2></div>
+          <a class="lien-fleche lien-fleche--vert" href="/blog">Tous les articles<Icone nom="arrow-right" taille={18} /></a>
+        </header>
+        {lies.length === 1
+          ? <CarteArticle article={lies[0]} une />
+          : <div class:list={['grille', 'grille--large', lies.length === 2 ? 'grille--2' : 'grille--3']}>{lies.map((a) => <CarteArticle article={a} />)}</div>}
       </div>
     </section>
   )}
+
+  <BandeauContact
+    titre="Une question sur ce sujet ?"
+    texte="Écrivez-nous : nous vous orientons vers la bonne personne de l’équipe ou du réseau AgriElev Connect."
+    action={{ libelle: 'Poser une question', href: lienContact('autre', `/blog/${article.id}`) }}
+    fond={lies.length > 0 ? 'creme' : 'blanc'}
+  />
 </BaseLayout>
 
+<script>
+  // Sommaire : souligne l'intertitre en cours de lecture (sans effet sur le défilement).
+  const liens = [...document.querySelectorAll<HTMLAnchorElement>('[data-sommaire]')];
+  const cibles = liens.map((l) => document.getElementById(l.dataset.sommaire ?? '')).filter((c): c is HTMLElement => Boolean(c));
+  if (cibles.length && 'IntersectionObserver' in window) {
+    const activer = (id: string) => liens.forEach((l) => (l.dataset.sommaire === id ? l.setAttribute('aria-current', 'location') : l.removeAttribute('aria-current')));
+    const observateur = new IntersectionObserver((entrees) => {
+      const visible = entrees.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (visible) activer(visible.target.id);
+    }, { rootMargin: '-15% 0px -70% 0px' });
+    cibles.forEach((c) => observateur.observe(c));
+  }
+</script>
+
 <style>
-  .article { max-width: 48rem; }
-  .article__meta { color: var(--gris-ardoise); }
-  .article__meta a { color: var(--ae-vert-foret); font-weight: 600; }
-  .article__auteur { font-weight: 600; }
-  figure { margin: var(--esp-5) 0; }
-  figcaption { font-size: 0.9rem; color: var(--gris-ardoise); margin-top: var(--esp-2); }
-  :global(.article__couverture) { width: 100%; border-radius: var(--radius); }
-  .article__corps :global(h2) { margin-top: var(--esp-5); }
-  .article__corps :global(img) { border-radius: var(--radius); }
-  .article__sources { margin-top: var(--esp-5); font-size: 0.95rem; color: var(--gris-ardoise); }
-  .article__sources h2 { font-size: 1.2rem; }
+  /* ---------- En-tête : sillons, rubrique, titre, chapeau, signature ---------- */
+  .article-tete {
+    position: relative; overflow: hidden;
+    padding-block: clamp(1.75rem, 1rem + 3vw, 3.5rem) clamp(2.5rem, 2rem + 3vw, 4.5rem);
+    background: linear-gradient(to bottom, rgb(233 243 234 / 0.9), var(--surface) 85%);
+  }
+  .article-tete--couverture { padding-bottom: clamp(6rem, 4rem + 9vw, 12rem); }
+  :global(.article-tete__sillons) { position: absolute !important; inset: 0 0 0 50% !important; width: auto !important; height: 100% !important; color: var(--ae-sauge); opacity: 0.35; pointer-events: none; }
+  @media (max-width: 47.99rem) { :global(.article-tete__sillons) { display: none !important; } }
+  .article-tete__contenu { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: var(--esp-3); }
+  .article-tete__contenu > * { margin: 0; }
+
+  .ariane ol { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .ariane li + li::before { content: '/'; margin-right: 0.5rem; color: var(--ae-sauge); }
+  .ariane a { color: var(--texte-doux); text-decoration: none; }
+  .ariane a:hover { color: var(--ae-vert-foret); text-decoration: underline; }
+  .article__rubrique { text-decoration: none; margin-top: var(--esp-2) !important; }
+  .article__rubrique:hover { color: var(--ae-brun-terre); }
+
+  .article-tete h1 { max-width: 20ch; font-size: clamp(2.125rem, 1.4rem + 3vw, 3.75rem); line-height: 1.04; }
+  .article__chapeau { max-width: 44rem; font-size: var(--fs-md); line-height: 1.55; color: var(--texte-doux); }
+
+  .article__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-3) var(--esp-5); margin-top: var(--esp-2) !important; padding-top: var(--esp-3); border-top: 1px solid var(--ligne); width: 100%; max-width: 44rem; }
+  .signature { display: inline-flex; align-items: center; gap: 0.75rem; }
+  :global(.signature__avatar) { flex: none; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: #FFFFFF; box-shadow: var(--ombre-1); object-fit: contain; }
+  .signature__avatar--initiales { display: grid; place-items: center; background: var(--ae-vert-foret); color: #FFFFFF; font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-sm); }
+  .signature__texte { display: grid; line-height: 1.35; }
+  .signature__nom { font-weight: 700; color: var(--ae-brun-terre); }
+  .signature__expert { display: inline-flex; align-items: center; gap: 0.25rem; font-size: var(--fs-sm); color: var(--ae-vert-foret); font-weight: 600; }
+  .article__infos { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+  .article__infos > span { display: inline-flex; align-items: center; gap: 0.375rem; }
+  .article__infos :global(.icone) { color: var(--ae-vert-foret); }
+
+  /* ---------- Couverture, posée à cheval sur l'en-tête ---------- */
+  .article__figure { position: relative; margin-top: calc(-1 * clamp(4.5rem, 3rem + 7vw, 10rem)); margin-bottom: 0; }
+  :global(.article__couverture) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); box-shadow: var(--ombre-3); }
+  @media (min-width: 64rem) { :global(.article__couverture) { aspect-ratio: 2 / 1; } }
+  .article__figure figcaption { margin-top: var(--esp-2); }
+
+  /* ---------- Corps : sommaire et partage à gauche, texte à 65 caractères ---------- */
+  .article__grille { display: grid; gap: var(--esp-5); padding-block: clamp(2.5rem, 2rem + 3vw, 4.5rem); }
+  .article__corps { min-width: 0; }
+  .article__corps .prose { margin-inline: 0; }
+  .article__corps .prose :global(p:first-child) { font-size: 1.1875rem; }
+  .article__corps .prose :global(strong) { color: var(--ae-vert-foret); }
+  .article__corps .prose :global(ol > li::marker) { font-family: var(--font-titre); }
+  .article__corps .prose :global(h2) { padding-top: var(--esp-3); border-top: 1px solid var(--sauge-ligne); }
+  .article__corps .prose > :global(h2:first-child) { padding-top: 0; border-top: 0; }
+
+  .article__rail { display: grid; gap: var(--esp-4); align-content: start; }
+  .sommaire { display: none; }
+  .rail__titre { margin: 0 0 var(--esp-2); font-family: var(--font-titre); font-weight: 700; color: var(--ae-vert-foret); }
+  .sommaire ol { display: grid; border-left: 2px solid var(--ligne); }
+  .sommaire a {
+    display: block; margin-left: -2px; padding: 0.375rem 0 0.375rem var(--esp-3); border-left: 2px solid transparent;
+    font-size: var(--fs-sm); line-height: 1.4; color: var(--texte-doux); text-decoration: none;
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .sommaire a:hover { color: var(--ae-vert-foret); }
+  .sommaire a[aria-current] { color: var(--ae-vert-foret); font-weight: 700; border-left-color: var(--ae-or-recolte); }
+
+  .sommaire-mobile { border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .sommaire-mobile summary { display: flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.5rem var(--esp-3); cursor: pointer; font-family: var(--font-titre); font-weight: 700; color: var(--ae-vert-foret); }
+  .sommaire-mobile ol { display: grid; gap: 0.25rem; padding: 0 var(--esp-3) var(--esp-3) calc(var(--esp-3) + 1.625rem); counter-reset: sommaire; }
+  .sommaire-mobile a { display: block; padding-block: 0.25rem; font-size: var(--fs-sm); }
+
+  @media (min-width: 64rem) {
+    .article__grille { grid-template-columns: 14rem minmax(0, 42rem); column-gap: clamp(3rem, 1rem + 4vw, 5rem); justify-content: start; }
+    .article__grille--sans-sommaire { grid-template-columns: 14rem minmax(0, 42rem); }
+    .sommaire-mobile { display: none; }
+    .sommaire { display: block; }
+    .article__rail { grid-column: 1; grid-row: 1; position: sticky; top: calc(var(--hauteur-entete) + var(--esp-4)); }
+    .article__corps { grid-column: 2; grid-row: 1; }
+    .article__rail :global(.partage) { flex-direction: column; align-items: stretch; gap: var(--esp-2); padding-top: var(--esp-4); border-top: 1px solid var(--ligne); }
+    .article__rail :global(.partage ul) { flex-direction: column; }
+    .article__rail :global(.partage :is(a, button)) { width: 100%; }
+  }
+
+  /* Un seul article lié : carte horizontale, texte centré sans vide. */
+  @media (min-width: 48rem) {
+    .lire-aussi :global(.carte-article--une .carte-article__media) { min-height: 17rem; }
+    .lire-aussi :global(.carte-article--une .carte-article__lire) { margin-top: var(--esp-2); }
+  }
+
+  /* ---------- Sources et fin d'article ---------- */
+  .sources { max-width: var(--mesure); margin-top: var(--esp-6); padding: var(--esp-4); border-radius: var(--radius); background: var(--creme-douce); font-size: var(--fs-sm); }
+  .sources h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 var(--esp-2); font-size: var(--fs-base); }
+  .sources ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.25rem; color: var(--ae-brun-terre); }
+  .sources li::marker { color: var(--ae-vert-foret); font-weight: 700; }
+  .article__fin { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--esp-3); max-width: var(--mesure); margin-top: var(--esp-5); padding-top: var(--esp-4); border-top: 1px solid var(--ligne); }
 </style>

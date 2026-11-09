@@ -1,15 +1,80 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import PageService from '../components/PageService.astro';
 import Icone from '../components/Icone.astro';
+import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
+import { PHOTOS } from '../data/photos.ts';
+
+// Les pages du site, comme sur un panneau indicateur.
+const DESTINATIONS = [
+  { icone: 'buildings', titre: 'L’entreprise', texte: 'Qui est AgriElev Bénin SARL, sa mission, son équipe.', href: '/entreprise' },
+  { icone: 'compass', titre: 'Nos solutions', texte: 'Les cinq offres et leur état réel.', href: '/solutions' },
+  { icone: 'device-mobile', titre: 'CuniSmart', texte: 'Le cahier de l’exploitation sur le téléphone.', href: '/cunismart' },
+  { icone: 'users-three', titre: 'Coopératives', texte: 'Un accompagnement collectif pour vos membres.', href: '/cooperatives' },
+  { icone: 'stethoscope', titre: 'AgriElev Connect', texte: 'Le réseau d’agronomes, de vétérinaires et de techniciens.', href: '/connect' },
+  { icone: 'newspaper', titre: 'Le blog', texte: 'Actualités, conseils techniques et retours de terrain.', href: '/blog' },
+  { icone: 'book-open', titre: 'Ressources', texte: 'Formations, études de cas et documents publics.', href: '/ressources' },
+  { icone: 'envelope-simple', titre: 'Contact', texte: 'Une question ? Nous vous orientons vers la bonne personne.', href: '/contact' },
+];
 ---
-<BaseLayout titre="Page introuvable" noindex>
-  <section class="section"><div class="conteneur">
-    <h1>Page introuvable</h1>
-    <p class="chapeau">Cette page n'existe pas ou a été déplacée.</p>
-    <div class="actions">
-      <a class="bouton bouton--principal" href="/">Retour à l'accueil <Icone nom="arrow-right" taille={20} /></a>
-      <a class="bouton bouton--secondaire" href="/solutions">Nos solutions</a>
-      <a class="bouton bouton--secondaire" href="/contact">Contact</a>
+<PageService
+  titrePage="Page introuvable"
+  surtitre="Erreur 404"
+  icone="signpost"
+  ton="or"
+  titre="Page introuvable"
+  chapeau="Cette page n’existe pas ou a été déplacée. Reprenons la piste depuis l’accueil, ou choisissez directement votre destination."
+  photo={PHOTOS.pageIntrouvable}
+  panneau={{ icone: 'signpost', titre: 'Reprendre la piste', texte: 'Toutes les pages du site sont listées juste en dessous.' }}
+>
+  <div class="actions">
+    <a class="bouton bouton--principal bouton--grand" href="/">Retour à l’accueil<Icone nom="arrow-right" taille={20} /></a>
+    <a class="bouton bouton--fantome bouton--grand" href="/contact"><Icone nom="envelope-simple" taille={20} />Nous écrire</a>
+  </div>
+
+  <section slot="suite" class="section section--creme" aria-labelledby="destinations-titre">
+    <div class="conteneur">
+      <header class="entete-section">
+        <div>
+          <h2 id="destinations-titre">Où souhaitiez-vous aller ?</h2>
+          <p>Les pages du site d’AgriElev, et l’accès direct à l’application.</p>
+        </div>
+        <BoutonCuniSmart variante="moyen" />
+      </header>
+      <ul class="liste-nue panneau-indicateur">
+        {DESTINATIONS.map((d) => (
+          <li>
+            <a class="destination" href={d.href}>
+              <span class="pastille pastille--moyenne"><Icone nom={d.icone} taille={22} /></span>
+              <span class="destination__texte"><strong>{d.titre}</strong>{d.texte}</span>
+              <Icone nom="arrow-right" taille={20} />
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
-  </div></section>
-</BaseLayout>
+  </section>
+</PageService>
+
+<style>
+  /* Panneau indicateur : une liste de destinations sur fond blanc, séparées par un filet. */
+  .panneau-indicateur {
+    display: grid; overflow: hidden;
+    border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-2);
+  }
+  .panneau-indicateur li + li { border-top: 1px solid var(--ligne); }
+  @media (min-width: 48rem) {
+    .panneau-indicateur { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .panneau-indicateur li:nth-child(2) { border-top: 0; }
+    .panneau-indicateur li:nth-child(even) { border-left: 1px solid var(--ligne); }
+  }
+  .destination {
+    display: flex; align-items: center; gap: var(--esp-3); height: 100%;
+    padding: var(--esp-3) var(--esp-4) var(--esp-3) var(--esp-3);
+    text-decoration: none; color: var(--texte-doux); transition: background-color var(--transition);
+  }
+  .destination:hover { background: var(--ae-vert-brume); color: var(--texte-doux); }
+  .destination:focus-visible { outline-offset: -3px; }
+  .destination__texte { display: grid; gap: 0.125rem; font-size: var(--fs-sm); line-height: 1.43; }
+  .destination__texte strong { font-family: var(--font-titre); font-size: var(--fs-lg); color: var(--ae-vert-foret); }
+  .destination > :global(.icone--fleche) { margin-left: auto; color: var(--ae-vert-foret); }
+</style>

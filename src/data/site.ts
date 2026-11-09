@@ -14,7 +14,8 @@ export const SITE = {
   telephones: ['01 48 17 81 81', '+229 01 90 11 39 15'],
   email: 'hello@cunismart.com',
   delaiReponse: 'sous trois jours ouvrés', // à confirmer par la direction
-  urlCuniSmart: 'https://v2-cunismart.agrielev.com/',
+  urlCuniSmart: 'https://app.cunismart.com/', // même adresse que « Ouvrir CuniSmart » sur cunismart.com (décision du 2026-11-08)
+  urlSiteCuniSmart: 'https://cunismart.com',
   whatsapp: '', // lien du canal de diffusion WhatsApp ; bloc masqué tant que vide
   facebook: '',
   linkedin: '',
@@ -22,7 +23,7 @@ export const SITE = {
 } as const;
 
 export const NAVIGATION: { libelle: string; href: string }[] = [
-  { libelle: 'AgriElev', href: '/entreprise' },
+  { libelle: 'L’entreprise', href: '/entreprise' },
   { libelle: 'Nos solutions', href: '/solutions' },
   { libelle: 'Coopératives', href: '/cooperatives' },
   { libelle: 'AgriElev Connect', href: '/connect' },

@@ -1,5 +1,30 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { espacesInsecables } from './src/lib/typographie.ts';
+import { partagerIcones } from './src/lib/icones-partagees.ts';
+
+// Après la compilation : espaces insécables de la typographie française dans le texte des pages,
+// puis icônes répétées décrites une seule fois par page (pages plus légères).
+function typographieFrancaise() {
+  return {
+    name: 'typographie-francaise',
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const racine = fileURLToPath(dir);
+        const fichiers = (await readdir(racine, { recursive: true })).filter((f) => f.endsWith('.html') && !f.startsWith('admin'));
+        for (const f of fichiers) {
+          const chemin = join(racine, f);
+          const html = await readFile(chemin, 'utf8');
+          const corrige = partagerIcones(espacesInsecables(html));
+          if (corrige !== html) await writeFile(chemin, corrige);
+        }
+      },
+    },
+  };
+}
 
 export default defineConfig({
   site: 'https://agrielev.com',
@@ -9,5 +34,6 @@ export default defineConfig({
   compressHTML: true,
   integrations: [
     sitemap({ filter: (page) => !page.includes('/contact/merci') }),
+    typographieFrancaise(),
   ],
 });

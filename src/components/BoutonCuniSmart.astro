@@ -3,9 +3,10 @@ import Icone from './Icone.astro';
 import { SITE } from '../data/site.ts';
 
 interface Props {
-  variante?: 'entete' | 'grand';
+  variante?: 'entete' | 'moyen' | 'grand' | 'plein';
+  libelle?: string;
 }
-const { variante = 'entete' } = Astro.props;
+const { variante = 'entete', libelle = 'Accéder à CuniSmart' } = Astro.props;
 ---
 <a
   class:list={['bouton-cunismart', `bouton-cunismart--${variante}`]}
@@ -15,21 +16,38 @@ const { variante = 'entete' } = Astro.props;
   data-umami-event="clic-cunismart"
   data-test="bouton-cunismart"
 >
-  <span class="bouton-cunismart__long">Accéder à </span>CuniSmart
+  {variante === 'entete'
+    ? <span><span class="bouton-cunismart__long">Accéder à </span>CuniSmart</span>
+    : <span>{libelle}</span>}
+  {variante === 'entete' && <span class="bouton-cunismart__statut">Pilote</span>}
   <span class="visuellement-cache"> (nouvel onglet)</span>
-  <Icone nom="arrow-up-right" taille={18} />
+  <Icone nom="arrow-right" taille={18} />
 </a>
 
 <style>
+  /* Orange CuniSmart, texte Brun Terre (5,5:1) : le blanc du site en ligne n'atteint que 2,5:1. */
   .bouton-cunismart {
-    display: inline-flex; align-items: center; gap: var(--esp-2);
-    min-height: 2.75rem; padding: 0.5rem 1rem; border-radius: var(--radius);
-    background: var(--cs-orange); color: var(--ae-brun-terre);
-    font-family: var(--font-titre); font-weight: 800; text-decoration: none; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
+    min-height: 2.5rem; padding: 0.5rem 1rem; border-radius: var(--radius);
+    background: var(--cs-orange); color: var(--ae-brun-terre); box-shadow: var(--ombre-bouton);
+    font-family: var(--font-texte); font-weight: 700; font-size: var(--fs-sm); line-height: 1.43; text-decoration: none; white-space: nowrap;
+    transition: background-color var(--transition), box-shadow var(--transition), transform var(--transition);
   }
+  .bouton-cunismart :global(.icone) { transition: transform var(--transition); }
   .bouton-cunismart:hover { background: var(--cs-orange-clair); color: var(--ae-brun-terre); }
-  .bouton-cunismart--grand { min-height: 3.25rem; padding: 0.75rem 1.5rem; font-size: 1.1rem; }
-  @media (max-width: 30rem) {
-    .bouton-cunismart--entete .bouton-cunismart__long { display: none; }
+  .bouton-cunismart:hover :global(.icone) { transform: translateX(2px); }
+  .bouton-cunismart:active { transform: translateY(1px); }
+  .bouton-cunismart__statut {
+    padding: 0.125rem 0.375rem; border-radius: 4px; background: var(--cs-creme); color: var(--cs-vert);
+    font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.025em; line-height: 1.35;
+  }
+  .bouton-cunismart--moyen, .bouton-cunismart--grand, .bouton-cunismart--plein {
+    min-height: 2.75rem; padding: 0.5rem 1.5rem; font-family: var(--font-titre); font-size: var(--fs-lg); line-height: 1.33;
+  }
+  .bouton-cunismart--plein { width: 100%; min-height: 3rem; }
+  /* En-tête sur mobile : libellé court, sans étiquette. */
+  @media (max-width: 39.99rem) {
+    .bouton-cunismart--entete { padding-inline: 0.75rem; }
+    .bouton-cunismart--entete .bouton-cunismart__long, .bouton-cunismart--entete .bouton-cunismart__statut { display: none; }
   }
 </style>

@@ -11,17 +11,16 @@ const { statut } = Astro.props;
 </span>
 
 <style>
+  /* Étiquette à pastille de couleur, comme les statuts du site en ligne. */
   .badge {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.2rem 0.65rem; border-radius: 999px;
-    background: #FFFFFF; border: 1px solid currentColor;
-    font-size: 0.85rem; font-weight: 600; color: var(--ae-brun-terre); line-height: 1.4;
+    display: inline-flex; align-items: center; gap: 0.375rem; flex: none; width: fit-content;
+    padding: 0.25rem 0.625rem; border-radius: var(--radius);
+    font-family: var(--font-texte); font-size: var(--fs-label-sm); font-weight: 700; line-height: 1.35; white-space: nowrap;
+    background: var(--ae-vert-brume); color: var(--ae-vert-foret);
   }
-  .badge__point { width: 0.55rem; height: 0.55rem; border-radius: 50%; }
-  .badge--disponible { border-color: var(--mod-vert-pousse); }
-  .badge--disponible .badge__point { background: var(--mod-vert-pousse); }
-  .badge--pilote { border-color: var(--ae-or-fonce); }
-  .badge--pilote .badge__point { background: var(--ae-or-fonce); }
-  .badge--preparation { border-color: var(--gris-ardoise); }
+  .badge__point { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--cs-vert); }
+  .badge--pilote { background: var(--cs-creme); color: var(--ae-brun-terre); }
+  .badge--pilote .badge__point { background: var(--ae-or-recolte); }
+  .badge--preparation { background: color-mix(in srgb, var(--ae-creme) 70%, #FFFFFF); color: var(--ae-brun-terre); font-weight: 600; }
   .badge--preparation .badge__point { background: var(--gris-ardoise); }
 </style>

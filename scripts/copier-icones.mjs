@@ -10,6 +10,15 @@ const NOMS = [
   'chat-circle-text', 'whatsapp-logo', 'facebook-logo', 'linkedin-logo', 'link-simple', 'envelope-simple',
   'phone', 'map-pin', 'radio', 'file-pdf', 'check-circle', 'calendar-blank', 'clock', 'lightbulb',
   'chart-line-up', 'device-mobile', 'leaf', 'recycle',
+  // Refonte de la mise en page (novembre 2026)
+  'check', 'caret-down', 'arrow-left', 'qr-code', 'file-text', 'wifi-slash', 'cloud-arrow-up', 'notebook',
+  'book-open', 'shield-check', 'eye', 'question', 'chats', 'broadcast', 'newspaper', 'signpost', 'compass',
+  'buildings', 'globe-hemisphere-east', 'calendar-check', 'identification-card', 'seal-check', 'users',
+  'map-trifold', 'target', 'device-mobile-camera',
+  // Reprise de l'aspect du site agrielev.com en ligne (novembre 2026)
+  'tractor', 'bank', 'paw-print', 'stethoscope', 'info', 'heart', 'syringe', 'coins', 'scales', 'table',
+  'play-circle', 'paper-plane-tilt', 'caret-right', 'mountains', 'tree', 'chat-circle', 'wifi-high',
+  'first-aid-kit', 'student', 'chart-bar',
 ];
 
 const source = 'node_modules/@phosphor-icons/core/assets/regular';

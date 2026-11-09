@@ -1,0 +1,173 @@
+---
+// Gabarit des pages légales : sommaire latéral collant (construit à partir des intertitres h2
+// du contenu), texte à 65 caractères, liens vers les autres documents légaux, photo de terrain.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EnTetePage from './EnTetePage.astro';
+import Photo from './Photo.astro';
+import Icone from './Icone.astro';
+import { PHOTOS } from '../data/photos.ts';
+import { SITE } from '../data/site.ts';
+
+interface Props {
+  titre: string;
+  titrePage?: string;
+  chapeau?: string;
+}
+const { titre, titrePage = titre, chapeau } = Astro.props;
+
+// Chaque intertitre reçoit un identifiant stable, repris dans le sommaire.
+const brut = await Astro.slots.render('default');
+const sections: { id: string; titre: string }[] = [];
+const identifiant = (texte: string) =>
+  texte
+    .replace(/&#?\w+;/g, ' ')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+const contenu = brut.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/g, (_, attributs: string, interieur: string) => {
+  const texte = interieur.replace(/<[^>]+>/g, '').trim();
+  const id = identifiant(texte) || `section-${sections.length + 1}`;
+  sections.push({ id, titre: texte });
+  return `<h2${attributs} id="${id}">${interieur}</h2>`;
+});
+
+const DOCUMENTS = [
+  { libelle: 'Mentions légales', href: '/mentions-legales', icone: 'identification-card' },
+  { libelle: 'Confidentialité', href: '/confidentialite', icone: 'shield-check' },
+  { libelle: 'Conditions d’utilisation', href: '/conditions', icone: 'scales' },
+];
+const chemin = Astro.url.pathname.replace(/\/$/, '');
+---
+<BaseLayout titre={titrePage}>
+  <EnTetePage compact surtitre="Informations légales" titre={titre} chapeau={chapeau}>
+    <p class="etiquette etiquette--neutre version"><span class="point point--gris" aria-hidden="true"></span>Version de travail, en cours de validation</p>
+  </EnTetePage>
+
+  <section class="section section--serree legal">
+    <div class="conteneur legal__grille">
+      {sections.length > 1 && (
+        <details class="sommaire-mobile">
+          <summary><Icone nom="list" taille={18} />Sur cette page</summary>
+          <ol class="liste-nue">{sections.map((s) => <li><a href={`#${s.id}`} set:html={s.titre} /></li>)}</ol>
+        </details>
+      )}
+
+      <div class="legal__texte">
+        <div class="prose texte-legal" set:html={contenu} />
+        <p class="mention a-valider"><Icone nom="info" taille={18} /><span>Version de travail, en cours de validation par la direction d’{SITE.raisonSociale}.</span></p>
+      </div>
+
+      <aside class="legal__rail" aria-label="Sommaire et documents légaux">
+        {sections.length > 1 && (
+          <nav class="sommaire" aria-labelledby="sommaire-titre">
+            <p id="sommaire-titre" class="rail__titre">Sur cette page</p>
+            <ol class="liste-nue">
+              {sections.map((s, i) => (
+                <li><a href={`#${s.id}`} data-sommaire={s.id}><span class="sommaire__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span set:html={s.titre} /></a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
+        <nav class="documents" aria-labelledby="documents-titre">
+          <p id="documents-titre" class="rail__titre">Informations légales</p>
+          <ul class="liste-nue">
+            {DOCUMENTS.map((d) => (
+              <li><a href={d.href} aria-current={d.href === chemin ? 'page' : undefined}><Icone nom={d.icone} taille={18} />{d.libelle}</a></li>
+            ))}
+          </ul>
+        </nav>
+        <div class="photo-carte legal__photo">
+          <Photo photo={PHOTOS.legal} sizes="(min-width: 64rem) 18rem, 100vw" />
+          <div class="photo-carte__bas legal__question">
+            <div>
+              <strong>Une question ?</strong>
+              <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Sommaire : met en évidence l'intertitre en cours de lecture.
+  const liens = [...document.querySelectorAll<HTMLAnchorElement>('.legal [data-sommaire]')];
+  const cibles = liens.map((l) => document.getElementById(l.dataset.sommaire ?? '')).filter((c): c is HTMLElement => Boolean(c));
+  if (cibles.length && 'IntersectionObserver' in window) {
+    const activer = (id: string) => liens.forEach((l) => (l.dataset.sommaire === id ? l.setAttribute('aria-current', 'location') : l.removeAttribute('aria-current')));
+    const observateur = new IntersectionObserver((entrees) => {
+      const visible = entrees.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (visible) activer(visible.target.id);
+    }, { rootMargin: '-15% 0px -70% 0px' });
+    cibles.forEach((c) => observateur.observe(c));
+  }
+</script>
+
+<style>
+  .version { margin-top: var(--esp-2) !important; }
+
+  .legal__grille { display: grid; gap: var(--esp-5); }
+  .legal__texte { min-width: 0; }
+
+  /* Intertitres numérotés, filet au-dessus : lecture d'un document. */
+  .texte-legal { counter-reset: section; }
+  .texte-legal :global(h2) {
+    counter-increment: section; display: flex; align-items: baseline; gap: 0.75rem;
+    margin: 2.25em 0 0.6em; padding-top: var(--esp-4); border-top: 1px solid var(--ligne);
+    font-size: var(--fs-lg);
+  }
+  .texte-legal :global(h2)::before {
+    content: counter(section, decimal-leading-zero); flex: none;
+    font-size: var(--fs-sm); font-weight: 800; color: var(--or-texte); font-variant-numeric: tabular-nums;
+  }
+  .texte-legal :global(h2:first-child) { margin-top: 0; padding-top: 0; border-top: 0; }
+  .a-valider { display: flex; align-items: flex-start; gap: var(--esp-2); max-width: var(--mesure); margin: var(--esp-6) 0 0; padding: var(--esp-3); border-radius: var(--radius); background: var(--creme-douce); }
+  .a-valider :global(.icone) { margin-top: 0.1rem; color: var(--ae-vert-foret); }
+
+  /* ---------- Rail : sommaire, documents, photo ---------- */
+  .legal__rail { display: grid; gap: var(--esp-4); align-content: start; }
+  .rail__titre { margin: 0 0 var(--esp-2); font-family: var(--font-titre); font-weight: 700; color: var(--ae-vert-foret); }
+  .sommaire { display: none; }
+  .sommaire ol { display: grid; border-left: 2px solid var(--ligne); }
+  .sommaire a {
+    display: flex; gap: 0.625rem; margin-left: -2px; padding: 0.375rem 0 0.375rem var(--esp-3); border-left: 2px solid transparent;
+    font-size: var(--fs-sm); line-height: 1.4; color: var(--texte-doux); text-decoration: none;
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .sommaire__numero { font-weight: 700; color: var(--or-texte); font-variant-numeric: tabular-nums; }
+  .sommaire a:hover { color: var(--ae-vert-foret); }
+  .sommaire a[aria-current] { color: var(--ae-vert-foret); font-weight: 700; border-left-color: var(--ae-or-recolte); }
+
+  .documents ul { display: grid; gap: 0.25rem; }
+  .documents a {
+    display: flex; align-items: center; gap: 0.625rem; min-height: 2.75rem; padding: 0.375rem 0.75rem;
+    border-radius: var(--radius); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); text-decoration: none;
+    transition: background-color var(--transition);
+  }
+  .documents a:hover { background: var(--ae-vert-brume); }
+  .documents a[aria-current='page'] { background: #FFFFFF; box-shadow: var(--ombre-1); }
+
+  .legal__photo { --hauteur-photo: 14rem; --hauteur-photo-large: 15rem; box-shadow: var(--ombre-2); }
+  .legal__question { padding: 0.75rem var(--esp-3); }
+  .legal__question strong { font-size: var(--fs-base) !important; }
+  .legal__question a { font-weight: 600; overflow-wrap: anywhere; }
+
+  .sommaire-mobile { border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .sommaire-mobile summary { display: flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.5rem var(--esp-3); cursor: pointer; font-family: var(--font-titre); font-weight: 700; color: var(--ae-vert-foret); }
+  .sommaire-mobile ol { display: grid; gap: 0.25rem; padding: 0 var(--esp-3) var(--esp-3) calc(var(--esp-3) + 1.625rem); }
+  .sommaire-mobile a { display: block; padding-block: 0.25rem; font-size: var(--fs-sm); }
+
+  @media (min-width: 40rem) and (max-width: 63.99rem) {
+    .legal__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  }
+  @media (min-width: 64rem) {
+    .legal__grille { grid-template-columns: 17rem minmax(0, 46rem); column-gap: clamp(3rem, 1rem + 4vw, 6rem); }
+    .sommaire-mobile { display: none; }
+    .sommaire { display: block; }
+    .legal__rail { grid-column: 1; grid-row: 1; position: sticky; top: calc(var(--hauteur-entete) + var(--esp-4)); }
+    .legal__texte { grid-column: 2; grid-row: 1; }
+  }
+</style>

@@ -1,63 +1,426 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EnTetePage from '../components/EnTetePage.astro';
+import Photo from '../components/Photo.astro';
 import Icone from '../components/Icone.astro';
+import EcranApp from '../components/EcranApp.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
 import BandeauContact from '../components/BandeauContact.astro';
+import Sillons from '../components/Sillons.astro';
 import { PHOTOS } from '../data/photos.ts';
+import { CAPTURES, MENTION_CAPTURES } from '../data/captures.ts';
+import { SITE, telLien } from '../data/site.ts';
 import { lienContact } from '../lib/sujets.ts';
 
-const pilote = lienContact('pilote-cooperative', '/cooperatives');
+const pilote = lienContact('pilote-cooperative', '/cooperatives', 'cooperative');
+
+// Ce que chacun y gagne : uniquement des fonctions réelles de CuniSmart et de l'accompagnement.
+const PUBLICS = [
+  {
+    icone: 'chart-line-up', titre: 'Le bureau',
+    points: [
+      'L’activité de tous les membres sur un même écran, au lieu de cahiers dispersés.',
+      'Les exploitations qui ne saisissent plus remontent : vous savez qui relancer.',
+      'Des totaux mois par mois pour décider en réunion.',
+    ],
+  },
+  {
+    icone: 'users-three', titre: 'Les membres',
+    points: [
+      'Leur cahier sur le téléphone, qui marche sans réseau.',
+      'Pas de téléphone ? Le technicien de la coopérative tient leur cahier.',
+      'Des leçons CuniMaster par filière, et un relevé d’activité qu’ils remettent eux-mêmes.',
+    ],
+  },
+  {
+    icone: 'handshake', titre: 'Face à vos partenaires',
+    points: [
+      'Des statistiques par territoire, exportables pour vos rapports.',
+      'Des exports qui disent leur périmètre et leur date.',
+      'Des totaux, jamais une ferme nommée.',
+    ],
+  },
+];
+
 const ETAPES = [
-  { titre: 'Diagnostic', texte: 'Nous faisons le point avec votre organisation : activités des membres, besoins de suivi, moyens disponibles.' },
-  { titre: 'Pilote', texte: 'Un groupe de membres utilise CuniSmart sur une période définie, avec un accompagnement de prise en main.' },
-  { titre: 'Formation', texte: 'Des parcours pratiques renforcent les compétences des membres et des animateurs de la coopérative.' },
-  { titre: 'Suivi', texte: 'Des indicateurs consolidés aident la coopérative à suivre les activités de ses membres et à décider.' },
-  { titre: 'Couverture collective', texte: 'Une formule adaptée aux moyens de l’organisation étend le service à ses groupements.' },
+  { titre: 'Diagnostic', texte: 'Nous faisons le point avec votre bureau : activités des membres, besoins de suivi, moyens disponibles.', avec: 'Le bureau et AgriElev' },
+  { titre: 'Pilote', texte: 'Un groupe de membres utilise CuniSmart sur une période définie, avec un accompagnement de prise en main.', avec: 'Quelques membres et vos techniciens' },
+  { titre: 'Formation', texte: 'Des parcours pratiques renforcent les compétences des membres et des animateurs de la coopérative.', avec: 'Membres et animateurs' },
+  { titre: 'Suivi', texte: 'Des indicateurs consolidés aident le bureau à suivre l’activité des membres et à décider.', avec: 'Le bureau' },
+  { titre: 'Couverture collective', texte: 'Une formule adaptée aux moyens de l’organisation étend le service à ses groupements.', avec: 'Toute l’organisation' },
+];
+
+// Ce que montre l'écran « Ma coopérative » (capture réelle, jeu de démonstration).
+const ECRAN = [
+  { titre: 'Participation', texte: 'Combien de membres ont saisi sur la période, et lesquels ne saisissent plus.' },
+  { titre: 'Membres sans téléphone', texte: 'Le technicien les enregistre et tient leur cahier : ils comptent dans les totaux.' },
+  { titre: 'Ce qui est à vérifier', texte: 'Une récolte invraisemblable, plus de matière transformée que collectée : l’anomalie remonte.' },
+  { titre: 'Par territoire', texte: 'Les statistiques par zone, avec un export CSV pour vos rapports.' },
+];
+
+const ACCES = [
+  { icone: 'user', qui: 'Le producteur', voit: 'Tout de sa ferme.' },
+  { icone: 'users-three', qui: 'La coopérative', voit: 'Ses membres.' },
+  { icone: 'bank', qui: 'Une commune ou une institution', voit: 'Des totaux, jamais une ferme nommée.' },
+];
+
+const STRATES = [
+  { titre: 'Vos priorités', texte: 'L’organisation définit ses priorités et le périmètre couvert.' },
+  { titre: 'Une enveloppe', texte: 'Elle mobilise une enveloppe pour les services convenus, selon ses moyens.' },
+  { titre: 'Un socle gratuit', texte: 'Un socle gratuit peut être maintenu selon les conditions de l’offre.' },
+];
+
+const PROPOSITION = ['Les bénéficiaires', 'La durée', 'L’accompagnement prévu', 'Les modalités de renouvellement'];
+
+const FAQ = [
+  { q: 'Combien de temps dure un pilote ?', r: 'La durée est fixée avec votre organisation et inscrite dans la proposition écrite. Pendant cette période, un groupe de membres utilise CuniSmart avec un accompagnement de prise en main.' },
+  { q: 'Qui finance la couverture collective ?', r: 'L’organisation définit ses priorités et mobilise une enveloppe pour les services convenus. Un socle gratuit peut être maintenu selon les conditions de l’offre. Les modalités figurent dans la proposition écrite.' },
+  { q: 'Qui voit les données des membres ?', r: 'Chaque producteur voit tout de sa ferme. La coopérative voit ses membres. Une commune ou une institution ne voit que des totaux, jamais une ferme nommée.' },
+  { q: 'Tous nos membres n’ont pas de téléphone.', r: 'Le technicien de la coopérative peut enregistrer les producteurs sans téléphone et tenir leur cahier pour eux.' },
+  { q: 'Que se passe-t-il après notre demande ?', r: `Nous vous recontactons ${SITE.delaiReponse} pour un premier échange de diagnostic avec votre organisation.` },
 ];
 ---
-<BaseLayout titre="Coopératives" description="AgriElev accompagne les coopératives : diagnostic, pilote, formation, suivi consolidé et couverture collective.">
+<BaseLayout titre="Coopératives" description="AgriElev accompagne les coopératives et fédérations : diagnostic, pilote, formation, suivi consolidé et couverture collective.">
   <EnTetePage
-    surtitre="Coopératives et organisations"
-    titre="Accompagner les coopératives et leurs membres"
-    chapeau="AgriElev propose aux coopératives et fédérations un déploiement collectif de CuniSmart, avec prise en main, formation et indicateurs de suivi adaptés."
-    photo={PHOTOS.cooperatives}
+    surtitre="Coopératives et fédérations"
+    titre="Accompagner votre coopérative, membre par membre"
+    chapeau="Diagnostic, pilote, formation et suivi : AgriElev déploie CuniSmart avec votre bureau et vos techniciens, à la mesure des moyens de l’organisation."
+    photo={PHOTOS.reunionProducteurs}
+    etiquette="Réunion avec des productrices, septembre 2026"
+    panneau={{ icone: 'users-three', titre: 'Au plus près des groupements', texte: 'Nous rencontrons les membres là où ils travaillent.' }}
   >
-    <div class="actions"><a class="bouton bouton--principal" href={pilote}>Organiser un pilote avec ma coopérative</a></div>
+    <div class="actions">
+      <a class="bouton bouton--principal bouton--grand bouton--long" href={pilote}>Organiser un pilote avec ma coopérative<Icone nom="arrow-right" taille={20} /></a>
+      <a class="bouton bouton--fantome bouton--grand" href="#parcours">Voir le parcours</a>
+    </div>
+    <ul class="liste-nue reperes">
+      <li><BadgeStatut statut="pilote" />CuniSmart est gratuit pendant le pilote</li>
+      <li><Icone nom="wifi-slash" taille={18} />Fonctionne sans réseau</li>
+      <li><Icone nom="device-mobile" taille={18} />Sans téléphone, le technicien tient le cahier</li>
+    </ul>
   </EnTetePage>
 
-  <section class="section">
+  <!-- Ce que chacun y gagne -->
+  <section class="section section--blanc">
+    <div class="conteneur disposition disposition--5-7 gains">
+      <div class="photo-carte photo-carte--terre gains__photo">
+        <Photo photo={PHOTOS.terrainReunion} sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+        <div class="photo-carte__haut"><span class="etiquette etiquette--blanc etiquette--forte"><span class="point" aria-hidden="true"></span>Réunion de village</span></div>
+        <div class="photo-carte__bas">
+          <span class="pastille pastille--moyenne pastille--creme"><Icone nom="chat-circle-text" taille={22} /></span>
+          <div>
+            <strong>On commence par écouter</strong>
+            <p>Le diagnostic part des activités réelles des membres.</p>
+          </div>
+        </div>
+      </div>
+      <div class="gains__texte">
+        <h2>Ce que la coopérative y gagne</h2>
+        <p class="chapeau">Un outil commun pour l’organisation et ses membres. Aucun résultat n’est promis avant le pilote : il sert justement à le mesurer.</p>
+        <div class="publics">
+          {PUBLICS.map((p, i) => (
+            <article class:list={['public', { 'public--premier': i === 0 }]}>
+              <div class="public__tete">
+                <span class:list={['pastille', 'pastille--grande', { 'pastille--foret': i === 0 }]}><Icone nom={p.icone} taille={24} /></span>
+                <h3>{p.titre}</h3>
+              </div>
+              <ul class="liste-coches">{p.points.map((t) => <li>{t}</li>)}</ul>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parcours en cinq étapes -->
+  <section id="parcours" class="section section--creme">
     <div class="conteneur">
-      <h2>Un parcours en cinq étapes</h2>
-      <ol class="parcours">
+      <header class="entete-section">
+        <div>
+          <h2>Un parcours en cinq étapes</h2>
+          <p>Chaque étape se décide avec votre bureau. Vous pouvez vous arrêter après le pilote.</p>
+        </div>
+        <a class="lien-fleche lien-fleche--vert" href={pilote}>Commencer par un diagnostic<Icone nom="arrow-right" taille={18} /></a>
+      </header>
+      <ol class="liste-nue parcours">
         {ETAPES.map((e, i) => (
-          <li>
-            <span class="parcours__numero" aria-hidden="true">{i + 1}</span>
-            <h3>{e.titre}</h3>
-            <p>{e.texte}</p>
+          <li class:list={['parcours__etape', { 'parcours__etape--fin': i === ETAPES.length - 1 }]}>
+            <span class="parcours__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div class="parcours__corps">
+              <h3>{e.titre}</h3>
+              <p>{e.texte}</p>
+              <p class="parcours__avec"><Icone nom="users" taille={16} />{e.avec}</p>
+              {i === 1 && <p class="parcours__decision"><Icone nom="signpost" taille={16} />Point de décision : vous pouvez vous arrêter ici.</p>}
+              {i === ETAPES.length - 1 && <a class="lien-fleche parcours__lien" href="#couverture">Comment elle se construit<Icone nom="arrow-right" taille={16} /></a>}
+            </div>
           </li>
         ))}
       </ol>
     </div>
   </section>
 
-  <section class="section section--creme">
-    <div class="conteneur texte-long">
-      <h2>La couverture collective</h2>
-      <p>Pour les coopératives et organisations agricoles, AgriElev construit une formule de couverture collective adaptée au périmètre du projet. L'organisation définit ses priorités et mobilise une enveloppe pour les services convenus. Un socle gratuit peut être maintenu selon les conditions de l'offre.</p>
-      <p>Les bénéficiaires, la durée, l'accompagnement et les modalités de renouvellement sont précisés dans une proposition écrite.</p>
-      <div class="actions">
-        <a class="bouton bouton--principal" href={pilote}>Organiser un pilote avec ma coopérative <Icone nom="arrow-right" taille={20} /></a>
-        <a class="bouton bouton--secondaire" href="/cunismart">Découvrir CuniSmart</a>
+  <!-- Vue « Ma coopérative » : captures réelles -->
+  <section id="ma-cooperative" class="section section--foret vue">
+    <Sillons classe="vue__sillons" fuite={0.2} rangs={24} />
+    <div class="conteneur vue__grille">
+      <figure class="vue__ecrans">
+        <div class="vue__telephones">
+          <EcranApp capture={CAPTURES.territoire} largeur={240} classe="vue__ecran vue__ecran--arriere" />
+          <EcranApp capture={CAPTURES.cooperative} largeur={280} classe="vue__ecran" />
+        </div>
+        <figcaption class="vue__mention">{MENTION_CAPTURES}</figcaption>
+      </figure>
+      <div class="vue__texte">
+        <p class="vue__marque"><span class="marque-produit">CuniSmart by AgriElev</span><BadgeStatut statut="pilote" /></p>
+        <h2>« Ma coopérative » : l’activité de tous les membres, sur un écran</h2>
+        <p class="chapeau">Le bureau voit ce que ses membres notent dans leur cahier, sans courir après les carnets papier.</p>
+        <ol class="liste-nue lecture">
+          {ECRAN.map((e, i) => (
+            <li>
+              <span class="lecture__num" aria-hidden="true">{i + 1}</span>
+              <div><h3>{e.titre}</h3><p>{e.texte}</p></div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+    <div class="conteneur">
+      <div class="acces">
+        <div class="acces__tete">
+          <h3>Qui voit quoi</h3>
+          <p class="acces__echelle" aria-hidden="true"><span>Le détail</span><span class="acces__barre"></span><span>Les totaux</span></p>
+        </div>
+        <dl class="acces__liste">
+          {ACCES.map((a) => (
+            <div>
+              <dt><Icone nom={a.icone} taille={20} />{a.qui}</dt>
+              <dd>{a.voit}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </div>
   </section>
 
-  <BandeauContact />
+  <!-- Couverture collective -->
+  <section id="couverture" class="section section--degrade">
+    <div class="conteneur disposition disposition--7-5 disposition--haut couverture">
+      <div class="couverture__texte">
+        <h2>La couverture collective</h2>
+        <p class="chapeau">Pour les coopératives et organisations agricoles, AgriElev construit une formule de couverture collective adaptée au périmètre du projet. Elle se construit en trois couches.</p>
+        <ol class="liste-nue strates">
+          {STRATES.map((s, i) => (
+            <li class:list={['strate', `strate--${i + 1}`]}>
+              <span class="strate__num" aria-hidden="true">{i + 1}</span>
+              <div><h3>{s.titre}</h3><p>{s.texte}</p></div>
+            </li>
+          ))}
+        </ol>
+        <p class="couverture__note"><Icone nom="info" taille={18} />Une enveloppe finance un périmètre convenu : ce n’est ni un service illimité, ni une promesse de financement public.</p>
+      </div>
+      <aside class="proposition" aria-labelledby="proposition-titre">
+        <p class="proposition__entete"><Icone nom="file-text" taille={20} />Proposition écrite</p>
+        <h3 id="proposition-titre">Tout est écrit avant de commencer</h3>
+        <ul class="liste-nue proposition__lignes">
+          {PROPOSITION.map((l) => <li><Icone nom="check" taille={16} /><span>{l}</span></li>)}
+        </ul>
+        <p class="proposition__pied">Vous la relisez avec votre bureau avant tout engagement.</p>
+        <a class="bouton bouton--principal bouton--plein" href={pilote}>Organiser un pilote avec ma coopérative</a>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Questions fréquentes -->
+  <section class="section section--blanc">
+    <div class="conteneur disposition disposition--5-7 disposition--haut">
+      <div class="empile faq-cote">
+        <h2>Avant de vous lancer</h2>
+        <p class="texte-doux">Les questions que posent le plus souvent les bureaux de coopérative.</p>
+        <div class="photo-carte faq-cote__photo">
+          <Photo photo={PHOTOS.equipeTerrain} sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+          <div class="photo-carte__bas">
+            <span class="pastille pastille--moyenne"><Icone nom="map-pin" taille={22} /></span>
+            <div>
+              <strong>L’équipe AgriElev sur le terrain</strong>
+              <p>Diagnostic, formation des techniciens et suivi des membres.</p>
+            </div>
+          </div>
+        </div>
+        <ul class="liste-nue faq-cote__contacts">
+          <li><Icone nom="phone" taille={18} /><a href={telLien(SITE.telephones[0])}>{SITE.telephones[0]}</a></li>
+          <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        </ul>
+      </div>
+      <div class="faq">
+        {FAQ.map((f, i) => (
+          <details open={i === 0}>
+            <summary>{f.q}</summary>
+            <p>{f.r}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <BandeauContact titre="Parlons de votre coopérative" texte="Dites-nous combien de membres, quelles activités et ce que vous voulez suivre : nous préparons le diagnostic." action={{ libelle: 'Préparer un diagnostic', href: pilote }} fond="creme" />
 </BaseLayout>
 
 <style>
-  .texte-long > * { max-width: 52rem; }
-  .parcours { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); }
-  .parcours li { padding: var(--esp-4); border-radius: var(--radius); background: var(--ae-vert-brume); }
-  .parcours__numero { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; margin-bottom: var(--esp-3); border-radius: 50%; background: var(--ae-vert-foret); color: var(--ae-creme); font-family: var(--font-titre); font-weight: 800; }
+  /* ---------- En-tête ---------- */
+  .bouton--long { white-space: normal; text-align: center; }
+  .reperes { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-2) !important; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .reperes li { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+  /* ---------- Ce que la coopérative y gagne ---------- */
+  .gains { align-items: stretch; row-gap: var(--esp-5); }
+  .gains__photo { --hauteur-photo: 22rem; --hauteur-photo-large: 100%; }
+  .gains__photo :global(.photo-conteneur) { min-height: 22rem; }
+  .gains__photo :global(img) { object-position: 50% 62%; }
+  .gains__texte h2 { margin-bottom: var(--esp-3); }
+  .gains__texte .chapeau { margin: 0 0 var(--esp-5); }
+  .publics { display: grid; }
+  .public { display: grid; gap: var(--esp-3); padding-block: var(--esp-4); border-top: 1px solid var(--ligne); }
+  .public:last-child { padding-bottom: 0; }
+  .public__tete { display: flex; align-items: center; gap: var(--esp-3); }
+  .public h3 { margin: 0; font-size: var(--fs-xl); letter-spacing: -0.01em; }
+  .public .liste-coches { gap: 0.625rem; }
+  .public--premier { border-top-color: var(--ae-or-recolte); border-top-width: 3px; }
+  @media (min-width: 48rem) {
+    .public { grid-template-columns: 15rem minmax(0, 1fr); align-items: start; }
+  }
+  @media (min-width: 64rem) {
+    .gains { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--esp-6); }
+    .gains__photo :global(.photo-conteneur) { position: absolute; inset: 0; height: 100%; }
+    .gains__photo { min-height: 36rem; }
+  }
+
+  /* ---------- Parcours : frise verticale sur mobile, horizontale dès 64rem ---------- */
+  .parcours { display: grid; gap: var(--esp-5); }
+  .parcours__etape { position: relative; display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: var(--esp-3); }
+  .parcours__etape:not(:last-child)::before {
+    content: ''; position: absolute; left: calc(1.625rem - 1px); top: 3.25rem; bottom: calc(-1 * var(--esp-5)); width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--ae-vert-foret) 0 6px, transparent 6px 11px);
+  }
+  .parcours__numero {
+    position: relative; z-index: 1; display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 50%;
+    background: var(--ae-vert-foret); color: #FFFFFF; box-shadow: 0 0 0 6px var(--creme-douce);
+    font-family: var(--font-titre); font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums;
+  }
+  .parcours__corps { display: grid; gap: var(--esp-2); align-content: start; padding-top: 0.5rem; }
+  .parcours__corps > * { margin: 0; }
+  .parcours__corps h3 { font-size: var(--fs-xl); letter-spacing: -0.01em; }
+  .parcours__corps > p:not([class]) { color: var(--texte-doux); }
+  .parcours__avec { display: inline-flex; align-items: center; gap: 0.375rem; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .parcours__decision {
+    display: flex; align-items: flex-start; gap: 0.5rem; width: fit-content; padding: 0.5rem 0.75rem; border-radius: var(--radius);
+    background: var(--cs-creme); box-shadow: inset 3px 0 0 var(--ae-or-recolte); font-size: var(--fs-sm); font-weight: 600; line-height: 1.4;
+  }
+  .parcours__decision :global(.icone) { margin-top: 0.1rem; color: var(--ae-brun-terre); }
+  .parcours__etape--fin .parcours__numero { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .parcours__etape--fin .parcours__corps { padding: var(--esp-4); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-2), inset 0 3px 0 var(--ae-or-recolte); }
+  .parcours__lien { margin-top: var(--esp-1); }
+  @media (min-width: 64rem) {
+    .parcours { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--esp-4); }
+    .parcours__etape { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: var(--esp-4); }
+    .parcours__etape:not(:last-child)::before {
+      left: 3.25rem; right: calc(-1 * var(--esp-4)); top: calc(1.625rem - 1px); bottom: auto; width: auto; height: 2px;
+      background: repeating-linear-gradient(to right, var(--ae-vert-foret) 0 6px, transparent 6px 11px);
+    }
+    .parcours__corps { padding-top: 0; padding-right: var(--esp-2); }
+    .parcours__etape--fin .parcours__corps { margin-top: calc(-1 * var(--esp-3)); }
+  }
+
+  /* ---------- Vue « Ma coopérative » ---------- */
+  .vue { position: relative; overflow: hidden; isolation: isolate; }
+  :global(.vue__sillons) {
+    position: absolute !important; inset: 0; z-index: -1; color: var(--ae-or-recolte); opacity: 0.2;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 22rem, transparent 34rem); mask-image: linear-gradient(to bottom, #000 0, #000 22rem, transparent 34rem);
+  }
+  @media (min-width: 64rem) {
+    :global(.vue__sillons) { -webkit-mask-image: linear-gradient(to right, #000 25%, transparent 50%); mask-image: linear-gradient(to right, #000 25%, transparent 50%); }
+  }
+  .vue__grille { display: grid; gap: var(--esp-6); align-items: center; }
+  .vue__ecrans { position: relative; margin: 0; padding-top: var(--esp-3); }
+  .vue__telephones { display: flex; justify-content: center; align-items: flex-end; }
+  :global(.vue__ecran) { position: relative; flex: none; width: clamp(10.5rem, 6rem + 13vw, 16.5rem) !important; }
+  :global(.vue__ecran--arriere) { width: clamp(9rem, 5rem + 11vw, 14rem) !important; margin-right: -3rem; margin-bottom: 2.5rem; transform: rotate(-6deg); opacity: 0.92; }
+  .vue__mention { margin-top: var(--esp-4); text-align: center; font-size: var(--fs-xs); color: var(--ae-vert-brume); }
+  .vue__texte > * { margin: 0; }
+  .vue__marque { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin-bottom: var(--esp-3) !important; }
+  .vue__marque .marque-produit { color: var(--ae-creme); }
+  .vue__texte h2 { margin-bottom: var(--esp-3); }
+  .vue__texte .chapeau { color: var(--ae-vert-brume); margin-bottom: var(--esp-5); }
+  .lecture { display: grid; gap: var(--esp-4); }
+  .lecture li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: var(--esp-3); align-items: start; }
+  .lecture__num {
+    display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%;
+    border: 2px solid var(--ae-or-recolte); color: var(--ae-creme); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-sm);
+  }
+  .lecture h3 { margin: 0.2rem 0 0.25rem; font-size: var(--fs-lg); }
+  .lecture p { margin: 0; color: var(--ae-vert-brume); font-size: var(--fs-base); }
+  @media (min-width: 40rem) { .lecture { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--esp-5); } }
+  @media (min-width: 64rem) {
+    .vue__grille { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--esp-7); }
+  }
+
+  .acces {
+    display: grid; gap: var(--esp-4); margin-top: var(--esp-6); padding: var(--esp-4);
+    border-radius: var(--radius); background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(233 243 234 / 0.18);
+  }
+  .acces__tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-3); }
+  .acces__tete h3 { margin: 0; font-size: var(--fs-xl); }
+  .acces__echelle { display: flex; align-items: center; gap: var(--esp-2); margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-brume); }
+  .acces__barre { width: clamp(5rem, 12vw, 12rem); height: 4px; border-radius: 4px; background: linear-gradient(to right, var(--ae-or-recolte), rgb(233 243 234 / 0.25)); }
+  .acces__liste { display: grid; gap: var(--esp-3); margin: 0; }
+  .acces__liste > div { padding: var(--esp-3) var(--esp-4); border-radius: var(--radius); background: rgb(255 255 255 / 0.07); }
+  .acces__liste dt { display: flex; align-items: center; gap: var(--esp-2); font-family: var(--font-titre); font-weight: 700; color: #FFFFFF; }
+  .acces__liste dt :global(.icone) { color: var(--ae-or-recolte); }
+  .acces__liste dd { margin: 0.375rem 0 0; color: var(--ae-vert-brume); }
+  @media (min-width: 48rem) { .acces__liste { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  /* ---------- Couverture collective ---------- */
+  .couverture { row-gap: var(--esp-5); }
+  .couverture__texte > h2 { margin-bottom: var(--esp-3); }
+  .couverture__texte .chapeau { margin: 0 0 var(--esp-5); }
+  .strates { display: grid; gap: 0; }
+  .strate { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--esp-3); align-items: start; padding: var(--esp-4); border-radius: var(--radius); }
+  .strate + .strate { margin-top: -0.375rem; }
+  .strate h3 { margin: 0.25rem 0 0.25rem; font-size: var(--fs-lg); }
+  .strate p { margin: 0; }
+  .strate__num { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; font-family: var(--font-titre); font-weight: 800; }
+  .strate--1 { z-index: 3; background: var(--ae-vert-foret); color: var(--ae-vert-brume); box-shadow: var(--ombre-2); }
+  .strate--1 h3 { color: #FFFFFF; }
+  .strate--1 .strate__num { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .strate--2 { z-index: 2; margin-inline: var(--esp-3); background: #FFFFFF; box-shadow: var(--ombre-2), inset 0 3px 0 var(--ae-or-recolte); padding-top: calc(var(--esp-4) + 0.375rem); }
+  .strate--2 .strate__num { background: var(--cs-creme); color: var(--ae-brun-terre); }
+  .strate--2 p, .strate--3 p { color: var(--texte-doux); }
+  .strate--3 { z-index: 1; margin-inline: calc(2 * var(--esp-3)); background: rgb(255 255 255 / 0.55); outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px; padding-top: calc(var(--esp-4) + 0.375rem); }
+  .strate--3 .strate__num { background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .couverture__note { display: flex; align-items: flex-start; gap: var(--esp-2); margin: var(--esp-4) 0 0; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .couverture__note :global(.icone) { margin-top: 0.15rem; color: var(--ae-vert-foret); }
+
+  .proposition {
+    position: relative; display: grid; gap: var(--esp-3); padding: var(--esp-4);
+    border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-3);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 2.4rem, rgb(34 75 43 / 0.05) 2.4rem calc(2.4rem + 1px));
+  }
+  .proposition > * { margin: 0; }
+  .proposition__entete { display: flex; align-items: center; gap: var(--esp-2); padding-bottom: var(--esp-3); border-bottom: 2px solid var(--ae-vert-foret); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ae-vert-foret); }
+  .proposition h3 { font-size: var(--fs-xl); }
+  .proposition__lignes { display: grid; gap: 0; }
+  .proposition__lignes li { display: flex; align-items: center; gap: var(--esp-2); padding-block: 0.75rem; border-bottom: 1px dashed var(--ligne-forte); font-weight: 600; color: var(--ae-brun-terre); }
+  .proposition__lignes :global(.icone) { flex: none; display: grid; width: 1.5rem; height: 1.5rem; padding: 0.2rem; border-radius: 6px; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .proposition__pied { font-size: var(--fs-sm); color: var(--texte-doux); }
+  .proposition .bouton { white-space: normal; text-align: center; }
+  @media (min-width: 64rem) { .proposition { padding: var(--esp-5); margin-top: var(--esp-2); } }
+
+  /* ---------- Questions fréquentes ---------- */
+  .faq-cote { gap: var(--esp-4); }
+  .faq-cote h2, .faq-cote p { margin: 0; }
+  .faq-cote__photo { --hauteur-photo: 18rem; --hauteur-photo-large: 20rem; }
+  .faq-cote__contacts { display: grid; gap: var(--esp-2); font-size: var(--fs-sm); }
+  .faq-cote__contacts li { display: flex; align-items: center; gap: var(--esp-2); color: var(--ae-vert-foret); }
+  .faq-cote__contacts a { font-weight: 600; text-decoration: none; }
+  .faq-cote__contacts a:hover { text-decoration: underline; }
+  @media (min-width: 64rem) { .faq-cote { position: sticky; top: calc(var(--hauteur-entete) + var(--esp-4)); } }
 </style>

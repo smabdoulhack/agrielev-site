@@ -10,7 +10,7 @@ date: 2026-10-07
 auteur: Équipe AgriElev
 categorie: actualites
 couverture: ../../assets/images/articles/WhatsApp Image 2026-10-05 at 18.28.49.jpeg
-couvertureAlt: plantation d'anana à Kpanhou
+couvertureAlt: Parcelles de maraîchage avec des rangs de choux
 couvertureCredit: ''
 etiquettes:
   - agrielev
@@ -21,48 +21,27 @@ sources:
 etat: publie
 ---
 
-**Créer un compte**
+## Créer un compte
 
-Depuis l'écran de connexion, Créer un compte. Le premier choix, « Vous êtes… », décide de ce qui
+Depuis l'écran de connexion, **Créer un compte**. Le premier choix, « Vous êtes… », décide de ce qui sera demandé :
 
-sera demandé :
+- Producteur ou productrice, « vous tenez les registres de votre exploitation » ;
+- Technicien ou responsable de coopérative, « vous suivez les producteurs de votre coopérative et saisissez pour eux » ;
+- Une institution, « vous consultez les chiffres de votre territoire ».
 
-Producteur ou productrice, « vous tenez les registres de votre exploitation » ;
-
-Technicien ou responsable de coopérative, « vous suivez les producteurs de votre
-
-coopérative et saisissez pour eux » ;
-
-Une institution, « vous consultez les chiffres de votre territoire ».
+## Les étapes de l'inscription
 
 Les étapes suivent :
 
-1. 1\. Identité : nom et prénoms, numéro de téléphone (dix chiffres commençant par 01, c'est
+1. **Identité** : nom et prénoms, numéro de téléphone (dix chiffres commençant par 01, c'est l'identifiant de connexion), sexe, mot de passe.
+2. **Lieu** (producteur et encadrant) : la localité, en cascade, département, commune, arrondissement, village, quartier.
+3. **Coopérative** :
+   - un producteur coche ses coopératives, plusieurs ou aucune ;
+   - un encadrant choisit sa fonction (Technicien ou Responsable) et coche au moins la coopérative qu'il encadre. Son responsable, ou l'administration, validera son compte.
+4. **Institution** (cadre) : l'institution, la fonction, l'adresse e-mail professionnelle. L'administration validera le compte.
 
-l'identifiant de connexion), sexe, mot de passe.
+## Après l'inscription
 
-2\. Lieu (producteur et encadrant) : la localité, en cascade, département, commune,
+**Créer mon compte** ouvre l'accueil, connecté. Un producteur est actif aussitôt. Un encadrant ou un cadre a un compte créé, mais ce compte n'ouvre rien tant qu'il n'est pas validé : l'accueil dit qui doit le valider.
 
-arrondissement, village, quartier.
-
-3\. Coopérative :
-
-un producteur coche ses coopératives, plusieurs ou aucune ;
-
-un encadrant choisit sa fonction (Technicien ou Responsable) et coche au moins la
-
-coopérative qu'il encadre. Son responsable, ou l'administration, validera son compte.
-
-4\. Institution (cadre) : l'institution, la fonction, l'adresse e-mail professionnelle. L'administration
-
-validera le compte.
-
-Créer mon compte ouvre l'accueil, connecté. Un producteur est actif aussitôt. Un encadrant ou un
-
-cadre a un compte créé, mais ce compte n'ouvre rien tant qu'il n'est pas validé : l'accueil dit qui doit
-
-le valider.
-
-Un lien direct peut sauter la première question : c'est celui qu'on envoie à une mairie ou à une
-
-coopérative.
+Un lien direct peut sauter la première question : c'est celui qu'on envoie à une mairie ou à une coopérative.

@@ -1,0 +1,33 @@
+---
+// Capture d'écran réelle de CuniSmart, cadre de téléphone inclus (fond transparent).
+import { Picture } from 'astro:assets';
+import type { Capture } from '../data/captures.ts';
+
+interface Props {
+  capture: Capture;
+  largeur?: number;
+  classe?: string;
+  prioritaire?: boolean;
+  legende?: boolean;
+}
+const { capture, largeur = 280, classe, prioritaire = false, legende = false } = Astro.props;
+---
+<figure class:list={['ecran-app', classe]} style={`--largeur-ecran: ${largeur}px`}>
+  <Picture
+    src={capture.src}
+    alt={capture.alt}
+    formats={['avif', 'webp']}
+    widths={[280, 400].filter((w) => w <= capture.src.width)}
+    sizes={`${largeur}px`}
+    loading={prioritaire ? 'eager' : 'lazy'}
+    fetchpriority={prioritaire ? 'high' : 'auto'}
+  />
+  {legende && <figcaption>{capture.legende}</figcaption>}
+</figure>
+
+<style>
+  .ecran-app { margin: 0; width: min(var(--largeur-ecran), 100%); }
+  .ecran-app :global(img) { width: 100%; height: auto; filter: drop-shadow(0 24px 32px rgb(34 75 43 / 0.28)) drop-shadow(0 4px 8px rgb(34 75 43 / 0.12)); }
+  figcaption { margin-top: var(--esp-3); font-family: var(--font-titre); font-weight: 700; font-size: var(--fs-sm); color: var(--ae-vert-foret); }
+  :global(.section--foret) figcaption, :global(.sombre) figcaption { color: var(--ae-creme); }
+</style>

@@ -2,29 +2,42 @@
 import Icone from './Icone.astro';
 
 interface Props {
+  numero: number;
   icone: string;
   titre: string;
   texte: string;
   href: string;
-  libelleLien: string;
+  /** Couleur du liseré bas et du numéro de profil. */
+  couleur: 'vert' | 'or' | 'foret' | 'terre';
 }
-const { icone, titre, texte, href, libelleLien } = Astro.props;
+const { numero, icone, titre, texte, href, couleur } = Astro.props;
+const LISERES = { vert: 'var(--cs-vert)', or: 'var(--ae-or-recolte)', foret: 'var(--ae-vert-foret)', terre: 'var(--ae-brun-terre)' };
+const PASTILLES = { vert: '', or: 'pastille--creme', foret: '', terre: 'pastille--terre' };
 ---
-<a class="profil" href={href} data-test="acces-profil">
-  <span class="profil__icone"><Icone nom={icone} taille={28} /></span>
-  <span class="profil__titre">{titre}</span>
-  <span class="profil__texte">{texte}</span>
-  <span class="profil__lien">{libelleLien} <Icone nom="arrow-right" taille={18} /></span>
-</a>
+<article class:list={['carte', 'carte--interactive', 'carte--lisere', 'profil', `profil--${couleur}`]} style={`--lisere: ${LISERES[couleur]}`}>
+  <div class="carte__haut">
+    <span class:list={['pastille', PASTILLES[couleur]]}><Icone nom={icone} taille={20} /></span>
+    <span class="profil__numero">Profil {String(numero).padStart(2, '0')}</span>
+  </div>
+  <h3><a class="lien-etendu" href={href} data-test="acces-profil">{titre}</a></h3>
+  <p>{texte}</p>
+</article>
 
 <style>
-  .profil {
-    display: flex; flex-direction: column; gap: var(--esp-2); height: 100%;
-    padding: var(--esp-4); border-radius: var(--radius); background: #FFFFFF;
-    border: 1px solid var(--ae-vert-brume); color: var(--ae-brun-terre); text-decoration: none;
+  .profil { height: 100%; gap: 0.25rem; }
+  .profil h3 { margin-top: 0.25rem; font-size: var(--fs-lg); }
+  .profil h3 a { color: var(--ae-vert-foret); }
+  .profil__numero { font-size: var(--fs-label-sm); font-weight: 700; line-height: 1.35; }
+  .profil--vert .profil__numero { color: var(--cs-vert); }
+  .profil--or .profil__numero { color: var(--or-texte); }
+  .profil--foret .profil__numero { color: var(--ae-vert-foret); }
+  .profil--terre .profil__numero { color: var(--ae-brun-terre); }
+  /* Mobile : pictogramme à gauche du titre, carte compacte. */
+  @media (max-width: 39.99rem) {
+    .profil { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--esp-3); row-gap: 0.125rem; align-items: center; }
+    .profil .carte__haut { grid-row: 1 / span 2; }
+    .profil__numero { display: none; }
+    .profil h3 { margin: 0; }
+    .profil p { grid-column: 2; }
   }
-  .profil:hover { border-color: var(--ae-vert-foret); color: var(--ae-brun-terre); }
-  .profil__icone { display: inline-grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
-  .profil__titre { font-family: var(--font-titre); font-weight: 800; font-size: 1.2rem; color: var(--ae-vert-foret); }
-  .profil__lien { margin-top: auto; display: inline-flex; align-items: center; gap: var(--esp-1); font-weight: 600; color: var(--ae-vert-foret); }
 </style>

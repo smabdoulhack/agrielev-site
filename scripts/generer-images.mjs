@@ -17,6 +17,8 @@ const icone = await sharp(LOGO)
   .png()
   .toBuffer();
 
+// Icône détourée pour l'en-tête et le pied de page (servie en 1x, 2x et 3x par astro:assets).
+await sharp(icone).png().toFile('src/assets/logo-agrielev.png');
 await sharp(icone).resize(64, 64).png().toFile('public/favicon.png');
 await sharp(icone).resize(180, 180).png().toFile('public/apple-touch-icon.png');
 
@@ -26,4 +28,4 @@ await sharp({ create: { width: 1200, height: 630, channels: 3, background: CREME
   .jpeg({ quality: 85 })
   .toFile('public/og-defaut.jpg');
 
-console.log('favicon.png, apple-touch-icon.png et og-defaut.jpg générés dans public/');
+console.log('logo-agrielev.png (src/assets), favicon.png, apple-touch-icon.png et og-defaut.jpg (public/) générés');

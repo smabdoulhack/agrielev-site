@@ -3,17 +3,36 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EnTetePage from '../../components/EnTetePage.astro';
 import ListeArticles from '../../components/ListeArticles.astro';
+import Icone from '../../components/Icone.astro';
 import { chargerVisibles } from '../../lib/collections.ts';
-import { PHOTOS } from '../../data/photos.ts';
+import { CATEGORIES, type CategorieCode } from '../../lib/blog.ts';
 
 export const getStaticPaths = (async ({ paginate }) => {
   const articles = (await chargerVisibles('articles')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-  return paginate(articles, { pageSize: 9 });
+  const comptes = Object.fromEntries(CATEGORIES.map((c) => [c.code, articles.filter((a) => a.data.categorie === c.code).length]));
+  return paginate(articles, { pageSize: 10, props: { comptes: { ...comptes, total: articles.length } as Record<CategorieCode, number> & { total: number } } });
 }) satisfies GetStaticPaths;
 
-const { page } = Astro.props;
+const { page, comptes } = Astro.props;
 ---
 <BaseLayout titre={page.currentPage > 1 ? `Blog, page ${page.currentPage}` : 'Blog'} description="Actualités d'AgriElev, conseils techniques, filières et marchés, retours de terrain.">
-  <EnTetePage surtitre="Blog" titre="Blog" chapeau="Actualités d'AgriElev, conseils techniques, filières et marchés, retours de terrain." photo={PHOTOS.blogDefaut} />
-  <section class="section"><div class="conteneur"><ListeArticles page={page} /></div></section>
+  <EnTetePage
+    compact
+    surtitre="Le blog AgriElev"
+    titre="Actualités, conseils et retours de terrain"
+    chapeau="Les nouvelles d’AgriElev, des conseils pratiques pour l’élevage et les cultures, les filières et les marchés, et ce que nous voyons sur le terrain."
+  >
+    <ul class="liste-nue blog-reperes">
+      <li><Icone nom="newspaper" taille={18} />{comptes.total} article{comptes.total > 1 ? 's' : ''} publié{comptes.total > 1 ? 's' : ''}</li>
+      <li><Icone nom="map-trifold" taille={18} />{CATEGORIES.length} rubriques</li>
+      <li><Icone nom="broadcast" taille={18} /><a href="/rss.xml">Flux RSS</a></li>
+    </ul>
+  </EnTetePage>
+  <ListeArticles page={page} comptes={comptes} />
 </BaseLayout>
+
+<style>
+  .blog-reperes { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-2) !important; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .blog-reperes li { display: inline-flex; align-items: center; gap: 0.375rem; }
+  .blog-reperes a { color: var(--ae-vert-foret); }
+</style>

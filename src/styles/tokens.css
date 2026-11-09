@@ -26,12 +26,57 @@
   --font-texte: "Source Sans 3", Calibri, Arial, sans-serif;
   --font-officiel: "Caladea", Cambria, Georgia, serif;
   --radius: 12px;
-  /* Espacements et largeur */
+
+  /* Couleurs d'usage, toutes dérivées de la charte (contrastes vérifiés) */
+  --surface: color-mix(in srgb, var(--cs-creme) 30%, #FFFFFF);      /* fond de page, blanc chaud */
+  --creme-douce: color-mix(in srgb, var(--ae-creme) 50%, var(--surface));
+  --texte-doux: color-mix(in srgb, var(--gris-ardoise) 70%, var(--ae-vert-foret)); /* 6,7:1 sur blanc */
+  --or-texte: color-mix(in srgb, var(--ae-or-fonce) 60%, var(--ae-brun-terre));   /* surtitres : 5:1 sur crème */
+  --sauge-ligne: rgb(127 184 143 / 0.3);
+
+  /* Échelle typographique (reprise du site agrielev.com en ligne) */
+  --fs-label-sm: 0.75rem;                                   /* 12 px : surtitres, étiquettes */
+  --fs-xs: 0.875rem;                                        /* 14 px : mentions, texte de carte */
+  --fs-sm: 0.875rem;
+  --fs-base: 1.0625rem;                                     /* 17 px : texte courant */
+  --fs-md: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);       /* 18 à 20 px : chapeau */
+  --fs-lg: 1.1875rem;                                       /* 19 px : titre de carte */
+  --fs-titre-sm: 1.25rem;                                   /* 20 px */
+  --fs-xl: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem);        /* 22 à 28 px : titre de bloc */
+  --fs-2xl: clamp(1.875rem, 1.4rem + 1.9vw, 2.875rem);      /* 30 à 46 px : titre de section */
+  --fs-3xl: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);          /* 36 à 60 px : titre de page */
+  --fs-display: clamp(2.125rem, 1.2rem + 4.6vw, 4.5rem);    /* 34 à 72 px : ouverture de l’accueil */
+
+  /* Espacements */
   --esp-1: 0.25rem;
   --esp-2: 0.5rem;
   --esp-3: 1rem;
   --esp-4: 1.5rem;
   --esp-5: 2.5rem;
   --esp-6: 4rem;
-  --largeur-max: 72rem;
+  --esp-7: 6rem;
+  --esp-8: 8rem;
+  --section-y: clamp(3.5rem, 2.4rem + 4vw, 6rem);
+  --section-y-serree: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  --gouttiere: 1rem;
+  --gouttiere-colonnes: 1.5rem;
+
+  /* Largeurs */
+  --largeur-max: calc(80rem + 2 * var(--gouttiere));
+  --largeur-texte: 42rem;
+  --mesure: 65ch;
+  --hauteur-entete: 5rem;
+
+  /* Lignes, ombres (teinte Brun Terre) et mouvement */
+  --ligne: rgb(34 75 43 / 0.14);
+  --ligne-forte: rgb(34 75 43 / 0.3);
+  --ombre-1: 0 1px 3px rgb(73 34 15 / 0.07), 0 1px 2px rgb(73 34 15 / 0.04);
+  --ombre-2: 0 4px 6px -1px rgb(73 34 15 / 0.09), 0 2px 4px -2px rgb(73 34 15 / 0.07);
+  --ombre-3: 0 20px 25px -5px rgb(73 34 15 / 0.12), 0 8px 10px -6px rgb(73 34 15 / 0.1);
+  --ombre-bouton: 0 4px 16px rgb(73 34 15 / 0.12);
+  --ombre-entete: 0 1px 8px rgb(73 34 15 / 0.06);
+  --transition: 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (min-width: 64rem) {
+  :root { --gouttiere: 2rem; }
 }

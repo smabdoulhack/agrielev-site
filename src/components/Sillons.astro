@@ -1,0 +1,58 @@
+---
+// Motif signature d'AgriElev : les rangs d'un champ labouré qui fuient vers l'horizon.
+// Lignes calculées à la compilation (aucun JavaScript côté client), couleur héritée (currentColor).
+interface Props {
+  classe?: string;
+  /** Nombre de rangs. */
+  rangs?: number;
+  /** Position horizontale du point de fuite, de 0 (gauche) à 1 (droite). */
+  fuite?: number;
+  /** Ondulation du terrain, de 0 (rangs droits) à 1. */
+  ondulation?: number;
+  opacite?: number;
+}
+const { classe, rangs = 22, fuite = 0.72, ondulation = 0.5, opacite = 1 } = Astro.props;
+
+const L = 1000;
+const H = 600;
+const vx = fuite * L;
+const vy = -H * 0.12; // point de fuite juste au-dessus du cadre : les rangs convergent vers l’horizon
+const chemins: string[] = [];
+// Identifiants propres à chaque motif (plusieurs motifs par page).
+const uid = `s${Math.random().toString(36).slice(2, 8)}`;
+for (let i = 0; i < rangs; i++) {
+  const t = i / (rangs - 1);
+  const xBas = -L * 1.4 + t * L * 3.8;
+  // Intersection du rang avec le haut du cadre (y = 0).
+  const k = (0 - vy) / (H - vy);
+  const xHaut = vx + (xBas - vx) * k;
+  // Point de contrôle décalé : le rang épouse le relief.
+  const cx = (xHaut + xBas) / 2 + Math.sin(t * Math.PI * 2.3) * 60 * ondulation;
+  const cy = H * 0.5;
+  chemins.push(`M${xHaut.toFixed(1)} 0Q${cx.toFixed(1)} ${cy} ${xBas.toFixed(1)} ${H}`);
+}
+---
+<svg
+  class:list={['sillons', classe]}
+  viewBox={`0 0 ${L} ${H}`}
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+  style={`opacity: ${opacite}`}
+>
+  <defs>
+    <linearGradient id={`${uid}-fondu`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.35" stop-color="#fff" stop-opacity="0.6" />
+      <stop offset="1" stop-color="#fff" stop-opacity="1" />
+    </linearGradient>
+    <mask id={`${uid}-masque`}><rect width={L} height={H} fill={`url(#${uid}-fondu)`} /></mask>
+  </defs>
+  <g mask={`url(#${uid}-masque)`} fill="none" stroke="currentColor" stroke-width="1.25" vector-effect="non-scaling-stroke" stroke-linecap="round">
+    {chemins.map((d) => <path d={d} vector-effect="non-scaling-stroke" />)}
+  </g>
+</svg>
+
+<style>
+  .sillons { display: block; width: 100%; height: 100%; pointer-events: none; }
+</style>

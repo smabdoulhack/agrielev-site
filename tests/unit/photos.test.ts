@@ -2,9 +2,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const EMPLACEMENTS = [
-  'accueil-ouverture', 'accueil-cunismart', 'offre-gestion-numerique', 'offre-formation',
+  'accueil-ouverture', 'offre-gestion-numerique', 'offre-formation',
   'offre-transformation', 'offre-marches', 'offre-innovation', 'entreprise', 'cooperatives',
-  'connect', 'blog-defaut', 'contact', 'ressources',
+  'connect', 'blog-defaut', 'contact', 'ressources', 'page-introuvable', 'merci', 'legal', 'eleveur',
+  // Prises de vue reprises du site en ligne agrielev.com (novembre 2026).
+  'terrain-reunion', 'suivi-pastoral', 'equipe-terrain', 'maraichage', 'papayers', 'ananas-biodigesteur',
+  'cheptel-bovin', 'karite', 'conditionnement-recoltes', 'parcelle-biodigesteur', 'reunion-producteurs',
 ];
 
 describe('photos', () => {

@@ -1,30 +1,59 @@
 ---
 import Icone from './Icone.astro';
+import Sillons from './Sillons.astro';
 import { SITE, telLien } from '../data/site.ts';
 
 interface Props {
   titre?: string;
   texte?: string;
+  action?: { libelle: string; href: string };
+  fond?: 'blanc' | 'creme';
 }
 const {
   titre = 'Parlons de votre projet',
   texte = 'Producteur, coopérative, partenaire ou expert : dites-nous ce dont vous avez besoin, nous vous orientons vers la bonne personne.',
+  action = { libelle: 'Écrire à AgriElev', href: '/contact' },
+  fond = 'blanc',
 } = Astro.props;
 ---
-<section class="section section--foret">
-  <div class="conteneur bandeau">
-    <div>
-      <h2>{titre}</h2>
-      <p class="chapeau">{texte}</p>
-    </div>
-    <div class="actions">
-      <a class="bouton bouton--principal" href="/contact">Écrire à AgriElev <Icone nom="arrow-right" taille={20} /></a>
-      <a class="bouton bouton--clair" href={telLien(SITE.telephones[0])}><Icone nom="phone" taille={20} /> {SITE.telephones[0]}</a>
+<section class:list={['section', 'section--serree', 'bandeau-section', { 'section--creme': fond === 'creme' }]}>
+  <div class="conteneur">
+    <div class="bandeau sombre">
+      <Sillons classe="bandeau__sillons" fuite={0.85} rangs={24} />
+      <div class="bandeau__texte">
+        <h2>{titre}</h2>
+        <p class="chapeau">{texte}</p>
+      </div>
+      <div class="bandeau__actions">
+        <a class="bouton bouton--principal bouton--grand" href={action.href}>{action.libelle}<Icone nom="arrow-right" taille={20} /></a>
+        <ul class="liste-nue bandeau__contacts">
+          <li><Icone nom="phone" taille={18} /><a href={telLien(SITE.telephones[0])}>{SITE.telephones[0]}</a></li>
+          <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  .bandeau { display: grid; gap: var(--esp-4); align-items: center; }
-  @media (min-width: 64rem) { .bandeau { grid-template-columns: 2fr 1fr; } }
+  .bandeau-section + :global(footer) { margin-top: 0; }
+  .bandeau {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--esp-5); align-items: center;
+    padding: clamp(2rem, 1rem + 4vw, 4.5rem);
+    border-radius: var(--radius); box-shadow: var(--ombre-3);
+  }
+  :global(.bandeau__sillons) { position: absolute !important; inset: 0 0 0 30%; width: auto !important; height: auto !important; z-index: -1; color: var(--ae-or-recolte); opacity: 0.4; }
+  .bandeau h2 { font-size: var(--fs-2xl); }
+  .bandeau h2 { margin-bottom: var(--esp-3); }
+  .bandeau .chapeau { margin: 0; color: var(--ae-vert-brume); }
+  .bandeau__actions { display: grid; gap: var(--esp-4); justify-items: start; }
+  .bandeau__contacts { display: grid; gap: var(--esp-2); font-weight: 600; }
+  .bandeau__contacts a { color: #FFFFFF; text-decoration: none; }
+  .bandeau__contacts a:hover { text-decoration: underline; }
+  .bandeau__contacts li { display: flex; align-items: center; gap: var(--esp-2); }
+  .bandeau__contacts :global(.icone) { color: var(--ae-or-recolte); }
+  @media (min-width: 64rem) { .bandeau { grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); column-gap: var(--esp-6); } }
+  @media (max-width: 63.99rem) { .bandeau__actions .bouton { white-space: normal; text-align: left; } }
+  @media (max-width: 30rem) { .bandeau__actions .bouton { width: 100%; } }
 </style>

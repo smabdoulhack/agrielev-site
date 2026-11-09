@@ -1,9 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EnTetePage from '../components/EnTetePage.astro';
+import Photo from '../components/Photo.astro';
+import Icone from '../components/Icone.astro';
+import Sillons from '../components/Sillons.astro';
+import BadgeStatut from '../components/BadgeStatut.astro';
 import CarteExpert from '../components/CarteExpert.astro';
 import BandeauContact from '../components/BandeauContact.astro';
 import { PHOTOS } from '../data/photos.ts';
+import { STATUT_CUNISMART } from '../data/cunismart.ts';
 import { SITE } from '../data/site.ts';
 import { chargerVisibles } from '../lib/collections.ts';
 import { formatDate } from '../lib/format.ts';
@@ -14,53 +19,266 @@ const groupes = [
   { titre: 'Consultants', role: 'consultant' },
   { titre: 'Experts', role: 'expert' },
 ].map((g) => ({ ...g, membres: experts.filter((e) => e.data.role === g.role) })).filter((g) => g.membres.length > 0);
+
+const lancement = formatDate(SITE.dateLancementCuniSmart);
+
+const FICHE = [
+  { libelle: 'Raison sociale', valeur: SITE.raisonSociale },
+  { libelle: 'Forme juridique', valeur: 'Société à responsabilité limitée' },
+  { libelle: 'Capital social', valeur: SITE.capital, chiffre: true },
+  { libelle: 'RCCM', valeur: SITE.rccm, chiffre: true },
+  { libelle: 'IFU', valeur: SITE.ifu, chiffre: true },
+  { libelle: 'Siège', valeur: SITE.siege },
+  { libelle: 'Fondateur et gérant', valeur: 'Thierry Kouembi' },
+  { libelle: 'Premier produit', valeur: `CuniSmart by AgriElev, lancé le ${lancement}` },
+];
+
+const ACTIVITES = [
+  { verbe: 'Équiper', sous: 'Un outil numérique', texte: 'CuniSmart by AgriElev, le cahier de l’exploitation sur le téléphone, même sans réseau.', href: '/cunismart', lien: 'Découvrir CuniSmart' },
+  { verbe: 'Former', sous: 'Formation et information', texte: 'Des parcours CuniMaster par filière, des contenus agricoles et le réseau AgriElev Connect.', href: '/ressources#formations', lien: 'Les formations' },
+  { verbe: 'Accompagner', sous: 'Sur le terrain', texte: 'Diagnostic, pilote et suivi avec les coopératives et leurs membres.', href: '/cooperatives', lien: 'Pour les coopératives' },
+];
+const PROJETS = [
+  { libelle: 'Transformation', href: '/solutions#transformation', icone: 'factory' },
+  { libelle: 'Accès au marché', href: '/solutions#marches', icone: 'storefront' },
+  { libelle: 'Économie circulaire', href: '/solutions#innovation', icone: 'recycle' },
+];
+
+const COMPETENCES = [
+  { icone: 'target', titre: 'Entrepreneuriat' },
+  { icone: 'device-mobile', titre: 'Numérique' },
+  { icone: 'storefront', titre: 'Commerce' },
+  { icone: 'stethoscope', titre: 'Technique agricole' },
+];
+
+// Implantation : directions réelles depuis le Bénin (capitales), distances ramenées à trois cercles.
+const CENTRE = { lat: 6.37, lon: 2.43 };
+const CERCLES = [
+  { r: 72, libelle: 'Pays voisin' },
+  { r: 132, libelle: 'Afrique de l’Ouest et centrale' },
+  { r: 182, libelle: 'Autre continent' },
+];
+const PAYS = [
+  { nom: 'Togo', lat: 6.13, lon: 1.22, cercle: 0, etiquette: { dx: 0, dy: 29, ancre: 'middle' } },
+  { nom: 'Côte d’Ivoire', lat: 6.82, lon: -5.28, cercle: 1, etiquette: { dx: 0, dy: 24, ancre: 'middle' } },
+  { nom: 'Guinée', lat: 9.64, lon: -13.58, cercle: 1, etiquette: { dx: 0, dy: -14, ancre: 'middle' } },
+  { nom: 'Cameroun', lat: 3.85, lon: 11.5, cercle: 1, etiquette: { dx: 0, dy: 22, ancre: 'middle' } },
+  { nom: 'Canada', lat: 45.42, lon: -75.7, cercle: 2, etiquette: { dx: 13, dy: 5, ancre: 'start' } },
+];
+const rad = (d: number) => (d * Math.PI) / 180;
+const points = PAYS.map((p) => {
+  const f1 = rad(CENTRE.lat), f2 = rad(p.lat), dl = rad(p.lon - CENTRE.lon);
+  const cap = Math.atan2(Math.sin(dl) * Math.cos(f2), Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl));
+  const r = CERCLES[p.cercle].r;
+  return { ...p, x: 200 + r * Math.sin(cap), y: 200 - r * Math.cos(cap) };
+});
 ---
-<BaseLayout titre="L'entreprise" description="AgriElev Bénin SARL, entreprise agritech au service des filières agricoles africaines : mission, vision, équipe et réseau.">
+<BaseLayout titre="L'entreprise" description="AgriElev Bénin SARL, entreprise agritech au service des filières agricoles africaines : mission, vision, équipe, fiche d’identité et implantation.">
   <EnTetePage
-    surtitre="AgriElev"
+    surtitre={SITE.raisonSociale}
     titre="Une entreprise agritech au service des filières agricoles"
-    chapeau="AgriElev Bénin SARL accompagne les producteurs, les coopératives et les acteurs des filières agricoles dans la gestion de leurs activités et le développement de leurs compétences."
-    photo={PHOTOS.entreprise}
-  />
+    chapeau="AgriElev accompagne les producteurs, les coopératives et les acteurs des filières dans la gestion de leurs activités et le développement de leurs compétences."
+    photo={PHOTOS.suiviPastoral}
+    etiquette="Suivi des troupeaux, septembre 2026"
+    panneau={{ icone: 'map-pin', titre: 'Née au Bénin', texte: 'Une équipe de terrain, au contact des éleveurs et des cultivateurs.' }}
+  >
+    <div class="actions">
+      <a class="bouton bouton--principal bouton--grand" href="/solutions">Découvrir nos solutions<Icone nom="arrow-right" taille={20} /></a>
+      <a class="bouton bouton--fantome bouton--grand" href="#equipe">Rencontrer l’équipe</a>
+    </div>
+  </EnTetePage>
 
-  <section class="section">
-    <div class="conteneur texte-long">
-      <h2>Qui sommes-nous</h2>
-      <p>AgriElev Bénin SARL est une entreprise agritech implantée au Bénin et tournée vers les besoins des filières agricoles africaines. Fondée à l'initiative de Thierry Kouembi, elle rassemble des compétences entrepreneuriales, numériques, commerciales et techniques pour accompagner les producteurs et leurs organisations.</p>
-      <p>Son premier produit, CuniSmart by AgriElev, a été lancé le {formatDate(SITE.dateLancementCuniSmart)}. AgriElev développe autour de cet outil des parcours de formation, un dispositif d'information agricole et des accompagnements collectifs. Ses projets de transformation, de mise en marché et d'économie circulaire sont déployés progressivement avec les acteurs concernés.</p>
+  <!-- Qui sommes-nous et fiche d'identité -->
+  <section id="presentation" class="section section--blanc">
+    <div class="conteneur disposition disposition--7-5 disposition--haut presentation">
+      <div class="presentation__texte">
+        <h2>Une agritech née au Bénin, tournée vers les filières africaines</h2>
+        <p class="presentation__attaque">AgriElev Bénin SARL est une entreprise agritech implantée au Bénin. Fondée à l’initiative de Thierry Kouembi, elle rassemble des compétences entrepreneuriales, numériques, commerciales et techniques pour accompagner les producteurs et leurs organisations.</p>
+        <p class="texte-doux">Son premier produit, CuniSmart by AgriElev, a été lancé le {lancement}. Autour de cet outil, AgriElev développe des parcours de formation, un dispositif d’information agricole et des accompagnements collectifs. Ses projets de transformation, de mise en marché et d’économie circulaire avancent progressivement, avec les acteurs concernés.</p>
+        <ul class="liste-nue principes">
+          <li><Icone nom="wifi-slash" taille={20} /><span><strong>Pensé pour le terrain</strong>Peu de réseau, des téléphones simples : nos outils partent de là.</span></li>
+          <li><Icone nom="seal-check" taille={20} /><span><strong>Chaque offre dit son état</strong>Disponible, en pilote ou en préparation, sans détour.</span></li>
+          <li><Icone nom="shield-check" taille={20} /><span><strong>Chacun voit ce qui le concerne</strong>Le producteur voit sa ferme ; une institution ne voit que des totaux.</span></li>
+        </ul>
+      </div>
+
+      <aside class="fiche" aria-labelledby="fiche-titre">
+        <div class="fiche__tete">
+          <span class="pastille pastille--grande pastille--or"><Icone nom="identification-card" taille={24} /></span>
+          <div>
+            <h2 id="fiche-titre">Fiche d’identité</h2>
+            <p>Informations légales de l’entreprise</p>
+          </div>
+        </div>
+        <dl class="fiche__liste">
+          {FICHE.map((f) => (
+            <div>
+              <dt>{f.libelle}</dt>
+              <dd class:list={{ 'fiche__chiffre': f.chiffre }}>{f.valeur}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="fiche__pied"><a href="/mentions-legales">Mentions légales</a><span aria-hidden="true">·</span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      </aside>
     </div>
   </section>
 
-  <section class="section section--creme">
-    <div class="conteneur grille grille--2">
-      <div class="encadre">
+  <!-- Mission et vision -->
+  <section id="mission" class="section section--foret mission">
+    <Sillons classe="mission__sillons" fuite={0.82} rangs={22} />
+    <div class="conteneur mission__grille">
+      <div class="mission__bloc">
         <h2>Notre mission</h2>
-        <p>Rendre les outils de gestion, les connaissances et l'accompagnement agricole plus accessibles, afin d'aider les producteurs et leurs organisations à suivre leurs activités et à prendre des décisions mieux informées.</p>
+        <p>Rendre les outils de gestion, les connaissances et l’accompagnement agricole plus accessibles, pour aider les producteurs et leurs organisations à suivre leurs activités et à prendre des décisions mieux informées.</p>
       </div>
-      <div class="encadre">
+      <div class="mission__bloc">
         <h2>Notre vision</h2>
-        <p>Contribuer à des filières agricoles africaines mieux organisées, dans lesquelles producteurs, transformatrices, jeunes et partenaires peuvent coopérer à partir d'informations fiables et de services adaptés au terrain.</p>
+        <p>Des filières agricoles africaines mieux organisées, où producteurs, transformatrices, jeunes et partenaires coopèrent à partir d’informations fiables et de services adaptés au terrain.</p>
       </div>
     </div>
   </section>
 
+  <!-- Activités -->
   <section class="section">
-    <div class="conteneur texte-long">
-      <h2>Équipe et réseau</h2>
-      <p>L'équipe réunit des compétences en analyse et suivi de projet, en formation et en expertise technique. Elle s'appuie sur un réseau d'experts agronomiques et vétérinaires mobilisés autour d'AgriElev Connect.</p>
-    </div>
-    {groupes.map((g) => (
-      <div class="conteneur groupe-equipe">
-        <h3>{g.titre}</h3>
-        <div class="grille">{g.membres.map((e) => <CarteExpert expert={e} />)}</div>
+    <div class="conteneur">
+      <header class="entete-section">
+        <div>
+          <h2>Ce que nous faisons</h2>
+          <p>Trois métiers qui se renforcent : l’outil, la formation et la présence sur le terrain.</p>
+        </div>
+      </header>
+      <ol class="liste-nue triptyque">
+        {ACTIVITES.map((a, i) => (
+          <li class="triptyque__colonne">
+            <span class="triptyque__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="triptyque__verbe">{a.verbe}</h3>
+            <p class="triptyque__sous">{a.sous}</p>
+            <p class="triptyque__texte">{a.texte}</p>
+            <a class="lien-fleche lien-fleche--vert" href={a.href}>{a.lien}<Icone nom="arrow-right" taille={18} /></a>
+          </li>
+        ))}
+      </ol>
+      <div class="projets">
+        <p class="projets__texte"><BadgeStatut statut="preparation" /><span>Avec les acteurs concernés, nous préparons aussi :</span></p>
+        <ul class="liste-nue projets__liste">
+          {PROJETS.map((p) => <li><a href={p.href}><Icone nom={p.icone} taille={18} />{p.libelle}</a></li>)}
+        </ul>
       </div>
-    ))}
+    </div>
   </section>
 
-  <section class="section section--brume">
-    <div class="conteneur texte-long">
-      <h2>Implantation</h2>
-      <p>AgriElev a son siège au Bénin. Des utilisateurs de CuniSmart sont signalés au Cameroun, au Togo, en Guinée, en Côte d'Ivoire et au Canada : il s'agit d'usages déclarés, en cours de confirmation par les données de l'application.</p>
+  <!-- Repères -->
+  <section class="section section--creme">
+    <div class="conteneur">
+      <header class="entete-section">
+        <div>
+          <h2>Les premiers repères</h2>
+          <p>Une entreprise jeune, qui avance avec ceux qu’elle accompagne.</p>
+        </div>
+      </header>
+      <ol class="liste-nue reperes">
+        <li class="repere repere--fort">
+          <Icone nom="calendar-check" taille={24} />
+          <p class="repere__date">{lancement}</p>
+          <h3>Lancement de CuniSmart</h3>
+          <p>Le cahier d’exploitation numérique d’AgriElev, utilisable sans réseau.</p>
+        </li>
+        <li class="repere repere--photo">
+          <div class="repere__image"><Photo photo={PHOTOS.reunionProducteurs} sizes="(min-width: 64rem) 20rem, (min-width: 40rem) 45vw, 100vw" /></div>
+          <p class="repere__date">Septembre 2026</p>
+          <h3>Réunions de village</h3>
+          <p>Rencontres avec des productrices et suivi des troupeaux.</p>
+        </li>
+        <li class="repere repere--photo">
+          <div class="repere__image"><Photo photo={PHOTOS.karite} sizes="(min-width: 64rem) 20rem, (min-width: 40rem) 45vw, 100vw" /></div>
+          <p class="repere__date">Octobre 2026</p>
+          <h3>Missions sur les filières</h3>
+          <p>Maraîchage, karité, papayers et biodigesteur.</p>
+        </li>
+        <li class="repere repere--maintenant">
+          <BadgeStatut statut={STATUT_CUNISMART} />
+          <p class="repere__date">Aujourd’hui</p>
+          <h3>CuniSmart en pilote</h3>
+          <p>Gratuit pendant cette phase. Les coopératives peuvent organiser un pilote avec nous.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Équipe -->
+  <section id="equipe" class="section section--blanc">
+    <div class="conteneur disposition disposition--7-5 equipe">
+      <div class="photo-carte photo-carte--terre equipe__photo">
+        <Photo photo={PHOTOS.equipeTerrain} sizes="(min-width: 80rem) 44rem, (min-width: 64rem) 56vw, 100vw" />
+        <div class="photo-carte__bas equipe__panneau">
+          <span class="pastille pastille--grande pastille--creme"><Icone nom="users-three" taille={24} /></span>
+          <div>
+            <strong>L’équipe AgriElev sur le terrain</strong>
+            <p>Diagnostic, formation des techniciens et suivi des membres.</p>
+          </div>
+        </div>
+      </div>
+      <div class="empile equipe__texte">
+        <h2>Une équipe de terrain, un réseau d’experts</h2>
+        <p class="texte-doux">L’équipe réunit des compétences en analyse et suivi de projet, en formation et en expertise technique. Elle s’appuie sur un réseau d’experts agronomiques et vétérinaires mobilisés autour d’AgriElev Connect.</p>
+        <ul class="liste-nue competences">
+          {COMPETENCES.map((c) => <li><Icone nom={c.icone} taille={20} />{c.titre}</li>)}
+        </ul>
+        <div class="actions">
+          <a class="bouton bouton--secondaire" href="/connect#candidature">Rejoindre le réseau</a>
+          <a class="lien-fleche lien-fleche--vert" href="/connect">AgriElev Connect<Icone nom="arrow-right" taille={18} /></a>
+        </div>
+      </div>
+    </div>
+    {groupes.length > 0 && (
+      <div class="conteneur">
+        {groupes.map((g) => (
+          <div class="groupe-equipe">
+            <h3 class="titre-bloc">{g.titre}</h3>
+            <div class="grille grille--4">{g.membres.map((e) => <CarteExpert expert={e} />)}</div>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <!-- Implantation -->
+  <section id="implantation" class="section section--brume">
+    <div class="conteneur disposition disposition--5-7 implantation">
+      <div class="empile implantation__texte">
+        <h2>Depuis le Bénin</h2>
+        <p class="texte-doux">Le siège et l’équipe de terrain d’AgriElev sont au Bénin. Des utilisateurs de CuniSmart sont signalés dans d’autres pays : ce sont des usages déclarés, en cours de confirmation par les données de l’application.</p>
+        <ul class="liste-nue implantation__pays">
+          <li class="implantation__siege"><span class="implantation__marque implantation__marque--siege" aria-hidden="true"></span><strong>Bénin</strong><span>Siège et équipe</span></li>
+          {PAYS.map((p) => <li><span class="implantation__marque" aria-hidden="true"></span><strong>{p.nom}</strong><span>Usage déclaré</span></li>)}
+        </ul>
+        <p class="mention">Un utilisateur dans un pays ne fait pas une implantation commerciale : nous ne l’affichons pas comme telle.</p>
+      </div>
+
+      <figure class="radar">
+        <svg viewBox="0 0 400 400" class="radar__svg" aria-hidden="true" focusable="false">
+          {CERCLES.map((c) => <circle cx="200" cy="200" r={c.r} class="radar__cercle" />)}
+          <line x1="200" y1="10" x2="200" y2="390" class="radar__axe" />
+          <line x1="10" y1="200" x2="390" y2="200" class="radar__axe" />
+          {CERCLES.map((c) => <text x="200" y={200 - c.r - 7} text-anchor="middle" class="radar__cercle-libelle">{c.libelle}</text>)}
+          {points.map((p) => (
+            <g>
+              <line x1="200" y1="200" x2={p.x.toFixed(1)} y2={p.y.toFixed(1)} class="radar__rayon" />
+              <circle cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="7" class="radar__pays" />
+              <text x={(p.x + p.etiquette.dx).toFixed(1)} y={(p.y + p.etiquette.dy).toFixed(1)} text-anchor={p.etiquette.ancre} class="radar__nom">{p.nom}</text>
+            </g>
+          ))}
+          <circle cx="200" cy="200" r="16" class="radar__halo" />
+          <circle cx="200" cy="200" r="9" class="radar__siege" />
+          <text x="200" y="232" text-anchor="middle" class="radar__nom radar__nom--siege">Bénin</text>
+          <text x="384" y="30" text-anchor="end" class="radar__nord">N ↑</text>
+        </svg>
+        <figcaption class="radar__legende">
+          <span><span class="implantation__marque implantation__marque--siege" aria-hidden="true"></span>Siège</span>
+          <span><span class="implantation__marque" aria-hidden="true"></span>Usage déclaré, à confirmer</span>
+          <span class="radar__echelle">Directions réelles depuis le Bénin, distances non à l’échelle.</span>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
@@ -68,8 +286,143 @@ const groupes = [
 </BaseLayout>
 
 <style>
-  .texte-long > * { max-width: 52rem; }
-  .grille--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
-  .encadre { padding: var(--esp-5); background: #FFFFFF; border-radius: var(--radius); border-top: 4px solid var(--ae-or-recolte); }
-  .groupe-equipe { margin-top: var(--esp-5); }
+  /* ---------- Présentation et fiche ---------- */
+  .presentation { row-gap: var(--esp-5); }
+  .presentation__texte > * { margin: 0; }
+  .presentation__texte h2 { max-width: 20ch; margin-bottom: var(--esp-4); }
+  .presentation__attaque { margin-bottom: var(--esp-3) !important; font-size: var(--fs-md); line-height: 1.6; color: var(--ae-brun-terre); max-width: 40rem; }
+  .presentation__texte .texte-doux { max-width: 40rem; }
+  .principes { display: grid; gap: var(--esp-3); margin-top: var(--esp-5) !important; padding-top: var(--esp-4); border-top: 1px solid var(--ligne); }
+  .principes li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--esp-3); align-items: start; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .principes li > :global(.icone) { width: 2.5rem; height: 2.5rem; padding: 0.55rem; border-radius: var(--radius); background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
+  .principes strong { display: block; font-family: var(--font-titre); font-size: var(--fs-base); color: var(--ae-vert-foret); }
+  @media (min-width: 48rem) { .principes { grid-template-columns: repeat(3, minmax(0, 1fr)); } .principes li { grid-template-columns: 1fr; gap: var(--esp-2); } }
+
+  .fiche {
+    position: relative; overflow: hidden; border-radius: var(--radius); background: #FFFFFF;
+    box-shadow: var(--ombre-3), inset 0 4px 0 var(--ae-vert-foret);
+  }
+  .fiche__tete { display: flex; align-items: center; gap: var(--esp-3); padding: var(--esp-4) var(--esp-4) var(--esp-3); background: linear-gradient(to bottom, var(--ae-vert-brume), #FFFFFF); }
+  .fiche__tete h2 { margin: 0; font-size: var(--fs-xl); letter-spacing: -0.01em; }
+  .fiche__tete p { margin: 0.125rem 0 0; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .fiche__liste { margin: 0; padding: 0 var(--esp-4); }
+  .fiche__liste > div { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: var(--esp-3); padding-block: 0.8rem; border-top: 1px dashed var(--ligne-forte); }
+  .fiche__liste dt { font-size: var(--fs-sm); color: var(--texte-doux); }
+  .fiche__liste dd { margin: 0; font-weight: 600; line-height: 1.4; color: var(--ae-vert-foret); }
+  .fiche__chiffre { font-family: var(--font-titre); font-weight: 700 !important; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+  .fiche__pied { display: flex; flex-wrap: wrap; gap: var(--esp-2); margin: 0; padding: var(--esp-3) var(--esp-4); border-top: 1px solid var(--ligne); background: var(--creme-douce); font-size: var(--fs-sm); }
+  .fiche__pied a { font-weight: 600; }
+  @media (max-width: 29.99rem) { .fiche__liste > div { grid-template-columns: 1fr; gap: 0.125rem; } }
+  @media (min-width: 64rem) { .fiche { margin-top: var(--esp-2); } }
+
+  /* ---------- Mission et vision ---------- */
+  .mission { position: relative; overflow: hidden; isolation: isolate; }
+  :global(.mission__sillons) { position: absolute !important; inset: 0; z-index: -1; color: var(--ae-or-recolte); opacity: 0.22; -webkit-mask-image: linear-gradient(to left, #000 8%, transparent 55%); mask-image: linear-gradient(to left, #000 8%, transparent 55%); }
+  .mission__grille { display: grid; gap: var(--esp-6); }
+  .mission__bloc h2 { display: flex; align-items: center; gap: var(--esp-3); margin: 0 0 var(--esp-4); font-size: var(--fs-lg); font-weight: 700; letter-spacing: 0; color: var(--ae-or-recolte); }
+  .mission__bloc h2::after { content: ''; flex: 1; height: 1px; background: rgb(214 160 27 / 0.45); }
+  .mission__bloc p { margin: 0; font-family: var(--font-titre); font-weight: 700; font-size: clamp(1.375rem, 1rem + 1.1vw, 1.875rem); line-height: 1.32; letter-spacing: -0.02em; color: #FFFFFF; text-wrap: pretty; }
+  @media (min-width: 64rem) { .mission__grille { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-7); } }
+
+  /* ---------- Triptyque des activités ---------- */
+  .triptyque { display: grid; gap: var(--esp-5); }
+  .triptyque__colonne { display: flex; flex-direction: column; gap: var(--esp-2); }
+  .triptyque__colonne > * { margin: 0; }
+  .triptyque__numero { font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-sm); color: var(--or-texte); font-variant-numeric: tabular-nums; }
+  .triptyque__verbe { font-size: clamp(2.25rem, 1.2rem + 2.2vw, 3.25rem); font-weight: 800; line-height: 1; letter-spacing: -0.035em; hyphens: none; }
+  .triptyque__sous { font-family: var(--font-titre); font-weight: 700; font-size: var(--fs-lg); color: var(--ae-brun-terre); }
+  .triptyque__texte { color: var(--texte-doux); max-width: 26rem; }
+  .triptyque .lien-fleche { margin-top: var(--esp-2); }
+  .triptyque__colonne + .triptyque__colonne { padding-top: var(--esp-5); border-top: 1px solid var(--ligne); }
+  @media (min-width: 64rem) {
+    .triptyque { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+    .triptyque__colonne { padding: var(--esp-2) var(--esp-4); }
+    .triptyque__colonne + .triptyque__colonne { padding-top: var(--esp-2); border-top: 0; border-left: 1px solid var(--ligne); }
+    .triptyque__colonne:first-child { padding-left: 0; }
+  }
+  @media (min-width: 80rem) { .triptyque__colonne { padding-inline: var(--esp-5); } }
+  .projets {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-3);
+    margin-top: var(--esp-6); padding: var(--esp-3) var(--esp-4); border-radius: var(--radius);
+    outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px; background: rgb(255 255 255 / 0.55);
+  }
+  .projets__texte { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-3); margin: 0; font-weight: 600; }
+  .projets__liste { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+  .projets__liste a {
+    display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; border-radius: var(--radius);
+    background: #FFFFFF; box-shadow: var(--ombre-1); font-size: var(--fs-sm); font-weight: 700; color: var(--ae-vert-foret); text-decoration: none;
+  }
+  .projets__liste a:hover { box-shadow: var(--ombre-2); text-decoration: underline; }
+
+  /* ---------- Repères ---------- */
+  .reperes { display: grid; gap: var(--esp-3); }
+  .repere { position: relative; display: flex; flex-direction: column; gap: var(--esp-2); padding: var(--esp-4); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .repere > * { margin: 0; }
+  .repere h3 { font-size: var(--fs-lg); }
+  .repere p:not(.repere__date) { font-size: var(--fs-sm); line-height: 1.45; color: var(--texte-doux); }
+  .repere__date { font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-xl); line-height: 1.1; letter-spacing: -0.02em; color: var(--ae-vert-foret); font-variant-numeric: tabular-nums; }
+  .repere--fort { background: var(--ae-vert-foret); box-shadow: var(--ombre-2); }
+  .repere--fort > :global(.icone) { color: var(--ae-or-recolte); }
+  .repere--fort .repere__date { color: #FFFFFF; font-size: var(--fs-2xl); }
+  .repere--fort h3 { color: var(--ae-or-recolte); }
+  .repere--fort p:not(.repere__date) { color: var(--ae-vert-brume); }
+  .repere--photo { padding-top: 0; overflow: hidden; }
+  .repere__image { height: 9rem; margin: 0 calc(-1 * var(--esp-4)) var(--esp-2) !important; background: var(--ae-creme); }
+  .repere__image :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .repere--maintenant { box-shadow: var(--ombre-2), inset 0 3px 0 var(--ae-or-recolte); }
+  @media (min-width: 40rem) { .reperes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 64rem) {
+    .reperes { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--esp-4); }
+    .reperes::before { content: none; }
+    .repere--fort, .repere--maintenant { justify-content: flex-end; }
+  }
+
+  /* ---------- Équipe ---------- */
+  .equipe { row-gap: var(--esp-5); }
+  .equipe__photo { --hauteur-photo: 20rem; --hauteur-photo-large: 32rem; }
+  .equipe__panneau { left: auto; width: min(22rem, calc(100% - 2rem)); }
+  .equipe__texte { gap: var(--esp-4); }
+  .equipe__texte h2 { margin: 0; }
+  .competences { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-2); }
+  .competences li { display: flex; align-items: center; gap: var(--esp-2); padding: 0.75rem var(--esp-3); border-radius: var(--radius); background: var(--ae-vert-brume); font-weight: 700; font-size: var(--fs-sm); color: var(--ae-vert-foret); }
+  .equipe__texte .actions { margin-top: var(--esp-2); }
+  .groupe-equipe { margin-top: var(--esp-6); }
+  .groupe-equipe h3 { margin-bottom: var(--esp-4); }
+  @media (max-width: 39.99rem) { .equipe__panneau { width: auto; left: 1rem; } }
+
+  /* ---------- Implantation ---------- */
+  .implantation { row-gap: var(--esp-5); }
+  .implantation__texte { gap: var(--esp-4); }
+  .implantation__texte h2 { margin: 0; }
+  .implantation__pays { display: grid; gap: 0; border-top: 1px solid var(--ligne); }
+  .implantation__pays li { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) auto; align-items: center; gap: var(--esp-3); padding-block: 0.625rem; border-bottom: 1px solid var(--ligne); }
+  .implantation__pays strong { font-family: var(--font-titre); color: var(--ae-vert-foret); }
+  .implantation__pays li > span:last-child { font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+  .implantation__siege > span:last-child { color: var(--ae-vert-foret) !important; }
+  .implantation__marque { display: inline-block; width: 0.875rem; height: 0.875rem; border-radius: 50%; border: 2px dashed var(--ae-vert-foret); }
+  .implantation__marque--siege { border: 0; background: var(--ae-or-recolte); box-shadow: 0 0 0 3px rgb(214 160 27 / 0.3); }
+
+  .radar { margin: 0; padding: var(--esp-4); border-radius: var(--radius); background: var(--ae-vert-foret); box-shadow: var(--ombre-3); }
+  .radar__svg { width: 100%; max-width: 32rem; margin-inline: auto; overflow: visible; font-family: var(--font-titre); }
+  .radar__cercle { fill: none; stroke: rgb(127 184 143 / 0.55); stroke-width: 1.25; stroke-dasharray: 3 5; }
+  .radar__axe { stroke: rgb(127 184 143 / 0.16); stroke-width: 1; }
+  .radar__rayon { stroke: rgb(214 160 27 / 0.45); stroke-width: 1; }
+  .radar__cercle-libelle { fill: var(--ae-vert-brume); font-size: 11.5px; font-weight: 700; font-family: var(--font-texte); }
+  .radar__pays { fill: var(--ae-vert-foret); stroke: var(--ae-creme); stroke-width: 2; stroke-dasharray: 3 2.5; }
+  .radar__nom { fill: #FFFFFF; font-size: 14px; font-weight: 700; }
+  .radar__nom--siege { fill: var(--ae-or-recolte); font-size: 19px; font-weight: 800; }
+  .radar__siege { fill: var(--ae-or-recolte); }
+  .radar__halo { fill: rgb(214 160 27 / 0.22); }
+  .radar__nord { fill: var(--ae-vert-brume); font-size: 12px; font-weight: 700; }
+  .radar__legende { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); margin-top: var(--esp-3); padding-top: var(--esp-3); border-top: 1px solid rgb(233 243 234 / 0.18); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-brume); }
+  .radar__legende > span { display: inline-flex; align-items: center; gap: var(--esp-2); }
+  .radar__legende .implantation__marque { border-color: var(--ae-creme); }
+  .radar__echelle { flex-basis: 100%; font-weight: 400; font-size: var(--fs-xs); }
+  @media (max-width: 39.99rem) {
+    .radar { padding: var(--esp-3) var(--esp-2); }
+    .radar__nom { font-size: 16px; }
+    .radar__nom--siege { font-size: 20px; }
+    .radar__cercle-libelle, .radar__nord { font-size: 13px; }
+  }
+  @media (min-width: 64rem) { .radar { padding: var(--esp-5); } }
 </style>

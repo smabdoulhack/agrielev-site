@@ -1,0 +1,66 @@
+---
+// État vide : ce qui n'existe pas encore prend la forme « en préparation » (contour pointillé, sans ombre),
+// dit ce qui viendra et propose une action utile.
+import Icone from './Icone.astro';
+
+interface Props {
+  icone: string;
+  titre: string;
+  texte: string;
+  /** Ce que contiendra chaque publication (rubriques d'une fiche, types de documents…). */
+  elements?: string[];
+  /** Titre de la liste des éléments. */
+  legende?: string;
+  /** Petite étiquette d'état, par exemple « À venir ». */
+  etiquette?: string;
+  /** Présentation des éléments : lignes d'une fiche à remplir, ou tuiles de fichiers. */
+  forme?: 'fiche' | 'tuiles';
+}
+const { icone, titre, texte, elements, legende, etiquette, forme = 'fiche' } = Astro.props;
+const avecActions = Astro.slots.has('default');
+---
+<div class="etat-vide">
+  <div class="etat-vide__tete">
+    <span class="pastille pastille--grande pastille--creme"><Icone nom={icone} taille={26} /></span>
+    {etiquette && <span class="etiquette etiquette--neutre"><span class="point point--gris" aria-hidden="true"></span>{etiquette}</span>}
+  </div>
+  <h3>{titre}</h3>
+  <p class="etat-vide__texte">{texte}</p>
+  {elements && elements.length > 0 && (
+    <div class:list={['etat-vide__fiche', { 'etat-vide__fiche--tuiles': forme === 'tuiles' }]}>
+      {legende && <p class="etat-vide__legende">{legende}</p>}
+      <ul class="liste-nue">
+        {elements.map((e) => forme === 'tuiles'
+          ? <li><Icone nom="file-pdf" taille={22} /><span>{e}</span></li>
+          : <li><span>{e}</span><span class="etat-vide__ligne" aria-hidden="true"></span></li>)}
+      </ul>
+    </div>
+  )}
+  {avecActions && <div class="etat-vide__actions"><slot /></div>}
+</div>
+
+<style>
+  .etat-vide {
+    display: flex; flex-direction: column; gap: var(--esp-2); height: 100%;
+    padding: var(--esp-4); border-radius: var(--radius); background: rgb(255 255 255 / 0.6);
+    outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px;
+  }
+  .etat-vide > * { margin: 0; }
+  .etat-vide__tete { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2); margin-bottom: var(--esp-2); }
+  .etat-vide h3 { font-size: var(--fs-xl); letter-spacing: -0.01em; }
+  .etat-vide__texte { color: var(--ae-brun-terre); max-width: 36rem; }
+  .etat-vide__fiche { margin-top: var(--esp-2); padding: var(--esp-3); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .etat-vide__legende { margin: 0 0 var(--esp-2); font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-doux); }
+  .etat-vide__fiche ul { display: grid; gap: 0; }
+  .etat-vide__fiche li { display: grid; grid-template-columns: minmax(6.5rem, auto) minmax(0, 1fr); align-items: end; gap: var(--esp-3); padding-block: 0.5rem; font-size: var(--fs-sm); font-weight: 600; color: var(--ae-vert-foret); }
+  .etat-vide__ligne { height: 0.6rem; border-bottom: 1.5px dotted var(--ligne-forte); }
+  .etat-vide__fiche--tuiles { padding: 0; background: none; box-shadow: none; }
+  .etat-vide__fiche--tuiles ul { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--esp-2); }
+  .etat-vide__fiche--tuiles li {
+    display: flex; flex-direction: column; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3);
+    border-radius: var(--radius); background: #FFFFFF; border: 1.5px dashed var(--ligne-forte); font-family: var(--font-titre); font-weight: 700;
+  }
+  .etat-vide__fiche--tuiles li :global(.icone) { color: var(--ae-or-fonce); }
+  .etat-vide__actions { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4); margin-top: auto !important; padding-top: var(--esp-3); }
+  @media (min-width: 64rem) { .etat-vide { padding: var(--esp-5); } }
+</style>

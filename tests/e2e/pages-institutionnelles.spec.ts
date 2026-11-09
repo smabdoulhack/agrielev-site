@@ -4,7 +4,8 @@ test('entreprise : présentation, mission et vision', async ({ page }) => {
   await page.goto('/entreprise');
   await expect(page.getByRole('heading', { name: 'Notre mission' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Notre vision' })).toBeVisible();
-  await expect(page.getByText('11 juillet 2026')).toBeVisible();
+  await expect(page.getByText('11 juillet 2026').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fiche d’identité' })).toBeVisible();
   await expect(page.getByText('usages déclarés', { exact: false })).toBeVisible();
 });
 
@@ -22,6 +23,9 @@ test('cunismart : signature, fonctions avec statut, démonstration', async ({ pa
   await page.goto('/cunismart');
   await expect(page.locator('h1')).toHaveText('CuniSmart by AgriElev');
   await expect(page.locator('[data-test="fonction"] .badge')).toHaveCount(9);
+  // Captures réelles de l'application (et non une photo d'illustration).
+  expect(await page.locator('.ecran-app img').count()).toBeGreaterThanOrEqual(5);
+  await expect(page.locator('header .entete__barre [data-test="bouton-cunismart"]')).toHaveAttribute('href', 'https://app.cunismart.com/');
   await expect(page.getByRole('heading', { name: 'Couverture collective' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Demander une démonstration' })).toHaveAttribute('href', /sujet=demo-cunismart/);
 });
@@ -29,6 +33,7 @@ test('cunismart : signature, fonctions avec statut, démonstration', async ({ pa
 test('coopératives : parcours en cinq étapes et pilote', async ({ page }) => {
   await page.goto('/cooperatives');
   await expect(page.locator('ol.parcours > li')).toHaveCount(5);
+  await expect(page.locator('.faq details')).toHaveCount(5);
   await expect(page.getByRole('link', { name: 'Organiser un pilote avec ma coopérative' }).first())
     .toHaveAttribute('href', /sujet=pilote-cooperative/);
 });

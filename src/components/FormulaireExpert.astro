@@ -1,55 +1,90 @@
 ---
+// Candidature au réseau AgriElev Connect (Netlify Forms), en trois temps numérotés.
+// Les noms, identifiants et attributs Netlify sont attendus par src/scripts/formulaire.ts et les tests e2e.
+import Icone from './Icone.astro';
 ---
-<form id="candidature" name="candidature-expert" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="expert" class="formulaire">
+<form id="candidature" name="candidature-expert" method="POST" action="/contact/merci/" data-netlify="true" netlify-honeypot="site_web" data-formulaire="expert" class="formulaire formulaire-expert">
   <input type="hidden" name="form-name" value="candidature-expert" />
   <input type="hidden" name="subject" data-remove-prefix value="[Site AgriElev] Candidature expert · Institutionnel" />
   <p class="visuellement-cache"><label>Ne pas remplir : <input name="site_web" tabindex="-1" autocomplete="off" /></label></p>
+  <div class="formulaire__tete">
+    <h3 class="formulaire__titre">Votre candidature</h3>
+    <p class="aide">Les champs marqués <span class="obligatoire" aria-hidden="true">*</span> sont obligatoires.</p>
+  </div>
 
-  <div class="champ">
-    <label for="e-nom">Nom et prénom <span aria-hidden="true">*</span></label>
-    <input id="e-nom" name="nom" required autocomplete="name" maxlength="120" />
+  <div class="groupe">
+    <h4 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">1</span>Vous</h4>
+    <div class="champ">
+      <label for="e-nom">Nom et prénom <span class="obligatoire" aria-hidden="true">*</span></label>
+      <input id="e-nom" name="nom" required autocomplete="name" maxlength="120" />
+    </div>
+    <div class="formulaire__ligne">
+      <div class="champ">
+        <label for="e-email">E-mail <span class="obligatoire" aria-hidden="true">*</span></label>
+        <input id="e-email" name="email" type="email" required autocomplete="email" maxlength="160" />
+      </div>
+      <div class="champ">
+        <label for="e-telephone">Téléphone ou WhatsApp <span class="facultatif">(facultatif)</span></label>
+        <input id="e-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+      </div>
+    </div>
   </div>
-  <div class="champ">
-    <label for="e-email">E-mail <span aria-hidden="true">*</span></label>
-    <input id="e-email" name="email" type="email" required autocomplete="email" maxlength="160" />
+
+  <div class="groupe">
+    <h4 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">2</span>Votre expertise</h4>
+    <div class="champ">
+      <label for="e-specialite">Spécialité <span class="obligatoire" aria-hidden="true">*</span></label>
+      <input id="e-specialite" name="specialite" required maxlength="160" aria-describedby="e-specialite-aide" />
+      <p id="e-specialite-aide" class="aide">Par exemple : santé animale, agronomie, aquaculture.</p>
+    </div>
+    <div class="champ">
+      <label for="e-diplomes">Diplômes et expérience <span class="obligatoire" aria-hidden="true">*</span></label>
+      <textarea id="e-diplomes" name="diplomes" required rows="3" maxlength="2000"></textarea>
+    </div>
+    <div class="formulaire__ligne">
+      <div class="champ">
+        <label for="e-zone">Zone d’intervention <span class="obligatoire" aria-hidden="true">*</span></label>
+        <input id="e-zone" name="zone" required maxlength="160" />
+      </div>
+      <div class="champ">
+        <label for="e-disponibilite">Disponibilité <span class="obligatoire" aria-hidden="true">*</span></label>
+        <input id="e-disponibilite" name="disponibilite" required maxlength="160" placeholder="Deux demi-journées par mois" />
+      </div>
+    </div>
+    <div class="champ">
+      <label for="e-lien">Lien vers un profil <span class="facultatif">(facultatif)</span></label>
+      <input id="e-lien" name="lien" type="url" maxlength="300" placeholder="https://" />
+    </div>
   </div>
-  <div class="champ">
-    <label for="e-telephone">Téléphone ou WhatsApp <span class="facultatif">(facultatif)</span></label>
-    <input id="e-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="40" />
+
+  <div class="groupe">
+    <h4 class="groupe__titre"><span class="groupe__numero" aria-hidden="true">3</span>Un mot pour nous</h4>
+    <div class="champ">
+      <label for="e-message">Message <span class="facultatif">(facultatif)</span></label>
+      <textarea id="e-message" name="message" rows="4" maxlength="3000"></textarea>
+    </div>
+    <div class="champ champ--case">
+      <input id="e-consentement" name="consentement" type="checkbox" value="oui" required />
+      <label for="e-consentement">J’accepte que mes informations servent à étudier ma candidature (<a href="/confidentialite">confidentialité</a>).</label>
+    </div>
   </div>
-  <div class="champ">
-    <label for="e-specialite">Spécialité <span aria-hidden="true">*</span></label>
-    <input id="e-specialite" name="specialite" required maxlength="160" placeholder="Exemple : santé animale, agronomie, aquaculture" />
-  </div>
-  <div class="champ">
-    <label for="e-diplomes">Diplômes et expérience <span aria-hidden="true">*</span></label>
-    <textarea id="e-diplomes" name="diplomes" required rows="3" maxlength="2000"></textarea>
-  </div>
-  <div class="champ">
-    <label for="e-zone">Zone d'intervention <span aria-hidden="true">*</span></label>
-    <input id="e-zone" name="zone" required maxlength="160" />
-  </div>
-  <div class="champ">
-    <label for="e-disponibilite">Disponibilité <span aria-hidden="true">*</span></label>
-    <input id="e-disponibilite" name="disponibilite" required maxlength="160" placeholder="Exemple : deux demi-journées par mois" />
-  </div>
-  <div class="champ">
-    <label for="e-lien">Lien vers un profil <span class="facultatif">(facultatif)</span></label>
-    <input id="e-lien" name="lien" type="url" maxlength="300" placeholder="https://" />
-  </div>
-  <div class="champ">
-    <label for="e-message">Message <span class="facultatif">(facultatif)</span></label>
-    <textarea id="e-message" name="message" rows="4" maxlength="3000"></textarea>
-  </div>
-  <div class="champ champ--case">
-    <input id="e-consentement" name="consentement" type="checkbox" value="oui" required />
-    <label for="e-consentement">J'accepte que mes informations servent à étudier ma candidature (<a href="/confidentialite">confidentialité</a>).</label>
-  </div>
-  <p class="aide">Les champs marqués * sont obligatoires.</p>
-  <button type="submit" class="bouton bouton--principal" data-umami-event="envoi-candidature-expert">Envoyer ma candidature</button>
+  <button type="submit" class="bouton bouton--principal bouton--grand" data-umami-event="envoi-candidature-expert">Envoyer ma candidature <Icone nom="arrow-right" taille={20} /></button>
 </form>
 
 <script>
   import { initialiserFormulaires } from '../scripts/formulaire.ts';
   initialiserFormulaires();
 </script>
+
+<style>
+  .formulaire-expert { gap: var(--esp-4); }
+  .formulaire__tete { display: grid; gap: 0.25rem; }
+  .formulaire__titre { margin: 0; font-size: var(--fs-xl); }
+  .groupe { display: grid; gap: var(--esp-3); padding-top: var(--esp-4); border-top: 1px solid var(--ligne); }
+  .groupe__titre { display: flex; align-items: center; gap: 0.625rem; margin: 0; font-size: var(--fs-base); letter-spacing: -0.01em; }
+  .groupe__numero {
+    display: inline-grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; border-radius: 8px;
+    background: var(--ae-vert-foret); color: #FFFFFF; font-size: var(--fs-sm); font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .champ--case { padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--creme-douce); }
+</style>

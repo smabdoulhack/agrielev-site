@@ -1,4 +1,5 @@
 ---
+// Carte d'un membre de l'équipe ou du réseau (publié seulement avec autorisation de citer).
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 
@@ -10,22 +11,30 @@ const { expert } = Astro.props;
 const { nom, role, specialite, photo } = expert.data;
 const initiales = nom.split(' ').map((m) => m[0]).join('').slice(0, 2);
 ---
-<article class="carte-expert" data-test="carte-expert">
-  {photo
-    ? <Image src={photo} alt="" width={96} height={96} class="carte-expert__photo" />
-    : <span class="carte-expert__initiales" aria-hidden="true">{initiales}</span>}
-  <div>
+<article class="carte carte-expert" data-test="carte-expert">
+  <div class="carte-expert__portrait">
+    {photo
+      ? <Image src={photo} alt="" width={320} height={320} densities={[1, 2]} class="carte-expert__photo" />
+      : <span class="carte-expert__initiales" aria-hidden="true">{initiales}</span>}
+    <span class="etiquette etiquette--blanc etiquette--forte carte-expert__role">{ROLES[role]}</span>
+  </div>
+  <div class="carte-expert__corps">
     <h3>{nom}</h3>
-    <p class="carte-expert__role">{ROLES[role]}</p>
     <p>{specialite}</p>
   </div>
 </article>
 
 <style>
-  .carte-expert { display: flex; gap: var(--esp-3); align-items: center; padding: var(--esp-4); background: #FFFFFF; border-radius: var(--radius); }
-  .carte-expert h3 { margin-bottom: var(--esp-1); }
-  .carte-expert p { margin: 0; }
-  .carte-expert__role { color: var(--ae-vert-foret); font-weight: 600; }
-  :global(.carte-expert__photo), .carte-expert__initiales { flex: none; width: 6rem; height: 6rem; border-radius: 50%; object-fit: cover; }
-  .carte-expert__initiales { display: grid; place-items: center; background: var(--ae-vert-brume); color: var(--ae-vert-foret); font-family: var(--font-titre); font-weight: 800; font-size: 1.75rem; }
+  .carte-expert { height: 100%; padding: 0; overflow: hidden; gap: 0; }
+  .carte-expert__portrait { position: relative; aspect-ratio: 4 / 5; background: radial-gradient(circle at 30% 20%, #FFFFFF, var(--ae-vert-brume) 70%); }
+  :global(.carte-expert__photo) { width: 100%; height: 100%; object-fit: cover; }
+  .carte-expert__initiales {
+    display: grid; place-items: center; width: 100%; height: 100%;
+    font-family: var(--font-titre); font-weight: 800; font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem); letter-spacing: -0.03em; color: var(--ae-vert-foret);
+  }
+  .carte-expert__role { position: absolute; left: 0.75rem; bottom: 0.75rem; }
+  .carte-expert__corps { display: grid; gap: 0.25rem; padding: var(--esp-3) var(--esp-4) var(--esp-4); border-top: 3px solid var(--ae-or-recolte); }
+  .carte-expert__corps > * { margin: 0; }
+  .carte-expert h3 { font-size: var(--fs-lg); }
+  .carte-expert p { color: var(--texte-doux); }
 </style>

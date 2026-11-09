@@ -1,5 +1,5 @@
 - { id: elevage, nom: Élevage, famille: animales, ordre: 1, pictogramme: cow, statut: preparation, description: "Bovins, ovins, caprins, porcs ; module parent de Cuniculture et Aviculture." }
-- { id: cuniculture, nom: Cuniculture, famille: animales, ordre: 2, pictogramme: rabbit, statut: preparation, description: "CuniSmart by AgriElev." }
+- { id: cuniculture, nom: Cuniculture, famille: animales, ordre: 2, pictogramme: rabbit, statut: pilote, description: "CuniSmart by AgriElev." }
 - { id: aviculture, nom: Aviculture, famille: animales, ordre: 3, pictogramme: bird, statut: preparation, description: "Poulets de chair, pondeuses, cailles." }
 - { id: aquaculture, nom: Aquaculture, famille: aquatiques, ordre: 1, pictogramme: fish, statut: preparation, description: "Pisciculture, écloseries, aliments." }
 - { id: cultures, nom: Cultures, famille: vegetales, ordre: 1, pictogramme: plant, statut: preparation, description: "Maïs, riz, soja, maraîchage, anacarde." }

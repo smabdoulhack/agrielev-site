@@ -1,0 +1,23 @@
+---
+// Motif décoratif inspiré des deux arcs Or du logo (le signal connecté) : arcs concentriques.
+// Il ne reproduit pas le logo et reste purement décoratif (aria-hidden).
+interface Props {
+  classe?: string;
+  couleur?: string;
+  opacite?: number;
+}
+const { classe, couleur = 'var(--ae-or-recolte)', opacite = 0.35 } = Astro.props;
+const rayons = [60, 110, 160, 210, 260];
+---
+<svg class:list={['motif', classe]} viewBox="0 0 300 300" aria-hidden="true" focusable="false" style={`--motif-couleur: ${couleur}; --motif-opacite: ${opacite}`}>
+  {rayons.map((r, i) => (
+    <path d={`M ${300 - r} 300 A ${r} ${r} 0 0 1 300 ${300 - r}`} fill="none" stroke-width={i === 0 ? 10 : 6} stroke-linecap="round" />
+  ))}
+  <circle cx="300" cy="300" r="22" />
+</svg>
+
+<style>
+  .motif { pointer-events: none; }
+  .motif path { stroke: var(--motif-couleur); opacity: var(--motif-opacite); }
+  .motif circle { fill: var(--motif-couleur); opacity: calc(var(--motif-opacite) + 0.2); }
+</style>

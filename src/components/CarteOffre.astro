@@ -1,35 +1,104 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import Photo from './Photo.astro';
 import Icone from './Icone.astro';
 import BadgeStatut from './BadgeStatut.astro';
+import EcranApp from './EcranApp.astro';
+import type { Capture } from '../data/captures.ts';
+import { lienContact } from '../lib/sujets.ts';
 
 interface Props {
   offre: CollectionEntry<'offres'>;
+  numero: number;
+  /** Carte large : texte complet, encadré et deux boutons. */
+  grande?: boolean;
+  /** Écran réel de CuniSmart affiché dans la carte (offre phare). */
+  capture?: Capture;
 }
-const { offre } = Astro.props;
-const { titre, accroche, statut, photo, icone } = offre.data;
+const { offre, numero, grande = false, capture } = Astro.props;
+const { titre, accroche, description, statut, actions } = offre.data;
+
+const DOMAINES: Record<string, string> = {
+  'gestion-numerique': 'Numérique et filières',
+  'formation-expertise': 'Savoir et diffusion',
+  transformation: 'Transformation',
+  marches: 'Filières et marché',
+  innovation: 'Innovation',
+};
+const POINTS: Record<string, string[]> = {
+  'gestion-numerique': ['Fonctionne sans réseau', 'Suivi consolidé des coopératives', 'Élevage, cultures, transformation', 'Gratuit pendant le pilote'],
+};
+const ENCADRES: Record<string, { icone: string; titre: string; texte: string }> = {
+  'formation-expertise': { icone: 'graduation-cap', titre: 'CuniMaster', texte: 'Des leçons et leurs quiz par filière, à suivre dans CuniSmart.' },
+};
+const lien = (a: (typeof actions)[number]) => (a.sujet ? lienContact(a.sujet, `/solutions#${offre.id}`) : a.url!);
+const premierParagraphe = description.split('\n\n')[0];
+const points = POINTS[offre.id] ?? [];
+const encadre = ENCADRES[offre.id];
 ---
-<article class="carte-offre" data-test="carte-offre">
-  <Photo photo={{ src: photo, alt: '' }} classe="carte-offre__photo" sizes="(min-width: 72rem) 22rem, (min-width: 48rem) 45vw, 100vw" />
+<article
+  class:list={['carte', 'carte--entre', 'carte-offre', `carte--${statut}`, grande ? 'carte-offre--grande' : 'carte-offre--petite', { 'carte-offre--ecran': capture }]}
+  data-test="carte-offre"
+>
   <div class="carte-offre__corps">
-    <div class="carte-offre__haut">
-      <span class="carte-offre__icone"><Icone nom={icone} taille={22} /></span>
+    <div class="carte__haut">
+      <span class="etiquette">Offre {numero} · {DOMAINES[offre.id] ?? 'Offre'}</span>
       <BadgeStatut statut={statut} />
     </div>
-    <h3><a href={`/solutions#${offre.id}`}>{titre}</a></h3>
-    <p>{accroche}</p>
+    <h3>{titre}</h3>
+    <p>{grande ? premierParagraphe : accroche}</p>
+    {grande && points.length > 0 && (
+      <ul class="liste-coches liste-coches--2 liste-coches--encadree">{points.map((p) => <li>{p}</li>)}</ul>
+    )}
+    {grande && encadre && (
+      <div class="carte-offre__encadre">
+        <span class="pastille"><Icone nom={encadre.icone} taille={20} /></span>
+        <div>
+          <p class="carte-offre__encadre-titre">{encadre.titre}</p>
+          <p>{encadre.texte}</p>
+        </div>
+      </div>
+    )}
+    <div class:list={['carte-offre__actions', { 'actions actions--serrees': grande }]}>
+      {grande
+        ? actions.slice(0, 2).map((a, j) => (
+            <a class:list={['bouton', 'bouton--petit', j === 0 ? 'bouton--principal' : 'bouton--brume']} href={lien(a)}>{a.libelle}</a>
+          ))
+        : <a class="lien-fleche" href={lien(actions[0])}>{actions[0].libelle}<Icone nom="caret-right" taille={16} /></a>}
+    </div>
   </div>
+  {capture && (
+    <div class="carte-offre__ecran" aria-hidden="false">
+      <EcranApp capture={capture} largeur={220} />
+    </div>
+  )}
 </article>
 
 <style>
-  .carte-offre { position: relative; display: flex; flex-direction: column; background: #FFFFFF; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgb(73 34 15 / 0.12); }
-  .carte-offre:focus-within, .carte-offre:hover { box-shadow: 0 6px 20px rgb(73 34 15 / 0.16); }
-  :global(.carte-offre__photo) { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
-  .carte-offre__corps { padding: var(--esp-4); }
-  .carte-offre__haut { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--esp-3); }
-  .carte-offre__icone { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--ae-vert-brume); color: var(--ae-vert-foret); }
-  .carte-offre h3 a { color: var(--ae-vert-foret); text-decoration: none; }
-  .carte-offre h3 a::after { content: ''; position: absolute; inset: 0; }
-  .carte-offre p { margin: 0; }
+  .carte-offre--grande { padding: var(--esp-4); }
+  .carte-offre--petite { padding: var(--esp-3); }
+  @media (min-width: 64rem) { .carte-offre--petite { padding: var(--esp-4); } .carte-offre--grande { padding: var(--esp-5); } }
+  .carte-offre__corps { display: flex; flex: 1; flex-direction: column; gap: var(--esp-2); }
+  .carte-offre__corps > * { margin: 0; }
+  .carte-offre h3 { margin-top: var(--esp-2); }
+  .carte-offre--grande h3 { font-size: var(--fs-xl); line-height: 1.2; letter-spacing: -0.015em; }
+  .carte-offre--grande .carte-offre__corps > p { font-size: var(--fs-base); line-height: 1.6; }
+  .carte-offre--grande .liste-coches { margin-top: var(--esp-2); }
+  .carte-offre__encadre { display: flex; align-items: center; gap: var(--esp-2); margin-top: var(--esp-2); padding: var(--esp-2) var(--esp-3) var(--esp-2) var(--esp-2); border-radius: var(--radius); background: rgb(233 243 234 / 0.7); }
+  .carte-offre__encadre p { margin: 0; }
+  .carte-offre__encadre .pastille { background: #FFFFFF; }
+  p.carte-offre__encadre-titre { font-family: var(--font-titre); font-size: var(--fs-lg); font-weight: 700; color: var(--ae-vert-foret); }
+  .carte-offre__actions { margin-top: auto; padding-top: var(--esp-3); }
+  .carte-offre__actions.actions { margin-top: auto; }
+
+  /* Offre phare : l'écran réel de l'application déborde en bas à droite. */
+  .carte-offre__ecran { display: none; }
+  @media (min-width: 48rem) {
+    .carte-offre--ecran { flex-direction: row; gap: var(--esp-4); overflow: hidden; padding-bottom: 0; }
+    .carte-offre--ecran .carte-offre__corps { padding-bottom: var(--esp-5); }
+    .carte-offre__ecran { display: flex; flex: none; align-items: flex-end; width: 11.5rem; margin-right: calc(-1 * var(--esp-2)); }
+    .carte-offre__ecran :global(.ecran-app) { margin-bottom: -5.5rem; }
+  }
+  @media (min-width: 64rem) {
+    .carte-offre__ecran { width: 13rem; }
+  }
 </style>

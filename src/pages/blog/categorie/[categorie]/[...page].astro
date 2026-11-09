@@ -5,20 +5,30 @@ import EnTetePage from '../../../../components/EnTetePage.astro';
 import ListeArticles from '../../../../components/ListeArticles.astro';
 import { chargerVisibles } from '../../../../lib/collections.ts';
 import { CATEGORIES, libelleCategorie, type CategorieCode } from '../../../../lib/blog.ts';
-import { PHOTOS } from '../../../../data/photos.ts';
+import { RUBRIQUES } from '../../_rubriques.ts';
 
 export const getStaticPaths = (async ({ paginate }) => {
   const articles = (await chargerVisibles('articles')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  const comptes = {
+    ...Object.fromEntries(CATEGORIES.map((c) => [c.code, articles.filter((a) => a.data.categorie === c.code).length])),
+    total: articles.length,
+  } as Record<CategorieCode, number> & { total: number };
   return CATEGORIES.flatMap((c) =>
-    paginate(articles.filter((a) => a.data.categorie === c.code), { params: { categorie: c.code }, pageSize: 9 }),
+    paginate(articles.filter((a) => a.data.categorie === c.code), { params: { categorie: c.code }, props: { comptes }, pageSize: 10 }),
   );
 }) satisfies GetStaticPaths;
 
-const { page } = Astro.props;
+const { page, comptes } = Astro.props;
 const categorie = Astro.params.categorie as CategorieCode;
 const libelle = libelleCategorie(categorie);
 ---
-<BaseLayout titre={`${libelle}, blog`} description={`Articles AgriElev de la catégorie ${libelle}.`}>
-  <EnTetePage surtitre="Blog" titre={libelle} photo={PHOTOS.blogDefaut} />
-  <section class="section"><div class="conteneur"><ListeArticles page={page} categorieActive={categorie} /></div></section>
+<BaseLayout titre={`${libelle}, blog`} description={`Articles AgriElev de la rubrique ${libelle} : ${RUBRIQUES[categorie].texte}`}>
+  <EnTetePage
+    compact
+    surtitre="Rubrique du blog"
+    titre={libelle}
+    ariane={[{ libelle: 'Blog', href: '/blog' }]}
+    chapeau={RUBRIQUES[categorie].texte}
+  />
+  <ListeArticles page={page} categorieActive={categorie} comptes={comptes} />
 </BaseLayout>

@@ -1,20 +1,161 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageService from '../../components/PageService.astro';
 import Icone from '../../components/Icone.astro';
+import Sillons from '../../components/Sillons.astro';
+import EcranApp from '../../components/EcranApp.astro';
+import BadgeStatut from '../../components/BadgeStatut.astro';
+import { PHOTOS } from '../../data/photos.ts';
+import { CAPTURES } from '../../data/captures.ts';
+import { STATUT_CUNISMART } from '../../data/cunismart.ts';
 import { SITE } from '../../data/site.ts';
+
+// Suivi de la demande : la première étape est faite, les suivantes viennent (contour pointillé).
+const SUIVI = [
+  { icone: 'check', titre: 'Demande envoyée', texte: 'Votre message nous est bien parvenu.', etat: 'Fait', fait: true },
+  { icone: 'users-three', titre: 'Lue par l’équipe concernée', texte: 'Commercial, technique ou institutionnel : le sujet choisi désigne le bon pôle.', etat: 'Prochaine étape', fait: false },
+  { icone: 'chat-circle-text', titre: 'Notre réponse', texte: 'Par e-mail ou par téléphone, selon les coordonnées laissées.', etat: SITE.delaiReponse.replace(/^./, (c) => c.toUpperCase()), fait: false },
+];
+
+const LIENS = [
+  { icone: 'newspaper', titre: 'Le blog', texte: 'Actualités d’AgriElev, conseils techniques et retours de terrain.', href: '/blog' },
+  { icone: 'users-three', titre: 'Coopératives et fédérations', texte: 'Diagnostic, pilote, formation et suivi de vos membres.', href: '/cooperatives' },
+  { icone: 'stethoscope', titre: 'AgriElev Connect', texte: 'Le réseau d’agronomes, de vétérinaires et de techniciens.', href: '/connect' },
+];
 ---
-<BaseLayout titre="Demande envoyée" noindex>
-  <section class="section"><div class="conteneur">
-    <span class="merci__icone"><Icone nom="check-circle" taille={56} /></span>
-    <h1>Merci, votre demande est bien partie</h1>
-    <p class="chapeau">Elle a été transmise à la personne concernée. Nous vous répondons {SITE.delaiReponse}.</p>
-    <div class="actions">
-      <a class="bouton bouton--principal" href="/">Retour à l'accueil</a>
-      <a class="bouton bouton--secondaire" href="/blog">Lire le blog</a>
-    </div>
-  </div></section>
-</BaseLayout>
+<PageService
+  titrePage="Demande envoyée"
+  surtitre="Demande envoyée"
+  icone="check"
+  titre="Merci, votre demande est bien partie"
+  chapeau={`Elle a été transmise à la personne concernée. Nous vous répondons ${SITE.delaiReponse}, par e-mail ou par téléphone.`}
+  photo={PHOTOS.merci}
+  panneau={{ icone: 'clock', titre: `Réponse ${SITE.delaiReponse}`, texte: 'Pensez à surveiller vos e-mails et votre téléphone.' }}
+>
+  <div class="actions">
+    <a class="bouton bouton--principal bouton--grand" href="/">Retour à l’accueil<Icone nom="arrow-right" taille={20} /></a>
+    <a class="bouton bouton--fantome bouton--grand" href="/contact"><Icone nom="envelope-simple" taille={20} />Envoyer une autre demande</a>
+  </div>
+
+  <Fragment slot="suite">
+    <section class="section section--blanc section--serree" aria-labelledby="suivi-titre">
+      <div class="conteneur">
+        <h2 id="suivi-titre" class="titre-bloc suivi__titre">Où en est votre demande</h2>
+        <ol class="liste-nue suivi">
+          {SUIVI.map((e) => (
+            <li class:list={['suivi__etape', { 'suivi__etape--fait': e.fait }]}>
+              <span class="suivi__repere" aria-hidden="true"><Icone nom={e.icone} taille={22} /></span>
+              <span class:list={['etiquette', e.fait ? '' : 'etiquette--neutre', 'suivi__etat']}><span class:list={['point', { 'point--gris': !e.fait }]} aria-hidden="true"></span>{e.etat}</span>
+              <h3>{e.titre}</h3>
+              <p>{e.texte}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section--creme" aria-labelledby="attente-titre">
+      <div class="conteneur">
+        <header class="entete-section">
+          <div>
+            <h2 id="attente-titre">En attendant notre réponse</h2>
+            <p>Découvrez ce que fait AgriElev, de l’application CuniSmart au réseau d’experts.</p>
+          </div>
+        </header>
+        <div class="attente">
+          <a class="sombre vitrine" href="/cunismart">
+            <Sillons classe="vitrine__sillons" fuite={0.2} rangs={20} />
+            <div class="vitrine__texte">
+              <span class="marque-produit vitrine__marque">CuniSmart by AgriElev</span>
+              <h3>Le cahier de l’exploitation, sur le téléphone</h3>
+              <p>Bêtes, soins, récoltes et ventes notés au jour le jour, même sans réseau.</p>
+              <div class="vitrine__pied">
+                <BadgeStatut statut={STATUT_CUNISMART} />
+                <span class="vitrine__lien">Découvrir CuniSmart<Icone nom="arrow-right" taille={18} /></span>
+              </div>
+            </div>
+            <EcranApp capture={CAPTURES.accueil} largeur={190} classe="vitrine__ecran" />
+          </a>
+          <ul class="liste-nue liens">
+            {LIENS.map((l) => (
+              <li>
+                <a class="lien" href={l.href}>
+                  <span class="pastille pastille--moyenne"><Icone nom={l.icone} taille={22} /></span>
+                  <span class="lien__texte"><strong>{l.titre}</strong>{l.texte}</span>
+                  <Icone nom="arrow-right" taille={20} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  </Fragment>
+</PageService>
 
 <style>
-  .merci__icone { color: var(--mod-vert-pousse); display: inline-block; margin-bottom: var(--esp-3); }
+  /* ---------- Suivi de la demande ---------- */
+  .suivi__titre { margin: 0 0 var(--esp-4); }
+  .suivi { position: relative; display: grid; gap: var(--esp-4); }
+  .suivi__etape { position: relative; display: grid; grid-template-columns: 3rem 1fr; column-gap: var(--esp-3); row-gap: 0.25rem; align-items: start; }
+  .suivi__etape > :not(.suivi__repere) { grid-column: 2; margin: 0; }
+  .suivi__repere {
+    grid-row: 1 / span 3; display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%;
+    background: #FFFFFF; color: var(--ae-vert-foret);
+    outline: 1.5px dashed color-mix(in srgb, var(--ae-sauge) 80%, var(--ae-vert-foret)); outline-offset: -1.5px;
+  }
+  .suivi__etape--fait .suivi__repere { background: var(--cs-vert); color: #FFFFFF; outline: none; box-shadow: var(--ombre-2); }
+  .suivi__etat { margin-bottom: 0.25rem !important; }
+  .suivi h3 { font-size: var(--fs-lg); }
+  .suivi p { font-size: var(--fs-sm); line-height: 1.43; color: var(--texte-doux); max-width: 22rem; }
+  /* Fil entre les étapes : vertical sur mobile, horizontal dès 48rem. */
+  .suivi::before { content: ''; position: absolute; left: 1.5rem; top: 3rem; bottom: 3rem; border-left: 2px dashed var(--sauge-ligne); }
+  @media (min-width: 48rem) {
+    .suivi { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--esp-4); }
+    .suivi::before { left: 3.5rem; right: 33%; top: 1.5rem; bottom: auto; border-left: 0; border-top: 2px dashed color-mix(in srgb, var(--ae-sauge) 60%, transparent); }
+    .suivi__etape { grid-template-columns: 1fr; }
+    .suivi__etape > :not(.suivi__repere) { grid-column: 1; }
+    .suivi__repere { grid-row: auto; margin-bottom: var(--esp-2); box-shadow: 0 0 0 8px #FFFFFF; }
+    .suivi__etape--fait .suivi__repere { box-shadow: 0 0 0 8px #FFFFFF, var(--ombre-2); }
+  }
+
+  /* ---------- En attendant : CuniSmart en grand, trois liens à côté ---------- */
+  .attente { display: grid; gap: var(--esp-4); }
+  @media (min-width: 64rem) { .attente { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: stretch; } }
+
+  .vitrine {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: var(--esp-4);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem); padding-bottom: 0;
+    border-radius: var(--radius); box-shadow: var(--ombre-3); text-decoration: none; color: var(--ae-vert-brume);
+    transition: box-shadow var(--transition);
+  }
+  .vitrine:hover { color: var(--ae-vert-brume); box-shadow: var(--ombre-3), 0 0 0 3px var(--ae-or-recolte); }
+  :global(.vitrine__sillons) { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; z-index: -1; color: var(--ae-sauge); opacity: 0.3; }
+  .vitrine__texte { display: flex; flex-direction: column; gap: var(--esp-2); padding-bottom: clamp(1.5rem, 1rem + 2vw, 2.5rem); max-width: 26rem; }
+  .vitrine__texte > * { margin: 0; }
+  .vitrine__marque { color: var(--ae-or-recolte); }
+  .vitrine h3 { font-size: var(--fs-xl); line-height: 1.2; letter-spacing: -0.015em; }
+  .vitrine p { color: var(--ae-vert-brume); }
+  .vitrine__pied { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-3); margin-top: var(--esp-2); }
+  .vitrine__lien { display: inline-flex; align-items: center; gap: 0.375rem; font-weight: 700; color: #FFFFFF; }
+  .vitrine:hover .vitrine__lien :global(.icone) { transform: translateX(3px); }
+  .vitrine__lien :global(.icone) { transition: transform var(--transition); }
+  .vitrine :global(.vitrine__ecran) { flex: none; margin-bottom: -2.5rem; align-self: flex-end; }
+  @media (max-width: 39.99rem) {
+    .vitrine { flex-direction: column; align-items: flex-start; }
+    .vitrine__texte { padding-bottom: 0; }
+    .vitrine :global(.vitrine__ecran) { align-self: center; width: 11rem; }
+  }
+
+  .liens { display: grid; gap: var(--esp-2); align-content: stretch; }
+  .lien {
+    display: flex; align-items: center; gap: var(--esp-3); height: 100%;
+    padding: var(--esp-3) var(--esp-4) var(--esp-3) var(--esp-3);
+    border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1);
+    text-decoration: none; color: var(--texte-doux); transition: box-shadow var(--transition);
+  }
+  .lien:hover { box-shadow: var(--ombre-2); color: var(--texte-doux); }
+  .lien__texte { display: grid; gap: 0.125rem; font-size: var(--fs-sm); line-height: 1.43; }
+  .lien__texte strong { font-family: var(--font-titre); font-size: var(--fs-lg); color: var(--ae-vert-foret); }
+  .lien > :global(.icone--fleche) { margin-left: auto; color: var(--ae-vert-foret); }
 </style>

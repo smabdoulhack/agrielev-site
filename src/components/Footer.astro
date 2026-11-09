@@ -1,57 +1,90 @@
 ---
+import { Image } from 'astro:assets';
+import logo from '../assets/logo-agrielev.png';
 import Icone from './Icone.astro';
 import { NAVIGATION, SITE, telLien } from '../data/site.ts';
+import { chargerVisibles } from '../lib/collections.ts';
+
 const annee = new Date().getFullYear();
+const offres = (await chargerVisibles('offres')).sort((a, b) => a.data.ordre - b.data.ordre);
 ---
 <footer class="pied">
-  <div class="conteneur pied__grille">
-    <div>
-      <p class="pied__nom">AgriElev</p>
-      <p class="pied__signature">{SITE.signature}</p>
+  <div class="conteneur">
+    <div class="pied__grille">
+      <div class="pied__colonne">
+        <a href="/" class="pied__logo" aria-label="AgriElev Bénin, accueil">
+          <Image src={logo} alt="" height={40} densities={[1, 2, 3]} />
+          <span aria-hidden="true">{SITE.raisonSociale}</span>
+        </a>
+        <p>{SITE.description}</p>
+        <p class="pied__identite">
+          <span>RCCM : {SITE.rccm}</span>
+          <span>IFU : {SITE.ifu}</span>
+        </p>
+      </div>
+      <nav class="pied__colonne" aria-labelledby="pied-solutions">
+        <h2 id="pied-solutions" class="pied__titre">Pôles &amp; solutions</h2>
+        <ul>
+          <li class="pied__cunismart"><a href="/cunismart">CuniSmart by AgriElev</a></li>
+          {offres.map((o) => <li><a href={`/solutions#${o.id}`}>{o.data.titre}</a></li>)}
+        </ul>
+      </nav>
+      <nav class="pied__colonne" aria-labelledby="pied-site">
+        <h2 id="pied-site" class="pied__titre">Le site</h2>
+        <ul>{NAVIGATION.filter((l) => l.href !== '/solutions').map((l) => <li><a href={l.href}>{l.libelle}</a></li>)}</ul>
+      </nav>
+      <div class="pied__colonne">
+        <h2 class="pied__titre">Contacts officiels</h2>
+        <ul class="pied__contacts">
+          {SITE.telephones.map((t) => (
+            <li><Icone nom="phone" taille={18} /><a class="pied__fort" href={telLien(t)}>{t}</a></li>
+          ))}
+          <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><Icone nom="map-pin" taille={18} /><span>{SITE.siege}</span></li>
+          {SITE.whatsapp && <li><Icone nom="whatsapp-logo" taille={18} /><a href={SITE.whatsapp}>Canal WhatsApp</a></li>}
+          {SITE.facebook && <li><Icone nom="facebook-logo" taille={18} /><a href={SITE.facebook}>Facebook</a></li>}
+          {SITE.linkedin && <li><Icone nom="linkedin-logo" taille={18} /><a href={SITE.linkedin}>LinkedIn</a></li>}
+        </ul>
+      </div>
     </div>
-    <nav aria-label="Pied de page">
-      <h2 class="pied__titre">Le site</h2>
-      <ul>{NAVIGATION.map((l) => <li><a href={l.href}>{l.libelle}</a></li>)}</ul>
-    </nav>
-    <div>
-      <h2 class="pied__titre">Nous joindre</h2>
-      <ul class="pied__contacts">
-        {SITE.telephones.map((t) => (
-          <li><Icone nom="phone" taille={18} /><a href={telLien(t)}>{t}</a></li>
-        ))}
-        <li><Icone nom="envelope-simple" taille={18} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
-        <li><Icone nom="map-pin" taille={18} /><span>{SITE.siege}</span></li>
-        {SITE.whatsapp && <li><Icone nom="whatsapp-logo" taille={18} /><a href={SITE.whatsapp}>Canal WhatsApp</a></li>}
-        {SITE.facebook && <li><Icone nom="facebook-logo" taille={18} /><a href={SITE.facebook}>Facebook</a></li>}
-        {SITE.linkedin && <li><Icone nom="linkedin-logo" taille={18} /><a href={SITE.linkedin}>LinkedIn</a></li>}
+    <div class="pied__legal">
+      <p>© {annee} {SITE.raisonSociale}. Tous droits réservés. République du Bénin.</p>
+      <ul>
+        <li><a href="/mentions-legales">Mentions légales</a></li>
+        <li><a href="/confidentialite">Confidentialité</a></li>
+        <li><a href="/conditions">Conditions d’utilisation</a></li>
       </ul>
     </div>
-  </div>
-  <div class="conteneur pied__legal">
-    <p>
-      {SITE.raisonSociale}, capital de {SITE.capital}, RCCM {SITE.rccm}, IFU {SITE.ifu}, siège : {SITE.siege}.
-    </p>
-    <p>
-      © {annee} {SITE.raisonSociale} ·
-      <a href="/mentions-legales">Mentions légales</a> ·
-      <a href="/confidentialite">Confidentialité</a> ·
-      <a href="/conditions">Conditions</a>
-    </p>
   </div>
 </footer>
 
 <style>
-  .pied { background: var(--ae-vert-foret); color: var(--ae-creme); margin-top: 0; }
-  .pied a { color: var(--ae-creme); }
-  .pied a:hover { color: #FFFFFF; }
-  .pied ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
-  .pied__grille { display: grid; gap: var(--esp-5); padding-block: var(--esp-6) var(--esp-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
-  .pied__nom { font-family: var(--font-titre); font-weight: 800; font-size: 1.5rem; margin-bottom: var(--esp-2); }
-  /* Or Récolte sur Vert Forêt : 4,2:1, réservé au grand texte gras (seuil 3:1). */
-  .pied__signature { color: var(--ae-or-recolte); font-family: var(--font-titre); font-weight: 700; font-size: 1.2rem; }
-  .pied__titre { color: var(--ae-creme); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
-  .pied__contacts li { display: flex; align-items: center; gap: var(--esp-2); }
-  .pied__legal { padding-bottom: var(--esp-4); font-size: 0.9rem; }
-  .pied__legal p:first-child { padding-top: var(--esp-4); border-top: 1px solid rgb(242 237 217 / 0.25); }
-  .pied__legal p { margin-bottom: var(--esp-2); }
+  .pied { padding: var(--esp-5) 0 var(--esp-4); background: var(--ae-creme); color: var(--ae-brun-terre); box-shadow: 0 -2px 12px rgb(73 34 15 / 0.04); font-size: var(--fs-sm); line-height: 1.43; }
+  .pied a { color: var(--texte-doux); text-decoration: none; }
+  .pied a:hover { color: var(--ae-vert-foret); text-decoration: underline; }
+  .pied ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
+  .pied p { margin: 0; color: var(--texte-doux); }
+  .pied__grille { display: grid; gap: var(--gouttiere-colonnes); margin-bottom: var(--esp-5); }
+  @media (min-width: 48rem) { .pied__grille { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 64rem) { .pied__grille { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .pied__colonne { display: grid; gap: var(--esp-2); align-content: start; }
+  .pied__logo { display: inline-flex; align-items: center; gap: var(--esp-2); }
+  .pied__logo:hover { text-decoration: none !important; }
+  .pied__logo :global(img) { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; }
+  .pied__logo span { font-family: var(--font-titre); font-weight: 700; font-size: var(--fs-lg); color: var(--ae-vert-foret); }
+  .pied__identite { display: grid; gap: 0.25rem; padding-top: 0.25rem; font-size: var(--fs-label-sm); font-weight: 600; }
+  .pied__identite span { color: var(--ae-vert-foret); }
+  .pied__titre { margin: 0; font-size: var(--fs-titre-sm); font-weight: 700; line-height: 1.4; letter-spacing: 0; color: var(--ae-vert-foret); }
+  .pied__cunismart { display: flex; align-items: center; gap: 0.375rem; }
+  .pied__cunismart::before { content: ''; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--cs-orange); }
+  .pied__cunismart a { font-weight: 600; }
+  .pied__contacts li { display: flex; align-items: flex-start; gap: 0.375rem; color: var(--texte-doux); }
+  .pied__contacts :global(.icone) { margin-top: 0.05rem; color: var(--ae-vert-foret); }
+  .pied a.pied__fort { font-weight: 600; color: var(--ae-vert-foret); }
+  .pied__legal {
+    display: flex; flex-direction: column; gap: var(--esp-3); align-items: center; justify-content: space-between;
+    padding-top: var(--esp-3); border-top: 1px solid var(--sauge-ligne); font-size: var(--fs-label-sm); font-weight: 600; text-align: center;
+  }
+  .pied__legal ul { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--esp-3); }
+  @media (min-width: 48rem) { .pied__legal { flex-direction: row; text-align: left; } }
 </style>

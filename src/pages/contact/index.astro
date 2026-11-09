@@ -1,42 +1,295 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import EnTetePage from '../../components/EnTetePage.astro';
 import FormulaireContact from '../../components/FormulaireContact.astro';
+import Photo from '../../components/Photo.astro';
 import Icone from '../../components/Icone.astro';
+import Sillons from '../../components/Sillons.astro';
+import BoutonCuniSmart from '../../components/BoutonCuniSmart.astro';
 import { PHOTOS } from '../../data/photos.ts';
 import { SITE, telLien } from '../../data/site.ts';
+import { SUJETS, type Pole } from '../../lib/sujets.ts';
+
+// Les trois pôles qui reçoivent les demandes : chaque sujet du formulaire en désigne un (src/lib/sujets.ts).
+const POLES: { code: Pole; icone: string; titre: string; texte: string }[] = [
+  { code: 'commercial', icone: 'handshake', titre: 'Pôle commercial', texte: 'Démonstrations, pilotes, achats, ventes et transformation.' },
+  { code: 'technique', icone: 'device-mobile', titre: 'Pôle technique', texte: 'L’application CuniSmart, les développeurs et les essais de terrain.' },
+  { code: 'institutionnel', icone: 'bank', titre: 'Pôle institutionnel', texte: 'Institutions, partenariats, presse et toute autre demande.' },
+];
+const sujetsDu = (pole: Pole) => SUJETS.filter((s) => s.pole === pole);
+
+const APRES = [
+  { icone: 'paper-plane-tilt', titre: 'Votre demande part au bon pôle', texte: 'Le sujet choisi l’oriente directement vers l’équipe concernée.' },
+  { icone: 'chat-circle-text', titre: 'Nous vous répondons', texte: `Par e-mail ou par téléphone, ${SITE.delaiReponse}.` },
+  { icone: 'calendar-check', titre: 'Nous convenons de la suite', texte: 'Une démonstration, un diagnostic ou un échange avec un expert du réseau AgriElev Connect.' },
+];
+
+const QUESTIONS = [
+  { q: 'Je n’ai pas d’adresse e-mail. Comment recevoir la réponse ?', r: 'Indiquez un numéro de téléphone ou WhatsApp : l’un des deux suffit pour que nous puissions vous répondre.' },
+  { q: 'J’ai un souci avec l’application CuniSmart.', r: 'Choisissez le sujet « Problème technique CuniSmart » : votre demande va directement au pôle technique. Décrivez l’écran concerné et ce que vous faisiez à ce moment-là.' },
+  { q: 'Ma coopérative veut essayer CuniSmart.', r: 'Choisissez « Pilote avec ma coopérative ». Nous commençons par un diagnostic de vos membres et de vos activités, puis nous lançons un pilote avec quelques membres.' },
+  { q: 'Puis-je envoyer le dossier de santé de mes animaux ?', r: 'Non. Ce formulaire sert à vous orienter, pas à une consultation : n’y mettez ni dossier vétérinaire détaillé ni données confidentielles d’exploitation. Nous convenons ensemble de la suite.' },
+];
 ---
 <BaseLayout titre="Contact" description="Écrivez à AgriElev : démonstration CuniSmart, pilote coopérative, partenariat, transformation, accès au marché.">
-  <EnTetePage surtitre="Contact" titre="Écrivez-nous" chapeau={`Choisissez le sujet de votre demande : elle arrive directement à la bonne personne. Nous vous répondons ${SITE.delaiReponse}.`} photo={PHOTOS.contact} />
-
-  <section class="section">
-    <div class="conteneur contact">
-      <FormulaireContact />
-      <aside class="contact__aside" aria-labelledby="joindre">
-        <h2 id="joindre">Nous joindre directement</h2>
-        <ul>
-          {SITE.telephones.map((t) => <li><Icone nom="phone" taille={20} /><a href={telLien(t)}>{t}</a></li>)}
-          <li><Icone nom="envelope-simple" taille={20} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
-          <li><Icone nom="map-pin" taille={20} /><span>{SITE.siege}</span></li>
+  <section class="contact">
+    <Sillons classe="contact__sillons" fuite={0.18} rangs={22} />
+    <div class="conteneur contact__grille">
+      <div class="contact__intro">
+        <p class="pastille-titre contact__identite"><span class="point point--or" aria-hidden="true"></span>Contact</p>
+        <h1>Écrivez-nous</h1>
+        <p class="chapeau">Choisissez le sujet de votre demande : elle arrive directement à la bonne équipe d’AgriElev, qui vous répond par e-mail ou par téléphone.</p>
+        <ul class="liste-nue contact__reperes">
+          <li><span class="pastille pastille--moyenne pastille--or"><Icone nom="clock" taille={20} /></span><span><strong>Réponse {SITE.delaiReponse}</strong>Par e-mail ou par téléphone</span></li>
+          <li><span class="pastille pastille--moyenne"><Icone nom="phone" taille={20} /></span><span><strong><a href={telLien(SITE.telephones[0])}>{SITE.telephones[0]}</a></strong>Pour nous appeler directement</span></li>
         </ul>
-        {SITE.whatsapp && (
-          <div class="contact__whatsapp">
-            <h3>Canal WhatsApp</h3>
-            <p>Un canal de diffusion pour suivre nos actualités et nos conseils. Il ne sert pas aux consultations individuelles.</p>
-            <a class="bouton bouton--secondaire" href={SITE.whatsapp}><Icone nom="whatsapp-logo" taille={20} /> Suivre le canal</a>
+      </div>
+
+      <div class="formulaire-carte contact__formulaire">
+        <div class="contact__formulaire-tete">
+          <h2>Votre demande</h2>
+          <span class="etiquette etiquette--creme"><Icone nom="shield-check" taille={14} />Lue par une personne de l’équipe</span>
+        </div>
+        <FormulaireContact />
+      </div>
+
+      <aside class="contact__aside" aria-labelledby="poles-titre">
+        <div class="poles" data-poles>
+          <h2 id="poles-titre" class="poles__titre">Qui lit votre demande</h2>
+          <p class="poles__etat" data-orientation aria-live="polite">Chaque sujet du formulaire est relié à l’un de nos trois pôles.</p>
+          <ul class="liste-nue poles__liste">
+            {POLES.map((p) => (
+              <li class="pole" data-pole={p.code}>
+                <span class="pastille pastille--moyenne pole__icone"><Icone nom={p.icone} taille={22} /></span>
+                <div class="pole__corps">
+                  <h3>{p.titre}</h3>
+                  <p>{p.texte}</p>
+                  <ul class="liste-nue pole__sujets" aria-label={`Sujets du ${p.titre.toLowerCase()}`}>
+                    {sujetsDu(p.code).map((s) => <li data-sujet={s.code}>{s.libelle}</li>)}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="raccourcis">
+          <a class="carte carte--interactive raccourci" href="/connect#candidature">
+            <span class="pastille pastille--moyenne pastille--terre"><Icone nom="graduation-cap" taille={22} /></span>
+            <span class="raccourci__texte"><strong>Vous êtes expert agricole ?</strong>Proposez votre candidature au réseau AgriElev Connect.</span>
+            <Icone nom="arrow-right" taille={20} />
+          </a>
+          <div class="carte raccourci raccourci--cunismart">
+            <span class="raccourci__texte"><strong>Vous utilisez déjà CuniSmart ?</strong>Votre cahier vous attend dans l’application.</span>
+            <BoutonCuniSmart variante="moyen" />
           </div>
-        )}
-        <h3>Vous êtes expert ?</h3>
-        <p><a href="/connect#candidature">Proposez votre candidature au réseau AgriElev Connect.</a></p>
+        </div>
       </aside>
+
+      <div class="contact__bas">
+        <div class="photo-carte photo-carte--terre contact__photo">
+          <Photo photo={PHOTOS.equipeTerrain} sizes="(min-width: 80rem) 46rem, (min-width: 64rem) 58vw, 100vw" />
+          <div class="photo-carte__haut">
+            <span class="etiquette etiquette--blanc etiquette--forte"><Icone nom="map-pin" taille={14} />{SITE.siege}</span>
+          </div>
+          <div class="photo-carte__bas contact__photo-panneau">
+            <span class="pastille pastille--grande pastille--creme"><Icone nom="users-three" taille={24} /></span>
+            <div>
+              <strong>L’équipe AgriElev</strong>
+              <p>Une équipe béninoise, sur le terrain auprès des producteurs et de leurs groupements.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sombre joindre">
+          <Sillons classe="joindre__sillons" fuite={0.9} rangs={18} />
+          <h2 class="joindre__titre">Nous joindre directement</h2>
+          <ul class="liste-nue joindre__liste">
+            {SITE.telephones.map((t) => <li><span class="joindre__icone"><Icone nom="phone" taille={20} /></span><span><span class="joindre__type">Téléphone</span><a href={telLien(t)}>{t}</a></span></li>)}
+            <li><span class="joindre__icone"><Icone nom="envelope-simple" taille={20} /></span><span><span class="joindre__type">E-mail</span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span></li>
+            <li><span class="joindre__icone"><Icone nom="map-pin" taille={20} /></span><span><span class="joindre__type">Siège</span>{SITE.raisonSociale}, {SITE.siege}</span></li>
+          </ul>
+          {SITE.whatsapp && (
+            <div class="joindre__whatsapp">
+              <p>Notre canal WhatsApp diffuse nos actualités et nos conseils. Il ne sert pas aux consultations individuelles.</p>
+              <a class="bouton bouton--clair bouton--petit" href={SITE.whatsapp}><Icone nom="whatsapp-logo" taille={18} />Suivre le canal</a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--creme apres" aria-labelledby="apres-titre">
+    <div class="conteneur disposition disposition--5-7 disposition--haut">
+      <div>
+        <h2 id="apres-titre">Après l’envoi</h2>
+        <ol class="liste-nue parcours">
+          {APRES.map((e, i) => (
+            <li class="parcours__etape">
+              <span class="parcours__repere" aria-hidden="true"><Icone nom={e.icone} taille={22} /></span>
+              <div>
+                <p class="parcours__numero">Étape {i + 1}</p>
+                <h3>{e.titre}</h3>
+                <p>{e.texte}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div class="empile">
+        <h2>Questions fréquentes</h2>
+        <div class="faq">
+          {QUESTIONS.map((x) => (
+            <details>
+              <summary>{x.q}</summary>
+              <p>{x.r}</p>
+            </details>
+          ))}
+        </div>
+      </div>
     </div>
   </section>
 </BaseLayout>
 
+<script>
+  // Met en avant le pôle qui lira la demande, selon le sujet choisi (y compris un sujet prérempli par l'adresse).
+  const select = document.querySelector<HTMLSelectElement>('#c-sujet');
+  const bloc = document.querySelector<HTMLElement>('[data-poles]');
+  const etat = bloc?.querySelector<HTMLElement>('[data-orientation]');
+  const texteInitial = etat?.textContent ?? '';
+  function orienter() {
+    if (!select || !bloc) return;
+    bloc.querySelectorAll('.est-actif').forEach((el) => el.classList.remove('est-actif'));
+    const sujet = select.value ? bloc.querySelector<HTMLElement>(`[data-sujet="${select.value}"]`) : null;
+    const pole = sujet?.closest<HTMLElement>('[data-pole]');
+    bloc.classList.toggle('poles--oriente', Boolean(pole));
+    if (!sujet || !pole) { if (etat) etat.textContent = texteInitial; return; }
+    sujet.classList.add('est-actif');
+    pole.classList.add('est-actif');
+    if (etat) etat.textContent = `Votre demande « ${sujet.textContent} » sera lue par le ${pole.querySelector('h3')?.textContent?.toLowerCase()}.`;
+  }
+  select?.addEventListener('change', orienter);
+  // Le préremplissage (?sujet=) est appliqué par src/scripts/formulaire.ts : lire la valeur une fois les scripts exécutés.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', orienter);
+  else window.setTimeout(orienter, 0);
+</script>
+
 <style>
-  .contact { display: grid; gap: var(--esp-6); }
-  @media (min-width: 64rem) { .contact { grid-template-columns: 1.4fr 1fr; } }
-  .contact__aside ul { list-style: none; margin: 0 0 var(--esp-5); padding: 0; display: grid; gap: var(--esp-3); }
-  .contact__aside li { display: flex; align-items: center; gap: var(--esp-2); }
-  .contact__whatsapp { padding: var(--esp-4); margin-bottom: var(--esp-5); border-radius: var(--radius); background: var(--ae-vert-brume); }
+  /* ---------- Ouverture : texte et pôles à gauche, formulaire à droite ---------- */
+  .contact {
+    position: relative; overflow: hidden;
+    padding: clamp(2rem, 1rem + 3.5vw, 4rem) 0 var(--section-y);
+    background: linear-gradient(to bottom, rgb(233 243 234 / 0.85), var(--surface) 32rem);
+  }
+  :global(.contact__sillons) { position: absolute !important; top: -2rem; left: -10%; width: 70% !important; height: 34rem !important; color: var(--ae-sauge); opacity: 0.35; pointer-events: none; }
+  .contact__grille {
+    position: relative; display: grid; gap: var(--esp-5);
+    grid-template-areas: 'intro' 'formulaire' 'aside' 'bas';
+  }
+  .contact__intro { grid-area: intro; display: flex; flex-direction: column; gap: var(--esp-3); }
+  .contact__intro > * { margin: 0; }
+  .contact__identite { text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); background: #FFFFFF; }
+  .contact__intro h1 { font-size: var(--fs-display); line-height: 1.02; letter-spacing: -0.035em; }
+  .contact__intro .chapeau { max-width: 32rem; }
+
+  .contact__reperes { display: grid; gap: var(--esp-2); margin-top: var(--esp-2); }
+  .contact__reperes li { display: flex; align-items: center; gap: var(--esp-3); padding: 0.75rem var(--esp-3) 0.75rem 0.75rem; border-radius: var(--radius); background: rgb(255 255 255 / 0.85); box-shadow: var(--ombre-1); backdrop-filter: blur(6px); }
+  .contact__reperes span:last-child { display: grid; font-size: var(--fs-sm); color: var(--texte-doux); line-height: 1.4; }
+  .contact__reperes strong { font-family: var(--font-titre); font-size: var(--fs-base); color: var(--ae-vert-foret); }
+  .contact__reperes strong a { text-decoration: none; }
+  .contact__reperes strong a:hover { text-decoration: underline; }
+
+  .contact__formulaire { grid-area: formulaire; position: relative; }
+  .contact__formulaire-tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-2) var(--esp-3); margin-bottom: var(--esp-3); }
+  .contact__formulaire-tete h2 { margin: 0; font-size: var(--fs-xl); }
+
+  .contact__aside { grid-area: aside; display: flex; flex-direction: column; gap: var(--esp-4); }
+
+  @media (min-width: 40rem) {
+    .contact__reperes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 64rem) {
+    .contact__grille {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas: 'intro formulaire' 'aside formulaire' 'bas bas';
+      column-gap: clamp(2.5rem, 1rem + 3vw, 4.5rem);
+      row-gap: var(--esp-5);
+    }
+    .contact__reperes { grid-template-columns: 1fr; }
+    .contact__formulaire { align-self: start; }
+  }
+
+  /* ---------- Pôles : celui qui lira la demande s'allume ---------- */
+  .poles { display: grid; gap: var(--esp-3); }
+  .poles__titre { margin: 0; font-size: var(--fs-xl); }
+  .poles__etat { margin: calc(-1 * var(--esp-2)) 0 0; font-size: var(--fs-sm); color: var(--texte-doux); }
+  .poles--oriente .poles__etat { color: var(--ae-vert-foret); font-weight: 600; }
+  .poles__liste { display: grid; gap: var(--esp-2); }
+  .pole {
+    display: flex; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3);
+    border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1);
+    transition: box-shadow var(--transition), opacity var(--transition), background-color var(--transition);
+  }
+  .pole h3 { margin: 0 0 0.125rem; font-size: var(--fs-base); }
+  .pole__corps > p { margin: 0 0 var(--esp-2); font-size: var(--fs-sm); line-height: 1.43; color: var(--texte-doux); }
+  .pole__sujets { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .pole__sujets li {
+    padding: 0.125rem 0.5rem; border-radius: 6px; background: var(--creme-douce); color: var(--ae-brun-terre);
+    font-size: var(--fs-label-sm); font-weight: 600; line-height: 1.5;
+    transition: background-color var(--transition), color var(--transition);
+  }
+  /* Les autres pôles passent au second plan sans perdre en contraste. */
+  .poles--oriente .pole:not(.est-actif) { box-shadow: inset 0 0 0 1px var(--ligne); background: transparent; }
+  .poles--oriente .pole:not(.est-actif) .pole__sujets li { background: transparent; box-shadow: inset 0 0 0 1px var(--ligne); }
+  .pole.est-actif { box-shadow: var(--ombre-2), inset 4px 0 0 var(--ae-or-recolte); }
+  .pole.est-actif .pole__icone { background: var(--ae-vert-foret); color: #FFFFFF; }
+  .pole__sujets li.est-actif { background: var(--ae-vert-foret); color: #FFFFFF; }
+
+  /* ---------- Rangée basse : l'équipe en photo et les coordonnées directes ---------- */
+  .contact__bas { grid-area: bas; display: grid; gap: var(--esp-4); }
+  .contact__photo { --hauteur-photo: 19rem; }
+  @media (min-width: 64rem) {
+    .contact__bas { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); margin-top: var(--esp-4); }
+    .contact__photo { min-height: 24rem; }
+    .contact__photo :global(.photo-conteneur) { position: absolute; inset: 0; height: 100%; }
+    .contact__photo-panneau { right: auto; width: min(26rem, calc(100% - 2rem)); }
+  }
+
+  .joindre {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: flex; flex-direction: column; gap: var(--esp-4); justify-content: center;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem); border-radius: var(--radius); box-shadow: var(--ombre-3);
+  }
+  :global(.joindre__sillons) { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; z-index: -1; color: var(--ae-or-recolte); opacity: 0.3; }
+  .joindre__titre { margin: 0; font-size: var(--fs-xl); }
+  .joindre__liste { display: grid; gap: var(--esp-3); }
+  .joindre__liste > li { display: flex; align-items: center; gap: var(--esp-3); }
+  .joindre__icone { display: grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; border-radius: var(--radius); background: rgb(233 243 234 / 0.12); color: var(--ae-or-recolte); }
+  .joindre__liste > li > span:last-child { display: grid; color: var(--ae-vert-brume); line-height: 1.4; }
+  .joindre__type { font-size: var(--fs-label-sm); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ae-vert-brume); opacity: 0.85; }
+  .joindre__liste a { font-family: var(--font-titre); font-size: var(--fs-lg); font-weight: 700; color: #FFFFFF; text-decoration: none; overflow-wrap: anywhere; }
+  .joindre__liste a:hover { text-decoration: underline; color: #FFFFFF; }
+  .joindre__whatsapp { display: grid; gap: var(--esp-2); justify-items: start; padding-top: var(--esp-3); border-top: 1px solid rgb(233 243 234 / 0.2); }
+  .joindre__whatsapp p { margin: 0; font-size: var(--fs-sm); }
+
+  /* ---------- Après l'envoi ---------- */
+  .apres h2 { margin: 0 0 var(--esp-4); font-size: var(--fs-xl); }
+  @media (min-width: 64rem) { .apres h2 { font-size: var(--fs-2xl); } }
+  .apres .empile > h2 { margin: 0; }
+  .parcours { position: relative; display: grid; gap: var(--esp-4); }
+  .parcours::before { content: ''; position: absolute; top: 1.5rem; bottom: 1.5rem; left: 1.4375rem; border-left: 2px dashed color-mix(in srgb, var(--ae-sauge) 70%, var(--ae-vert-foret)); }
+  .parcours__etape { position: relative; display: flex; align-items: flex-start; gap: var(--esp-3); }
+  .parcours__repere { display: grid; place-items: center; flex: none; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ae-vert-foret); color: #FFFFFF; box-shadow: 0 0 0 6px var(--creme-douce); }
+  .parcours__etape:last-child .parcours__repere { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  .parcours__numero { margin: 0.125rem 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--or-texte); }
+  .parcours h3 { margin: 0.125rem 0 0.25rem; }
+  .parcours p:last-child { margin: 0; color: var(--texte-doux); max-width: 30rem; }
+
+  .raccourcis { display: grid; gap: var(--esp-2); }
+  @media (min-width: 48rem) and (max-width: 63.99rem) { .raccourcis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .raccourci { flex-direction: row; align-items: center; gap: var(--esp-3); padding: var(--esp-3) var(--esp-4) var(--esp-3) var(--esp-3); text-decoration: none; color: inherit; }
+  .raccourci__texte { display: grid; gap: 0.125rem; font-size: var(--fs-sm); color: var(--texte-doux); line-height: 1.43; }
+  .raccourci__texte strong { font-family: var(--font-titre); font-size: var(--fs-base); color: var(--ae-vert-foret); }
+  .raccourci > :global(.icone--fleche) { margin-left: auto; color: var(--ae-vert-foret); }
+  .raccourci--cunismart { flex-wrap: wrap; justify-content: space-between; padding: var(--esp-3) var(--esp-4); background: var(--cs-creme); box-shadow: none; }
 </style>

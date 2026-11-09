@@ -1,102 +1,556 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icone from '../components/Icone.astro';
 import Photo from '../components/Photo.astro';
+import Sillons from '../components/Sillons.astro';
+import EcranApp from '../components/EcranApp.astro';
 import BadgeStatut from '../components/BadgeStatut.astro';
 import BoutonCuniSmart from '../components/BoutonCuniSmart.astro';
 import BandeauContact from '../components/BandeauContact.astro';
-import { PHOTOS } from '../data/photos.ts';
+import logoCuniSmart from '../assets/cunismart/logo-cunismart.webp';
 import { SITE } from '../data/site.ts';
-import { ESPECES, FONCTIONS } from '../data/cunismart.ts';
+import { PHOTOS } from '../data/photos.ts';
+import { CAPTURES, MENTION_CAPTURES } from '../data/captures.ts';
+import { ESPECES, FAIT_POUR_ICI, METIERS, POUR_TOUS, SANS_RESEAU, STATUT_CUNISMART } from '../data/cunismart.ts';
 import { lienContact } from '../lib/sujets.ts';
+import { libelleStatut } from '../lib/statut.ts';
 import { formatDate } from '../lib/format.ts';
+
+const demo = lienContact('demo-cunismart', '/cunismart');
+const statut = libelleStatut(STATUT_CUNISMART).toLowerCase();
+
+// Habillage des métiers : couleur de la charte et repère tiré de la description.
+const HABILLAGE: Record<string, { couleur: string; repere: string }> = {
+  'Élevage': { couleur: '--mod-terracotta', repere: 'Une par une ou en bande' },
+  Transformation: { couleur: '--ae-or-fonce', repere: 'De la collecte à la vente' },
+  Cultures: { couleur: '--mod-vert-pousse', repere: 'Sacs et bassines convertis en kilos' },
+  Aquaculture: { couleur: '--mod-bleu-lagune', repere: 'Bassin par bassin' },
+  Recyclage: { couleur: '--cs-vert', repere: 'En lots pesés' },
+};
+
+// Espèces : pictogramme quand il existe, filière en toutes lettres.
+const ESPECES_DETAIL: Record<string, { icone: string; filiere: string }> = {
+  Lapins: { icone: 'rabbit', filiere: 'Cuniculture' },
+  'Poules pondeuses': { icone: 'bird', filiere: 'Aviculture' },
+  Porcs: { icone: 'paw-print', filiere: 'Élevage porcin' },
+  'Chèvres': { icone: 'paw-print', filiere: 'Élevage caprin' },
+  Bovins: { icone: 'cow', filiere: 'Élevage bovin' },
+  Moutons: { icone: 'paw-print', filiere: 'Élevage ovin' },
+};
+
+const ETAPES_ICONES = ['device-mobile', 'wifi-slash', 'cloud-arrow-up'];
+const ETAPES_ETATS = ['Saisie notée', 'Gardée sur le téléphone', 'Envoyée, sans doublon'];
+const FAIT_ICONES = ['phone', 'eye', 'device-mobile', 'users-three'];
+
+const GALERIE = [CAPTURES.soins, CAPTURES.cultures, CAPTURES.cunimaster];
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: 'CuniSmart',
   applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web, Android',
-  url: SITE.urlCuniSmart,
+  operatingSystem: 'Web, Android, iOS',
+  url: SITE.urlSiteCuniSmart,
   publisher: { '@type': 'Organization', name: SITE.raisonSociale, url: SITE.url },
 };
 ---
-<BaseLayout titre="CuniSmart by AgriElev" description="CuniSmart by AgriElev, l'outil de gestion des exploitations : cheptel, reproduction, santé, finances, nutrition et traçabilité." jsonLd={jsonLd}>
-  <div class="bande-cunismart" aria-hidden="true"></div>
-  <section class="section ouverture-cs">
-    <div class="conteneur deux-colonnes">
-      <div>
-        <p class="surtitre">Outil de gestion des exploitations</p>
-        <h1>CuniSmart by AgriElev</h1>
-        <p class="chapeau">CuniSmart rassemble les informations utiles à la gestion de l'élevage et des cultures. L'application a été lancée le {formatDate(SITE.dateLancementCuniSmart)}.</p>
+<BaseLayout titre="CuniSmart by AgriElev" description="CuniSmart by AgriElev : le cahier de l'exploitation sur le téléphone, même sans réseau. Élevage, transformation, cultures, aquaculture et recyclage. En pilote, gratuit pendant le pilote." jsonLd={jsonLd}>
+  <!-- Ouverture : la marque, la promesse et les vrais écrans sur le dégradé CuniSmart. -->
+  <section class="ouverture-cs">
+    <div class="conteneur disposition disposition--6-6 ouverture-cs__grille">
+      <div class="ouverture-cs__texte">
+        <nav class="ariane" aria-label="Fil d’Ariane">
+          <ol class="liste-nue"><li><a href="/">Accueil</a></li><li><a href="/solutions#gestion-numerique">Nos solutions</a></li></ol>
+        </nav>
+        <div class="marque-cs">
+          <Image src={logoCuniSmart} alt="" width={72} height={72} densities={[1, 2]} loading="eager" class="marque-cs__logo" />
+          <div>
+            <h1>CuniSmart by AgriElev</h1>
+            <p class="marque-cs__editeur">L’application de gestion d’{SITE.raisonSociale}</p>
+          </div>
+        </div>
+        <p class="promesse">Votre cahier, sur votre téléphone. <span class="promesse__trait">Même sans réseau.</span></p>
+        <p class="chapeau">Notez vos bêtes, vos ventes et vos récoltes au champ. Tout part quand le réseau revient. En français, avec votre numéro de téléphone, sans e-mail.</p>
         <div class="actions">
           <BoutonCuniSmart variante="grand" />
-          <a class="bouton bouton--secondaire" href={lienContact('demo-cunismart', '/cunismart')}>Demander une démonstration</a>
+          <a class="bouton bouton--secondaire bouton--grand" href={demo}>Demander une démonstration</a>
         </div>
+        <ul class="liste-nue statut-cs">
+          <li><BadgeStatut statut={STATUT_CUNISMART} /></li>
+          <li><Icone nom="calendar-check" taille={18} />Lancée le {formatDate(SITE.dateLancementCuniSmart)}</li>
+          <li><Icone nom="seal-check" taille={18} />Gratuite pendant le pilote</li>
+        </ul>
       </div>
-      <Photo photo={PHOTOS.accueilCunismart} classe="photo-arrondie" prioritaire />
-    </div>
-  </section>
 
-  <section class="section">
+      <figure class="scene">
+        <div class="scene__fond" aria-hidden="true">
+          <Sillons classe="scene__sillons" fuite={0.5} rangs={18} />
+        </div>
+        <div class="scene__ecrans">
+          <EcranApp capture={CAPTURES.aFaire} largeur={230} classe="scene__ecran scene__ecran--arriere" />
+          <EcranApp capture={CAPTURES.accueil} largeur={280} classe="scene__ecran scene__ecran--avant" prioritaire />
+        </div>
+        <p class="scene__bulle scene__bulle--haut"><Icone nom="clock" taille={18} />À faire : les soins en retard d’abord</p>
+        <p class="scene__bulle scene__bulle--bas"><Icone nom="device-mobile" taille={18} />Vos activités en gros boutons</p>
+        <figcaption class="scene__mention">{MENTION_CAPTURES}</figcaption>
+      </figure>
+    </div>
+
     <div class="conteneur">
-      <h2>Espèces suivies</h2>
-      <ul class="especes">
-        {ESPECES.map((e) => <li><span>{e.nom}</span> <BadgeStatut statut={e.statut} /></li>)}
+      <ul class="liste-nue reperes-cs" aria-label="CuniSmart en bref">
+        <li><span class="reperes-cs__valeur">{METIERS.length}</span><span>métiers dans un seul cahier</span></li>
+        <li><span class="reperes-cs__valeur">{ESPECES.length}</span><span>espèces suivies en élevage</span></li>
+        <li><span class="reperes-cs__valeur">{POUR_TOUS.length}</span><span>fonctions communes à tous les métiers</span></li>
+        <li><span class="reperes-cs__valeur reperes-cs__valeur--icone"><Icone nom="device-mobile" taille={30} /></span><span>Android ou iPhone, dans le navigateur</span></li>
       </ul>
     </div>
   </section>
 
-  <section class="section section--creme">
+  <!-- Sans réseau : la séquence réelle, racontée en trois temps. -->
+  <section id="sans-reseau" class="section sombre sans-reseau">
     <div class="conteneur">
-      <h2>Fonctions</h2>
-      <p class="chapeau">Chaque fonction indique son état réel.</p>
-      <ul class="grille fonctions">
-        {FONCTIONS.map((f) => (
-          <li class="fonction" data-test="fonction">
-            <h3>{f.nom}</h3>
-            <p>{f.description}</p>
-            <BadgeStatut statut={f.statut} />
+      <header class="entete-section">
+        <div>
+          <h2>Le cahier ne demande pas de réseau. CuniSmart non plus.</h2>
+          <p>Il faut Internet pour s’inscrire et se connecter la première fois. Ensuite, pour noter, non.</p>
+        </div>
+      </header>
+      <ol class="liste-nue fil">
+        {SANS_RESEAU.map((e, i) => (
+          <li class:list={['fil__etape', `fil__etape--${i + 1}`]}>
+            <span class="fil__noeud"><Icone nom={ETAPES_ICONES[i] ?? 'check-circle'} taille={26} /></span>
+            <h3>{e.titre}</h3>
+            <p>{e.texte}</p>
+            {ETAPES_ETATS[i] && <span class="fil__etat"><Icone nom={i === SANS_RESEAU.length - 1 ? 'check-circle' : i === 1 ? 'clock' : 'notebook'} taille={16} />{ETAPES_ETATS[i]}</span>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Les métiers et les fonctions communes. -->
+  <section id="metiers" class="section metiers-section">
+    <div class="conteneur">
+      <header class="entete-section">
+        <div>
+          <h2>Cinq métiers, un seul cahier</h2>
+          <p>Chaque métier se compte dans son unité : des têtes, des litres, des sacs, des kilos. Vous ajoutez un métier quand vous voulez.</p>
+        </div>
+      </header>
+      <ul class="liste-nue metiers">
+        {METIERS.map((m) => (
+          <li class="metier" data-test="fonction" style={`--couleur-metier: var(${HABILLAGE[m.nom]?.couleur ?? '--ae-vert-foret'})`}>
+            <div class="metier__haut">
+              <span class="metier__icone"><Icone nom={m.icone} taille={26} /></span>
+              <BadgeStatut statut={m.statut} />
+            </div>
+            <h3>{m.nom}</h3>
+            <p>{m.description}</p>
+            {HABILLAGE[m.nom] && <p class="metier__repere">{HABILLAGE[m.nom].repere}</p>}
+          </li>
+        ))}
+      </ul>
+
+      <div class="pour-tous">
+        <h3 class="titre-bloc">Et pour tous les métiers</h3>
+        <ul class="liste-nue pour-tous__liste">
+          {POUR_TOUS.map((f) => (
+            <li class="fonction" data-test="fonction">
+              <span class="pastille pastille--moyenne fonction__icone"><Icone nom={f.icone} taille={22} /></span>
+              <div class="fonction__texte">
+                <h4>{f.nom}</h4>
+                <p>{f.description}</p>
+              </div>
+              <BadgeStatut statut={f.statut} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Espèces suivies en élevage. -->
+  <section id="especes" class="section section--blanc section--serree especes-section">
+    <div class="conteneur disposition disposition--4-8">
+      <div class="empile">
+        <h2 class="titre-bloc especes__titre">{ESPECES.length} espèces suivies en élevage</h2>
+        <p class="texte-doux">Pour chacune, le suivi de l’élevage dans CuniSmart et un parcours de leçons dans CuniMaster. Toutes sont {statut}.</p>
+      </div>
+      <ul class="liste-nue especes">
+        {ESPECES.map((e) => (
+          <li class="espece">
+            <span class="espece__icone"><Icone nom={ESPECES_DETAIL[e.nom]?.icone ?? 'paw-print'} taille={26} /></span>
+            <span class="espece__nom">{e.nom}</span>
+            <span class="espece__filiere">{ESPECES_DETAIL[e.nom]?.filiere}</span>
           </li>
         ))}
       </ul>
     </div>
   </section>
 
-  <section class="section">
+  <!-- Galerie des écrans réels, par public. -->
+  <section id="captures" class="section section--creme galerie-section">
     <div class="conteneur">
-      <h2>Trois façons d'utiliser CuniSmart</h2>
-      <div class="grille">
-        <div class="acces">
-          <h3>Accès individuel</h3>
-          <p>Chaque éleveur ou éleveuse peut utiliser CuniSmart pour son exploitation. Les offres en vigueur sont présentées dans l'application.</p>
+      <header class="entete-section">
+        <div>
+          <h2>Ce que vous voyez sur le téléphone</h2>
+          <p>{MENTION_CAPTURES}</p>
         </div>
-        <div class="acces">
-          <h3>Couverture collective</h3>
-          <p>Pour les coopératives et organisations agricoles, AgriElev construit une formule de couverture collective adaptée au périmètre du projet. L'organisation définit ses priorités et mobilise une enveloppe pour les services convenus.</p>
-          <a href="/cooperatives">L'accompagnement des coopératives</a>
-        </div>
-        <div class="acces">
-          <h3>Prestations de projet</h3>
-          <p>Déploiement, formation et accompagnement de terrain pour un projet de filière, sur la base d'une proposition écrite.</p>
-          <a href={lienContact('pilote-cooperative', '/cunismart')}>Présenter un projet</a>
-        </div>
+      </header>
+
+      <h3 class="galerie__groupe"><span class="galerie__pastille"><Icone nom="user" taille={18} /></span>Pour l’exploitant, au quotidien</h3>
+      <div class="galerie" tabindex="0" role="region" aria-label="Écrans de l’exploitant (défilement horizontal sur petit écran)">
+        {GALERIE.map((c, i) => (
+          <div class="galerie__case">
+            <span class="galerie__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <EcranApp capture={c} largeur={250} legende classe="galerie__ecran" />
+          </div>
+        ))}
+      </div>
+
+      <h3 class="galerie__groupe" id="cooperatives-institutions"><span class="galerie__pastille"><Icone nom="users-three" taille={18} /></span>Pour la coopérative et le territoire</h3>
+      <div class="publics">
+        <article class="public">
+          <div class="public__texte">
+            <p class="public__qui">Coopératives</p>
+            <h4 class="titre-bloc">Tenez les cahiers de vos producteurs</h4>
+            <ul class="liste-coches">
+              <li>Enregistrez les producteurs qui n’ont pas de téléphone et tenez leur cahier.</li>
+              <li>Voyez ce qui est à vérifier (une récolte invraisemblable, plus de matière transformée que collectée) et confirmez-le.</li>
+              <li>« Ma coopérative » : l’activité de tous les membres sur l’année, et qui saisit vraiment.</li>
+            </ul>
+            <a class="lien-fleche lien-fleche--vert" href="/cooperatives">L’accompagnement des coopératives<Icone nom="arrow-right" taille={18} /></a>
+          </div>
+          <div class="public__visuel"><EcranApp capture={CAPTURES.cooperative} largeur={240} legende classe="public__ecran" /></div>
+        </article>
+        <article class="public public--territoire">
+          <div class="public__texte">
+            <p class="public__qui">Mairies, directions, ministères</p>
+            <h4 class="titre-bloc">Des chiffres par territoire, jamais une ferme nommée</h4>
+            <ul class="liste-coches">
+              <li>Cheptel, cultures, transformation et participation des producteurs, par commune, département et pays.</li>
+              <li>Des exports pour Excel, qui disent leur périmètre et leur date.</li>
+              <li>Un agent ne voit que des totaux, sur le seul territoire de son institution.</li>
+            </ul>
+            <a class="lien-fleche lien-fleche--vert" href={lienContact('institution', '/cunismart', 'partenaire')}>Présenter un projet institutionnel<Icone nom="arrow-right" taille={18} /></a>
+          </div>
+          <div class="public__visuel"><EcranApp capture={CAPTURES.territoire} largeur={240} legende classe="public__ecran" /></div>
+        </article>
       </div>
     </div>
   </section>
 
-  <BandeauContact titre="Voir CuniSmart en action" texte="Nous vous présentons l'application sur votre propre exploitation ou avec votre coopérative." />
+  <!-- Fait pour ici : photo de terrain et quatre choix de conception. -->
+  <section id="fait-pour-ici" class="section section--blanc">
+    <div class="conteneur disposition disposition--5-7">
+      <div class="photo-carte photo-carte--terre fait__photo">
+        <Photo photo={PHOTOS.terrainReunion} position="50% 40%" sizes="(min-width: 80rem) 32rem, (min-width: 64rem) 40vw, 100vw" />
+        <div class="photo-carte__bas">
+          <span class="pastille pastille--grande pastille--creme"><Icone nom="users-three" taille={24} /></span>
+          <div>
+            <strong>Le technicien tient le cahier</strong>
+            <p>Pour les membres de la coopérative qui n’ont pas de téléphone.</p>
+          </div>
+        </div>
+      </div>
+      <div class="empile fait__texte">
+        <h2>Fait pour ici</h2>
+        <p class="chapeau">Peu de réseau, des téléphones simples, le plein soleil : l’application part de ce que nous voyons sur le terrain.</p>
+        <ol class="liste-nue fait">
+          {FAIT_POUR_ICI.map((f, i) => (
+            <li class="fait__item">
+              <span class="fait__icone"><Icone nom={FAIT_ICONES[i] ?? 'check-circle'} taille={22} /></span>
+              <div><h3>{f.titre}</h3><p>{f.texte}</p></div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- Accès. -->
+  <section id="acces" class="section section--creme">
+    <div class="conteneur">
+      <header class="entete-section entete-section--centre">
+        <div>
+          <h2>Trois façons d’utiliser CuniSmart</h2>
+          <p>Seul, avec votre coopérative ou dans un projet de filière.</p>
+        </div>
+      </header>
+      <div class="acces">
+        <article class="carte carte--grande carte--pilote acces__carte">
+          <span class="pastille pastille--grande pastille--creme"><Icone nom="user" taille={24} /></span>
+          <h3>Accès individuel</h3>
+          <p>Chaque éleveur ou éleveuse peut utiliser CuniSmart pour son exploitation. L’application est gratuite pendant le pilote.</p>
+          <div class="carte__pied"><BoutonCuniSmart variante="moyen" /></div>
+        </article>
+        <article class="carte carte--grande carte--sombre acces__carte acces__phare">
+          <span class="pastille pastille--grande pastille--or"><Icone nom="users-three" taille={24} /></span>
+          <h3>Couverture collective</h3>
+          <p>Pour les coopératives et organisations agricoles, AgriElev construit une formule adaptée au périmètre du projet. L’organisation définit ses priorités et mobilise une enveloppe pour les services convenus.</p>
+          <div class="carte__pied"><a class="bouton bouton--principal" href="/cooperatives">Pour les coopératives<Icone nom="arrow-right" taille={20} /></a></div>
+        </article>
+        <article class="carte carte--grande acces__carte">
+          <span class="pastille pastille--grande"><Icone nom="handshake" taille={24} /></span>
+          <h3>Prestations de projet</h3>
+          <p>Déploiement, formation et accompagnement de terrain pour un projet de filière, sur la base d’une proposition écrite.</p>
+          <div class="carte__pied"><a class="lien-fleche lien-fleche--vert" href={lienContact('pilote-cooperative', '/cunismart')}>Présenter un projet<Icone nom="arrow-right" taille={18} /></a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <BandeauContact
+    titre="Voir CuniSmart en action"
+    texte="Nous vous présentons l’application sur votre propre exploitation ou avec votre coopérative."
+    action={{ libelle: 'Organiser une démonstration', href: demo }}
+  />
 </BaseLayout>
 
 <style>
-  .bande-cunismart { height: 6px; background: var(--cs-degrade); }
-  .ouverture-cs { background: var(--cs-creme); }
-  .deux-colonnes { display: grid; gap: var(--esp-5); align-items: center; }
-  @media (min-width: 64rem) { .deux-colonnes { grid-template-columns: 1.1fr 1fr; } }
-  :global(.photo-arrondie) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
-  .especes, .fonctions { list-style: none; margin: 0; padding: 0; }
-  .especes { display: flex; flex-wrap: wrap; gap: var(--esp-3); }
-  .especes li { display: inline-flex; align-items: center; gap: var(--esp-2); padding: var(--esp-2) var(--esp-3); border-radius: var(--radius); background: var(--cs-creme); font-weight: 600; }
-  .fonction, .acces { padding: var(--esp-4); background: #FFFFFF; border-radius: var(--radius); }
-  .acces { border: 1px solid var(--ae-vert-brume); }
-  .acces h3 { color: var(--cs-orange-brule); }
+  /* ---------- Ouverture : Crème CuniSmart, dégradé réservé à la scène des écrans ---------- */
+  .ouverture-cs {
+    position: relative; overflow: hidden; isolation: isolate;
+    padding-block: clamp(1.75rem, 1rem + 3vw, 3.5rem) clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    background: linear-gradient(to bottom, var(--cs-creme), color-mix(in srgb, var(--cs-creme) 40%, var(--surface)) 80%);
+  }
+  .ouverture-cs__grille { align-items: center; row-gap: var(--esp-5); }
+  .ouverture-cs__texte { display: flex; flex-direction: column; gap: var(--esp-4); }
+  .ouverture-cs__texte > * { margin: 0; }
+  .ariane ol { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; font-size: var(--fs-sm); }
+  .ariane li + li::before { content: '/'; margin-right: 0.5rem; color: var(--cs-orange-brule); }
+  .ariane a { color: var(--ae-brun-terre); text-decoration: none; }
+  .ariane a:hover { text-decoration: underline; }
+
+  .marque-cs { display: flex; align-items: center; gap: var(--esp-3); }
+  .marque-cs :global(.marque-cs__logo) { width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 8px 20px rgb(178 74 23 / 0.25); }
+  .marque-cs h1 { margin: 0; font-size: var(--fs-xl); line-height: 1.15; letter-spacing: -0.02em; color: var(--ae-brun-terre); }
+  .marque-cs__editeur { margin: 0.125rem 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--texte-doux); }
+
+  .promesse {
+    font-family: var(--font-titre); font-weight: 800; font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.25rem); line-height: 1.04; letter-spacing: -0.035em;
+    color: var(--ae-vert-foret); max-width: 15ch; text-wrap: balance;
+  }
+  /* Trait de dégradé sous la fin de la promesse (le texte reste Vert Forêt). */
+  .promesse__trait {
+    background-image: var(--cs-degrade); background-repeat: no-repeat; background-size: 100% 0.16em; background-position: 0 94%;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
+  .ouverture-cs .chapeau { max-width: 34rem; color: var(--ae-brun-terre); }
+  .ouverture-cs .actions { margin-top: 0; }
+  .statut-cs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-4); font-size: var(--fs-sm); font-weight: 600; color: var(--ae-brun-terre); }
+  .statut-cs li { display: inline-flex; align-items: center; gap: 0.375rem; }
+  .statut-cs :global(.icone) { color: var(--cs-orange-brule); }
+
+  /* Scène : deux écrans réels posés sur le dégradé, sillons crème. */
+  .scene { position: relative; width: 100%; max-width: 36rem; margin: 0 auto; padding: var(--esp-4) 0 0; }
+  @media (min-width: 64rem) { .scene { max-width: none; } }
+  .scene__fond { position: absolute; inset: 14% 0 18%; z-index: 0; overflow: hidden; border-radius: var(--radius); background: var(--cs-degrade); box-shadow: 0 30px 60px -20px rgb(178 74 23 / 0.45); }
+  :global(.scene__sillons) { position: absolute !important; inset: 0; color: var(--cs-creme); opacity: 0.35; }
+  .scene__ecrans { position: relative; z-index: 1; display: flex; justify-content: center; align-items: flex-end; }
+  :global(.scene__ecran) { position: relative; flex: none; }
+  :global(.scene__ecran--avant) { z-index: 2; width: clamp(12rem, 9rem + 10vw, 17.5rem) !important; }
+  :global(.scene__ecran--arriere) { z-index: 1; width: clamp(10rem, 7.5rem + 8vw, 14.5rem) !important; margin-right: -4.5rem; margin-bottom: 3rem; transform: rotate(-7deg); }
+  .scene__bulle {
+    position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 0.5rem; margin: 0;
+    padding: 0.5rem 0.875rem; border-radius: var(--radius); background: rgb(255 255 255 / 0.95); box-shadow: var(--ombre-3);
+    font-size: var(--fs-sm); font-weight: 700; color: var(--ae-brun-terre); white-space: nowrap;
+  }
+  .scene__bulle :global(.icone) { color: var(--cs-orange-brule); }
+  .scene__bulle--haut { top: 20%; left: 0; }
+  .scene__bulle--bas { bottom: 18%; right: 0; background: var(--ae-vert-foret); color: #FFFFFF; }
+  .scene__bulle--bas :global(.icone) { color: var(--ae-or-recolte); }
+  .scene__mention { position: relative; z-index: 1; margin-top: var(--esp-3); text-align: center; font-size: var(--fs-xs); color: var(--texte-doux); }
+  @media (max-width: 30rem) {
+    :global(.scene__ecran--arriere) { margin-right: -5.5rem; }
+    .scene__bulle { font-size: var(--fs-label-sm); }
+    .scene__bulle--haut { top: 10%; }
+  }
+  @media (min-width: 64rem) {
+    .scene__bulle--haut { left: -1.5rem; }
+    .scene__bulle--bas { right: -0.5rem; }
+  }
+
+  /* Repères : bandeau blanc sous l'ouverture. */
+  .reperes-cs {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden;
+    margin-top: var(--esp-5); border-radius: var(--radius); background: var(--ligne); box-shadow: var(--ombre-2);
+  }
+  @media (min-width: 64rem) { .reperes-cs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .reperes-cs li { display: flex; align-items: center; gap: var(--esp-3); padding: var(--esp-3) var(--esp-4); background: #FFFFFF; font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; color: var(--ae-brun-terre); }
+  .reperes-cs__valeur { flex: none; min-width: 2.25rem; font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-2xl); line-height: 1; letter-spacing: -0.03em; color: var(--cs-orange-brule); font-variant-numeric: tabular-nums; }
+  .reperes-cs__valeur--icone { display: inline-grid; place-items: center; }
+  @media (max-width: 30rem) { .reperes-cs li { flex-direction: column; align-items: flex-start; gap: var(--esp-1); padding: var(--esp-3); } }
+
+  /* ---------- Sans réseau ---------- */
+  .sans-reseau { position: relative; overflow: hidden; isolation: isolate; }
+  .sans-reseau .entete-section p { color: var(--ae-vert-brume); }
+  .fil { display: grid; gap: var(--esp-5); }
+  @media (min-width: 48rem) { .fil { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--esp-4); } }
+  /* Petit écran : le fil descend le long des pastilles, le texte à droite. */
+  .fil__etape { position: relative; display: grid; grid-template-columns: 4rem minmax(0, 1fr); column-gap: var(--esp-3); row-gap: var(--esp-2); align-content: start; }
+  .fil__etape > * { margin: 0; grid-column: 2; }
+  .fil__etape > .fil__noeud { grid-column: 1; grid-row: 1 / span 3; align-self: start; }
+  @media (min-width: 48rem) {
+    .fil__etape { display: flex; flex-direction: column; }
+    .fil__etape > .fil__noeud { margin-bottom: var(--esp-2); }
+  }
+  .fil__noeud {
+    position: relative; z-index: 1; display: inline-grid; place-items: center; flex: none; width: 4rem; height: 4rem; border-radius: 50%;
+    background: var(--ae-vert-brume); color: var(--ae-vert-foret); box-shadow: 0 0 0 6px rgb(233 243 234 / 0.12);
+  }
+  .fil__etape--2 .fil__noeud { background: var(--ae-vert-foret); color: var(--ae-creme); box-shadow: 0 0 0 2px var(--ae-sauge); }
+  .fil__etape--3 .fil__noeud { background: var(--ae-or-recolte); color: var(--ae-brun-terre); box-shadow: 0 0 0 6px rgb(214 160 27 / 0.2); }
+  .fil h3 { font-size: var(--fs-xl); }
+  .fil p { max-width: 22rem; color: var(--ae-vert-brume); }
+  .fil__etat {
+    display: inline-flex; align-items: center; gap: 0.375rem; width: fit-content; margin-top: var(--esp-1) !important;
+    padding: 0.25rem 0.75rem; border-radius: var(--radius); background: rgb(255 255 255 / 0.1);
+    font-size: var(--fs-label-sm); font-weight: 700; color: #FFFFFF;
+  }
+  .fil__etape--3 .fil__etat { background: var(--ae-or-recolte); color: var(--ae-brun-terre); }
+  /* Le fil entre les étapes : plein, puis pointillé tant qu'il n'y a pas de réseau. */
+  .fil__etape:not(:last-child)::after {
+    content: ''; position: absolute; left: calc(2rem - 1px); top: 4.75rem; bottom: calc(-1 * var(--esp-5) + 0.25rem);
+    border-left: 2px solid var(--ae-sauge);
+  }
+  .fil__etape.fil__etape--2::after { border-left-style: dashed; border-left-color: var(--ae-or-recolte); }
+  @media (min-width: 48rem) {
+    .fil__etape:not(:last-child)::after { left: 4.75rem; right: calc(-1 * var(--esp-4) + 0.75rem); top: 2rem; bottom: auto; border-left: 0; border-top: 2px solid var(--ae-sauge); }
+    .fil__etape.fil__etape--2:not(:last-child)::after { border-top: 2px dashed var(--ae-or-recolte); }
+  }
+
+  /* ---------- Métiers ---------- */
+  .metiers-section { background: color-mix(in srgb, var(--cs-creme) 55%, var(--surface)); }
+  .metiers { display: grid; gap: var(--esp-3); }
+  @media (min-width: 48rem) {
+    .metiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metiers > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  }
+  @media (min-width: 64rem) {
+    .metiers { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--gouttiere-colonnes); }
+    .metiers > * { grid-column: span 2; }
+    .metiers > :nth-child(-n + 2) { grid-column: span 3; }
+    .metiers > :last-child:nth-child(odd) { grid-column: span 2; }
+  }
+  .metier {
+    position: relative; display: flex; flex-direction: column; gap: var(--esp-2); overflow: hidden;
+    padding: var(--esp-4); border-radius: var(--radius);
+    background: color-mix(in srgb, var(--couleur-metier) 11%, #FFFFFF);
+    box-shadow: var(--ombre-1), inset 0 4px 0 var(--couleur-metier);
+  }
+  .metier > * { margin: 0; }
+  .metier__haut { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2); margin-bottom: var(--esp-2) !important; }
+  .metier__icone { display: inline-grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: var(--radius); background: var(--couleur-metier); color: #FFFFFF; box-shadow: var(--ombre-2); }
+  .metier h3 { font-size: var(--fs-xl); color: var(--ae-brun-terre); }
+  .metier p { font-size: var(--fs-base); line-height: 1.55; color: var(--texte-doux); }
+  .metiers > :nth-child(-n + 2) h3 { font-size: var(--fs-2xl); }
+  .metier p.metier__repere {
+    display: inline-flex; align-items: center; gap: 0.5rem; margin-top: auto; padding-top: var(--esp-3);
+    border-top: 1px solid color-mix(in srgb, var(--couleur-metier) 25%, transparent);
+    font-size: var(--fs-sm); font-weight: 700; color: var(--ae-brun-terre);
+  }
+  .metier__repere::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--couleur-metier); }
+
+  .pour-tous { margin-top: var(--esp-6); }
+  .pour-tous h3 { margin: 0 0 var(--esp-4); }
+  .pour-tous__liste { display: grid; gap: var(--esp-3); }
+  @media (min-width: 40rem) { .pour-tous__liste { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 64rem) { .pour-tous__liste { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .fonction { display: flex; flex-direction: column; gap: var(--esp-2); padding: var(--esp-4); border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-1); }
+  .fonction__icone { background: var(--cs-creme); color: var(--cs-orange-brule); }
+  .fonction__texte h4 { margin: var(--esp-1) 0 0.25rem; font-size: var(--fs-lg); }
+  .fonction__texte p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--texte-doux); }
+  .fonction :global(.badge) { margin-top: auto; }
+
+  /* ---------- Espèces ---------- */
+  .especes-section { border-block: 1px solid var(--ligne); }
+  .especes__titre { margin: 0; font-size: var(--fs-2xl); font-weight: 800; letter-spacing: -0.028em; }
+  .especes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-2); }
+  @media (min-width: 40rem) { .especes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .espece {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--esp-3); align-items: center;
+    padding: var(--esp-3); border-radius: var(--radius); background: color-mix(in srgb, var(--mod-terracotta) 8%, #FFFFFF);
+    border: 1px solid color-mix(in srgb, var(--mod-terracotta) 18%, transparent);
+  }
+  .espece__icone { grid-row: span 2; display: inline-grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: #FFFFFF; color: var(--mod-terracotta); box-shadow: var(--ombre-1); }
+  .espece__nom { font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-lg); line-height: 1.2; color: var(--ae-brun-terre); }
+  .espece__filiere { font-size: var(--fs-sm); color: var(--texte-doux); }
+  @media (max-width: 39.99rem) {
+    .espece { grid-template-columns: minmax(0, 1fr); row-gap: 0.25rem; }
+    .espece__icone { grid-row: auto; width: 2.5rem; height: 2.5rem; margin-bottom: 0.25rem; }
+  }
+
+  /* ---------- Galerie ---------- */
+  .galerie__groupe { display: flex; align-items: center; gap: var(--esp-2); margin: 0 0 var(--esp-4); font-size: var(--fs-lg); }
+  .galerie__groupe:not(:first-of-type) { margin-top: var(--esp-6); }
+  .galerie__pastille { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 8px; background: var(--cs-creme); color: var(--cs-orange-brule); }
+  .galerie {
+    display: grid; grid-auto-flow: column; grid-auto-columns: min(16rem, 72vw); gap: var(--esp-3);
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding-bottom: var(--esp-3);
+    scrollbar-width: thin; scrollbar-color: var(--ligne-forte) transparent;
+  }
+  .galerie:focus-visible { outline-offset: 6px; }
+  @media (min-width: 64rem) { .galerie { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; padding-bottom: 0; gap: var(--gouttiere-colonnes); } }
+  .galerie__case {
+    position: relative; display: flex; justify-content: center; scroll-snap-align: start;
+    padding: var(--esp-5) var(--esp-3) var(--esp-4); border-radius: var(--radius);
+    background: linear-gradient(to bottom, #FFFFFF, color-mix(in srgb, var(--cs-creme) 60%, #FFFFFF));
+    box-shadow: var(--ombre-1);
+  }
+  .galerie__numero { position: absolute; top: var(--esp-3); left: var(--esp-3); font-family: var(--font-titre); font-weight: 800; font-size: var(--fs-xl); line-height: 1; color: var(--cs-orange-brule); font-variant-numeric: tabular-nums; }
+  :global(.galerie__ecran) { width: min(14rem, 100%) !important; }
+  :global(.galerie__ecran figcaption), :global(.public__ecran figcaption) { text-align: center; }
+
+  .publics { display: grid; gap: var(--esp-3); }
+  @media (min-width: 64rem) { .publics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gouttiere-colonnes); } }
+  .public {
+    display: grid; gap: var(--esp-4); overflow: hidden;
+    padding: var(--esp-4) var(--esp-4) 0; border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--ombre-2);
+  }
+  @media (min-width: 40rem) { .public { grid-template-columns: minmax(0, 1fr) 13rem; padding: var(--esp-4) 0 0 var(--esp-4); } }
+  @media (min-width: 64rem) { .public { padding: var(--esp-5) 0 0 var(--esp-5); } }
+  .public__texte { display: flex; flex-direction: column; gap: var(--esp-3); padding-bottom: var(--esp-4); }
+  .public__texte > * { margin: 0; }
+  .public__qui { font-size: var(--fs-sm); font-weight: 700; color: var(--cs-orange-brule); }
+  .public--territoire .public__qui { color: var(--mod-bleu-lagune); }
+  .public h4 { font-size: var(--fs-xl); line-height: 1.25; }
+  .public .liste-coches { font-size: var(--fs-sm); color: var(--texte-doux); }
+  .public .lien-fleche { margin-top: auto; }
+  .public__visuel { position: relative; display: flex; justify-content: center; align-items: flex-end; padding-top: var(--esp-3); background: linear-gradient(to top, var(--cs-creme), transparent 75%); }
+  .public--territoire .public__visuel { background: linear-gradient(to top, var(--ae-vert-brume), transparent 75%); }
+  :global(.public__ecran) { width: min(12rem, 70%) !important; padding-bottom: var(--esp-3); }
+  @media (min-width: 40rem) { :global(.public__ecran) { width: 10.5rem !important; } }
+
+  /* ---------- Fait pour ici ---------- */
+  .fait__photo { --hauteur-photo: 22rem; --hauteur-photo-large: 36rem; }
+  .fait__photo .photo-carte__bas { left: 1rem; right: 1rem; }
+  @media (min-width: 40rem) { .fait__photo .photo-carte__bas { right: auto; max-width: 22rem; } }
+  .fait__texte { gap: var(--esp-4); }
+  .fait__texte h2 { margin: 0; }
+  .fait { display: grid; gap: var(--esp-3); }
+  @media (min-width: 40rem) { .fait { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .fait__item { display: flex; align-items: flex-start; gap: var(--esp-3); padding: var(--esp-3); border-radius: var(--radius); background: color-mix(in srgb, var(--cs-creme) 60%, #FFFFFF); }
+  .fait__icone { display: inline-grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: var(--radius); background: var(--cs-orange); color: var(--ae-brun-terre); }
+  .fait__item h3 { margin: 0 0 0.25rem; font-size: var(--fs-lg); line-height: 1.3; }
+  .fait__item p { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--texte-doux); }
+
+  /* ---------- Accès ---------- */
+  .acces { display: grid; gap: var(--esp-3); align-items: stretch; }
+  @media (min-width: 48rem) and (max-width: 63.99rem) {
+    .acces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .acces__phare { grid-column: 1 / -1; order: -1; }
+  }
+  @media (min-width: 64rem) { .acces { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gouttiere-colonnes); } }
+  .acces__carte { gap: var(--esp-3); }
+  .acces__carte h3 { font-size: var(--fs-xl); }
+  .acces__phare { overflow: hidden; isolation: isolate; box-shadow: var(--ombre-3); }
+  @media (min-width: 64rem) { .acces__phare { transform: translateY(-1rem); } }
+
+  /* Bandeau final : l'action est longue, elle passe à la ligne sur petit écran. */
+  @media (max-width: 63.99rem) {
+    :global(.bandeau) { grid-template-columns: minmax(0, 1fr); }
+    :global(.bandeau__actions .bouton) { white-space: normal; text-align: center; }
+  }
 </style>
