@@ -10,6 +10,7 @@
 # Le contenu du site ne passe pas par ce script : le conteneur « construction » le
 # reconstruit sur le VPS à chaque commit de la branche BRANCHE (voir README.md).
 # Accès : l'alias SSH `cunismart-vps` (~/.ssh/config), ou VPS=utilisateur@hote.
+# BRANCHE=<branche> choisit la branche mise en ligne (écrit dans /srv/agrielev/.env ; main par défaut).
 set -euo pipefail
 
 VPS="${VPS:-cunismart-vps}"
@@ -33,10 +34,10 @@ essai_local() {
 	python3 -m unittest discover -s "$ICI/formulaires" -q 2>&1 | tail -1
 
 	etape "Configuration Caddy"
-	docker run --rm -v "$ICI/Caddyfile:/etc/caddy/Caddyfile:ro" "$CADDY" caddy validate --config /etc/caddy/Caddyfile >/dev/null
+	docker run --rm -v "$ICI/Caddyfile:/etc/caddy/Caddyfile:ro" "$CADDY" caddy validate --config /etc/caddy/Caddyfile >"$TMP/validation.log" 2>&1 || { cat "$TMP/validation.log"; exit 1; }
 	printf '{\n\tadmin off\n}\nimport /sites/*.caddy\n' > "$TMP/proxy.Caddyfile"
 	docker run --rm -v "$TMP/proxy.Caddyfile:/etc/caddy/Caddyfile:ro" -v "$ICI/agrielev.caddy:/sites/agrielev.caddy:ro" "$CADDY" \
-		caddy validate --config /etc/caddy/Caddyfile >/dev/null
+		caddy validate --config /etc/caddy/Caddyfile >"$TMP/validation.log" 2>&1 || { cat "$TMP/validation.log"; exit 1; }
 	echo "  ok  Caddyfile du site et fichier du proxy"
 
 	etape "Essai local du site construit (dist/) et du service des formulaires"
@@ -52,6 +53,10 @@ essai_local() {
 		-v "$ICI/Caddyfile:/etc/caddy/Caddyfile:ro" -v "$TMP/site:/srv/site:ro" -v "$PROJET/dist:$PROJET/dist:ro" \
 		"$CADDY" >/dev/null
 	for _ in $(seq 30); do curl -fs -o /dev/null http://127.0.0.1:3298/ && break; sleep 0.5; done
+	for _ in $(seq 30); do
+		docker exec agrielev-essai-formulaires python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/sante', timeout=2)" 2>/dev/null && break
+		sleep 0.5
+	done
 	local base=http://127.0.0.1:3298
 	code() { curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$base$1"; }
 	verifier "$(code /)" / 200
@@ -86,6 +91,8 @@ installer() {
 	# il est recopié de fichier à fichier, sans passer par ce poste ni par le journal.
 	distant "set -e; cd $DISTANT
 		[ -f .env ] || { cp env.exemple .env; chmod 600 .env; echo '  .env créé'; }
+		if [ -n '${BRANCHE:-}' ]; then sed -i 's/^BRANCHE=.*/BRANCHE=${BRANCHE:-}/' .env; fi
+		echo \"  branche mise en ligne : \$(grep -E '^BRANCHE=' .env | cut -d= -f2)\"
 		if [ ! -s secrets/smtp ]; then
 			umask 077
 			grep '^MAIL_PASSWORD=' /srv/cunismart/.env | head -1 | cut -d= -f2- | sed -e 's/^\"//' -e 's/\"\$//' -e \"s/^'//\" -e \"s/'\$//\" > secrets/smtp
@@ -108,19 +115,21 @@ installer() {
 	verifier "$(distant "cat $DISTANT/site/VERSION")" "version en ligne" "$attendu"
 
 	etape "Vérification par le réseau du proxy (le DNS n'est pas nécessaire)"
-	distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code}' http://agrielev-site/" | { read -r c; verifier "$c" "agrielev-site /" 200; }
-	distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code} %{redirect_url}' http://agrielev-site/solutions" | { read -r c; verifier "$c" "agrielev-site /solutions" "308 http://agrielev-site/solutions/"; }
-	distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code} %{redirect_url}' -X POST http://agrielev-site/contact/merci/ -d form-name=contact -d site_web=robot" | { read -r c; verifier "$c" "formulaire (robot écarté)" "303"; }
+	verifier "$(distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code}' http://agrielev-site/")" "agrielev-site /" 200
+	verifier "$(distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code} %{redirect_url}' http://agrielev-site/solutions")" "agrielev-site /solutions" "308 http://agrielev-site/solutions/"
+	verifier "$(distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code} %{redirect_url}' -X POST http://agrielev-site/contact/merci/ -d form-name=contact -d site_web=robot")" "formulaire (robot écarté)" "303"
 	distant "cd $DISTANT && docker compose ps --format '  {{.Service}} : {{.Status}}'"
 }
 
 essai_envoi() {
 	etape "Demande d'essai envoyée par le vrai chemin (site, service, SMTP)"
-	distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code}' -X POST http://agrielev-site/contact/merci/ \
+	local code
+	code="$(distant "docker run --rm --network proxy $CURL -s -o /dev/null -w '%{http_code}' -X POST http://agrielev-site/contact/merci/ \
 		--data-urlencode 'form-name=contact' --data-urlencode 'subject=[Site AgriElev] Essai du formulaire sur le VPS' \
 		--data-urlencode 'sujet=autre' --data-urlencode 'profil=autre' --data-urlencode 'nom=Essai technique' \
 		--data-urlencode 'zone=VPS' --data-urlencode 'email=hello@cunismart.com' --data-urlencode 'consentement=on' \
-		--data-urlencode 'message=Demande d essai envoyée par deploiement/vps/deployer.sh --essai-envoi. Aucune action à faire.'" | { read -r c; verifier "$c" "envoi" 303; }
+		--data-urlencode 'message=Demande d essai envoyée par deploiement/vps/deployer.sh --essai-envoi. Aucune action à faire.'")"
+	verifier "$code" "envoi" 303
 	sleep 2
 	distant "cd $DISTANT && docker compose logs --tail 3 formulaires"
 }
